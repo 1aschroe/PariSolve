@@ -1,0 +1,21 @@
+digraph arena {
+  z0[shape=box,label="1"];
+  z1[shape=oval,label="2"];
+  z2[shape=oval,label="1"];
+  z3[shape=box,label="3"];
+  z4[shape=box,label="2"];
+  z5[shape=oval,label="4"];
+  z6[shape=oval,label="2"];
+  
+  z0->z1;
+  z1->z0;
+  z0->z0;
+  z2->z0;
+  z3->z2;
+  z5->z2;
+  z4->z2;
+  z2->z4;
+  z4->z6;
+  z6->z3;
+  z6->z5;
+}
