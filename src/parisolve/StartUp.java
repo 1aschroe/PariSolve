@@ -24,26 +24,36 @@ import org.eclipse.zest.layouts.algorithms.SpringLayoutAlgorithm;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
+import parisolve.backend.SimpleAlgorithm;
+import parisolve.backend.Solver;
 import parisolve.io.ArenaManager;
 
 public class StartUp {
 
     private static Display display = new Display();
+	final static Shell shell = new Shell(display, SWT.SHELL_TRIM | SWT.RESIZE | SWT.SCROLL_PAGE);
+    
+    final static Graph graph = new Graph(shell, SWT.NONE);
+    
+    static Arena currentArena;
+	static Map<ParityVertex, GraphNode> correspondence;
     
 	public static void main(String[] args) {
-		final Shell shell = new Shell(display, SWT.SHELL_TRIM | SWT.RESIZE | SWT.SCROLL_PAGE);
         shell.setText("PariSolve");
-		final ToolBar bar = new ToolBar(shell, SWT.HORIZONTAL | SWT.FLAT | SWT.WRAP);
-        
-        final Graph graph = new Graph(shell, SWT.NONE);
 
-		final Image openIcon = new Image(display, "resources/load_cedric_bosdonnat_01.png");
-		final ToolItem openToolItem = new ToolItem(bar, SWT.PUSH);
+		graph.setLocation(0, 55);
+        graph.setSize(500, 500);
+
 		// set the size and location of the user interface widgets
+		final ToolBar bar = new ToolBar(shell, SWT.HORIZONTAL | SWT.FLAT | SWT.WRAP);
 		bar.setSize(500, 55);
 		bar.setLocation(0, 0);
 
+		final Image openIcon = new Image(display, "resources/load_cedric_bosdonnat_01.png");
+		final Image solveIcon = new Image(display, "resources/Pocket_cube_twisted.jpg");
+
 		// Configure the ToolBar
+		final ToolItem openToolItem = new ToolItem(bar, SWT.PUSH);
 		openToolItem.setImage(openIcon);
 		openToolItem.setText("Open");
 		
@@ -53,8 +63,8 @@ public class StartUp {
 		        FileDialog fileDialog = new FileDialog(shell, SWT.OPEN);
 		        fileDialog.setText("Load Arena");
 		        try {
-					Arena arena = ArenaManager.loadArena(fileDialog.open());
-					populateGraphWithArena(graph, arena);
+					currentArena = ArenaManager.loadArena(fileDialog.open());
+					populateGraphWithArena();
 				} catch (IOException e) {
                     MessageBox box = new MessageBox(shell, SWT.ERROR);
                     box.setText("Exception occurred");
@@ -62,9 +72,21 @@ public class StartUp {
 				}
 			}
 		});
-
-		graph.setLocation(0, 55);
-        graph.setSize(500, 500);
+		
+		final ToolItem solveToolItem = new ToolItem(bar, SWT.PUSH);
+		solveToolItem.setImage(solveIcon);
+		solveToolItem.setText("Solve");
+		
+		solveToolItem.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				Solver solver = new SimpleAlgorithm();
+				Collection<? extends ParityVertex> winningRegionForPlayer = solver.getWinningRegionForPlayer(currentArena, 0);
+				for (ParityVertex winningVertex : winningRegionForPlayer) {
+					correspondence.get(winningVertex).highlight();
+				}
+			}
+		});
         
         shell.pack();
         shell.open();
@@ -75,14 +97,14 @@ public class StartUp {
         display.dispose();
 	}
 
-	protected static void populateGraphWithArena(Graph graph, Arena arena) {
-		Collection<? extends ParityVertex> vertices = arena.getVertices();
-		Map<ParityVertex, GraphNode> correspondence = new HashMap<>();
+	protected static void populateGraphWithArena() {
+		Collection<? extends ParityVertex> vertices = currentArena.getVertices();
+		 correspondence = new HashMap<>();
 		for (ParityVertex vertex : vertices) {
 			correspondence.put(vertex, new GraphNode(graph, ZestStyles.NODES_EMPTY | (vertex.getPlayer() == 0 ? ZestStyles.NODES_CIRCULAR_SHAPE : 0), vertex.getParity() + ""));
 		}
 		for (ParityVertex fromVertex : vertices) {
-			for (ParityVertex toVertex : arena.getSuccessors(fromVertex)) {
+			for (ParityVertex toVertex : currentArena.getSuccessors(fromVertex)) {
 				new GraphConnection(graph, ZestStyles.CONNECTIONS_DIRECTED, correspondence.get(fromVertex), correspondence.get(toVertex));
 			}
 		}
