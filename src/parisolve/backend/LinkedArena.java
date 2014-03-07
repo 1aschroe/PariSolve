@@ -38,6 +38,11 @@ public class LinkedArena implements Arena {
 		public void removeSuccessor(LinkedParityVertex v) {
 			successors.remove(v);
 		}
+		
+		@Override
+		public String toString() {
+			return "[player=" + getPlayer() + ",label=\"" + getParity() + "\"]";
+		}
 	}
 	
 	Map<String, LinkedParityVertex> vertices = new HashMap<>();

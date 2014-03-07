@@ -13,17 +13,19 @@ import java.util.Set;
  */
 public class SimpleAlgorithm implements Solver {
 
-	private static final int maxK = 20;
-
 	@Override
 	public Collection<? extends ParityVertex> getWinningRegionForPlayer(
 			Arena arena, int player) {
-		Map<ParityVertex, Integer> nuForLastK = new HashMap<>();
+		Map<ParityVertex, Long> nuForLastK = new HashMap<>();
+		Map<ParityVertex, ParityVertex> strategies = new HashMap<>();
 		Collection<? extends ParityVertex> vertices = arena.getVertices();
 		int n = vertices.size();
+		long maxK = calculateMaxK(vertices);
 
-		for (int k = 0; k <= maxK; k++) {
-			Map<ParityVertex, Integer> nu = new HashMap<>();
+		for (long k = 0; k <= maxK; k++) {
+			Map<ParityVertex, Long> nu = new HashMap<>();
+			Map<ParityVertex, ParityVertex> newStrategies = new HashMap<>();
+			
 			for (ParityVertex v : vertices) {
 				Collection<? extends ParityVertex> successors = arena
 						.getSuccessors(v);
@@ -33,16 +35,18 @@ public class SimpleAlgorithm implements Solver {
 					if (bestSuc == null) {
 						bestSuc = suc;
 					} else {
-						int sucValue = getValue(v, suc, nuForLastK, n);
-						int bestValue = getValue(v, bestSuc, nuForLastK, n);
+						long sucValue = getValue(v, suc, nuForLastK, n);
+						long bestValue = getValue(v, bestSuc, nuForLastK, n);
 						if ((vsPlayer == 0 && (sucValue > bestValue)) || (vsPlayer == 1 && (sucValue < bestValue))) {
 							bestSuc = suc;
 						}
 					}
 				}
 				nu.put(v, getValue(v, bestSuc, nuForLastK, n));
+				newStrategies.put(v, bestSuc);
 			}
 			nuForLastK = nu;
+			strategies = newStrategies;
 		}
 		
 		Set<ParityVertex> winningRegion = new HashSet<>();
@@ -55,12 +59,24 @@ public class SimpleAlgorithm implements Solver {
 		return winningRegion;
 	}
 
-	public static int getValue(ParityVertex v, ParityVertex u,
-			Map<ParityVertex, Integer> nuForLastK, int n) {
-		int i = v.getParity();
-		// TODO: optimize: Memoize this function
-		return (int) ((i % 2 == 0) ? Math.pow(n, i) : -Math.pow(n, i))
-				+ (nuForLastK.containsKey(u) ? nuForLastK.get(u) : 0);
+	private long calculateMaxK(Collection<? extends ParityVertex> vertices) {
+		int n = vertices.size();
+		int maxParity = Integer.MIN_VALUE;
+		for (ParityVertex vertex : vertices) {
+			if (vertex.getParity() > maxParity) {
+				maxParity = vertex.getParity();
+			}
+		}
+		return (long) (n * n * Math.pow(n, maxParity));
 	}
 
+	public static long getValue(ParityVertex v, ParityVertex u,
+			Map<ParityVertex, Long> nuForLastK, int n) {
+		return getValueFromParity(v.getParity(), n) + (nuForLastK.containsKey(u) ? nuForLastK.get(u) : 0 );
+	}
+
+	public static long getValueFromParity(int i, int n) {
+		// TODO: optimize: Memoize this function
+		return (long) ((i % 2 == 0) ? Math.pow(n, i) : -Math.pow(n, i));
+	}
 }

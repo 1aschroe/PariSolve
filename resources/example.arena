@@ -1,3 +1,4 @@
+// This is Figure 2.1 p. 26 from LNCS 2500 
 digraph arena {
   z0[shape=box,label="1"];
   z1[shape=oval,label="2"];

@@ -1,0 +1,24 @@
+// This is Figure 6.1 p. 97 from LNCS 2500 
+digraph arena {
+  v0[shape=oval,label="1"];
+  v1[shape=box,label="1"];
+  v2[shape=oval,label="0"];
+  v7[shape=box,label="0"];
+  v3[shape=box,label="1"];
+  v6[shape=oval,label="1"];
+  v5[shape=box,label="2"];
+  v4[shape=oval,label="2"];
+  
+  v0->v1;
+  v0->v7;
+  v1->v2;
+  v2->v3;
+  v7->v0;
+  v3->v0;
+  v3->v4;
+  v6->v7;
+  v6->v5;
+  v4->v3;
+  v5->v6;
+  v4->v5;
+}
