@@ -24,7 +24,7 @@ import org.eclipse.zest.layouts.algorithms.SpringLayoutAlgorithm;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
-import parisolve.backend.SimpleAlgorithm;
+import parisolve.backend.PrimitiveAlgorithm;
 import parisolve.backend.Solver;
 import parisolve.io.ArenaManager;
 
@@ -72,25 +72,25 @@ public class StartUp {
                     MessageBox box = new MessageBox(shell, SWT.ERROR);
                     box.setText("Exception occurred");
                     box.setMessage("While loading the arena, the following exception occurred:\n" + e.getMessage() + "\n" + e.getStackTrace());
-				}
-			}
-		});
-		
-		final ToolItem solveToolItem = new ToolItem(bar, SWT.PUSH);
-		solveToolItem.setImage(solveIcon);
-		solveToolItem.setText("Solve");
-		
-		solveToolItem.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent arg0) {
-				Solver solver = new SimpleAlgorithm();
-				Collection<? extends ParityVertex> winningRegionForPlayer = solver.getWinningRegionForPlayer(currentArena, 0);
-				for (ParityVertex winningVertex : winningRegionForPlayer) {
-					correspondence.get(winningVertex).highlight();
-				}
-			}
-		});
-        
+                }
+            }
+        });
+
+        final ToolItem solveToolItem = new ToolItem(bar, SWT.PUSH);
+        solveToolItem.setImage(solveIcon);
+        solveToolItem.setText("Solve");
+
+        solveToolItem.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent arg0) {
+                Solver solver = new PrimitiveAlgorithm();
+                Collection<? extends ParityVertex> winningRegionForPlayer = solver.getWinningRegionForPlayer(currentArena, 0);
+                for (ParityVertex winningVertex : winningRegionForPlayer) {
+                    correspondence.get(winningVertex).highlight();
+                }
+            }
+        });
+
         shell.pack();
         shell.open();
         while (!shell.isDisposed()) {
