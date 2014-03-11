@@ -114,13 +114,13 @@ public class PrimitiveAlgorithm implements Solver {
             currentVertex = strategy.get(currentVertex);
         }
         int loopStartIndex = path.lastIndexOf(currentVertex);
-        int maxParity = Integer.MIN_VALUE;
+        int maxPriority = Integer.MIN_VALUE;
         for (int i = loopStartIndex; i < path.size(); i++) {
-            if (path.get(i).getParity() > maxParity) {
-                maxParity = path.get(i).getParity();
+            if (path.get(i).getPriority() > maxPriority) {
+                maxPriority = path.get(i).getPriority();
             }
         }
-        return maxParity % 2;
+        return maxPriority % 2;
     }
     
     private static String getGraphVizFromStrategy(Map<ParityVertex, ParityVertex> strategy) {
@@ -129,7 +129,7 @@ public class PrimitiveAlgorithm implements Solver {
         Map<ParityVertex, Integer> numbersOfVertices = new HashMap<>();
         int i = 0;
         for (ParityVertex vertex : strategy.keySet()) {
-            resultBuilder.append(String.format("  z%d[shape=%s,label=\"%d\"];\n", i, vertex.getPlayer() == 0 ? "oval" : "box", vertex.getParity()));
+            resultBuilder.append(String.format("  z%d[shape=%s,label=\"%d\"];\n", i, vertex.getPlayer() == 0 ? "oval" : "box", vertex.getPriority()));
             numbersOfVertices.put(vertex, i++);
         }
         resultBuilder.append("\n");

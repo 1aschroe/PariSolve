@@ -109,7 +109,7 @@ public class StartUp {
         correspondence = new HashMap<>();
         for (ParityVertex vertex : vertices) {
             correspondence.put(vertex, new GraphNode(graph, ZestStyles.NODES_EMPTY | (vertex.getPlayer() == 0 ? ZestStyles.NODES_CIRCULAR_SHAPE : 0),
-                    vertex.getParity() + ""));
+                    vertex.getPriority() + ""));
         }
         for (ParityVertex fromVertex : vertices) {
             for (ParityVertex toVertex : currentArena.getSuccessors(fromVertex)) {

@@ -61,21 +61,21 @@ public class SimpleAlgorithm implements Solver {
 
 	private long calculateMaxK(Collection<? extends ParityVertex> vertices) {
 		int n = vertices.size();
-		int maxParity = Integer.MIN_VALUE;
+		int maxPriority = Integer.MIN_VALUE;
 		for (ParityVertex vertex : vertices) {
-			if (vertex.getParity() > maxParity) {
-				maxParity = vertex.getParity();
+			if (vertex.getPriority() > maxPriority) {
+				maxPriority = vertex.getPriority();
 			}
 		}
-		return (long) (n * n * Math.pow(n, maxParity));
+		return (long) (n * n * Math.pow(n, maxPriority));
 	}
 
 	public static long getValue(ParityVertex v, ParityVertex u,
 			Map<ParityVertex, Long> nuForLastK, int n) {
-		return getValueFromParity(v.getParity(), n) + (nuForLastK.containsKey(u) ? nuForLastK.get(u) : 0 );
+		return getValueFromPriority(v.getPriority(), n) + (nuForLastK.containsKey(u) ? nuForLastK.get(u) : 0 );
 	}
 
-	public static long getValueFromParity(int i, int n) {
+	public static long getValueFromPriority(int i, int n) {
 		// TODO: optimize: Memoize this function
 		return (long) ((i % 2 == 0) ? Math.pow(n, i) : -Math.pow(n, i));
 	}
