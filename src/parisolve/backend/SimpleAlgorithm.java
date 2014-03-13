@@ -1,8 +1,10 @@
 package parisolve.backend;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,14 +19,12 @@ public class SimpleAlgorithm implements Solver {
 	public Collection<? extends ParityVertex> getWinningRegionForPlayer(
 			Arena arena, int player) {
 		Map<ParityVertex, Long> nuForLastK = new HashMap<>();
-		Map<ParityVertex, ParityVertex> strategies = new HashMap<>();
 		Collection<? extends ParityVertex> vertices = arena.getVertices();
 		int n = vertices.size();
 		long maxK = calculateMaxK(vertices);
 
 		for (long k = 0; k <= maxK; k++) {
 			Map<ParityVertex, Long> nu = new HashMap<>();
-			Map<ParityVertex, ParityVertex> newStrategies = new HashMap<>();
 			
 			for (ParityVertex v : vertices) {
 				Collection<? extends ParityVertex> successors = arena
@@ -43,10 +43,8 @@ public class SimpleAlgorithm implements Solver {
 					}
 				}
 				nu.put(v, getValue(v, bestSuc, nuForLastK, n));
-				newStrategies.put(v, bestSuc);
 			}
 			nuForLastK = nu;
-			strategies = newStrategies;
 		}
 		
 		Set<ParityVertex> winningRegion = new HashSet<>();
@@ -70,13 +68,29 @@ public class SimpleAlgorithm implements Solver {
 		return (long) (n * n * Math.pow(n, maxPriority));
 	}
 
-	public static long getValue(ParityVertex v, ParityVertex u,
-			Map<ParityVertex, Long> nuForLastK, int n) {
-		return getValueFromPriority(v.getPriority(), n) + (nuForLastK.containsKey(u) ? nuForLastK.get(u) : 0 );
-	}
+    public static long getValue(ParityVertex v, ParityVertex u,
+            Map<ParityVertex, Long> nuForLastK, int n) {
+        return getValueFromPriority(v.getPriority(), n) + nuForLastK.get(u);
+    }
 
-	public static long getValueFromPriority(int i, int n) {
-		// TODO: optimize: Memoize this function
-		return (long) ((i % 2 == 0) ? Math.pow(n, i) : -Math.pow(n, i));
-	}
+    // These are used for memoization to not always calculate Math.pow(n, i).
+    public static int currentN = 0;
+    public static List<Long> valuesForPriority = new ArrayList<>();
+
+    public static long getValueFromPriority(int i, int n) {
+        if (currentN != n) {
+            valuesForPriority = new ArrayList<>();
+            currentN = n;
+        }
+        if (valuesForPriority.size() <= i) {
+            for (int newI = valuesForPriority.size(); newI <= i; newI++){
+                valuesForPriority.add(calculateValueFromPriority(newI, n));
+            }
+        }
+        return valuesForPriority.get(i);
+    }
+    
+    public static long calculateValueFromPriority(int i, int n) {
+        return (long) ((i % 2 == 0) ? Math.pow(n, i) : -Math.pow(n, i));
+    }
 }
