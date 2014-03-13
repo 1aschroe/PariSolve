@@ -16,6 +16,7 @@
 	<property name="build.src.dir" value="${build.dir}/${src.dir}" />
 	<property name="build.lib.dir" value="${build.dir}/${lib.dir}" />
 	<property name="build.bin.dir" value="${build.dir}/bin" />
+	<property name="launch.script" value="launch_parisolve.sh" />
 
 	<target name="clean">
 		<delete dir="${build.dir}" failonerror="false" />
@@ -43,7 +44,9 @@
 			<fileset dir="${image.dir}" />
 		</copy>
 		<foreach list="win32,win64,linux32,linux64,mac32,mac64" param="version" target="create_run_jar" />
-		
+		<copy todir="${deploy.dir}">
+			<fileset file="${launch.script}" />
+		</copy>
 	</target>
 
 	<target name="create_run_jar">
