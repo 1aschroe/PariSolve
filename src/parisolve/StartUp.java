@@ -50,9 +50,9 @@ public class StartUp {
         bar.setLocation(0, 0);
 
         // image's source: https://openclipart.org/detail/119905/load-cedric-bosdonnat-01-by-anonymous
-        final Image openIcon = new Image(display, "resources/load_cedric_bosdonnat_01.png");
+        final Image openIcon = new Image(display, StartUp.class.getClassLoader().getResourceAsStream("images/load_cedric_bosdonnat_01.png"));
         // image's source: https://commons.wikimedia.org/wiki/File:Pocket_cube_twisted.jpg
-        final Image solveIcon = new Image(display, "resources/Pocket_cube_twisted.jpg");
+        final Image solveIcon = new Image(display, StartUp.class.getClassLoader().getResourceAsStream("images/Pocket_cube_twisted.jpg"));
 
         // Configure the ToolBar
         final ToolItem openToolItem = new ToolItem(bar, SWT.PUSH);

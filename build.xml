@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="build" name="Create Runnable Jar for Project Worktime with Jar-in-Jar Loader">
+
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+
+	<!-- where the source is -->
+	<property name="src.dir" value="src" />
+	<!-- where required libraries are -->
+	<property name="lib.dir" value="lib" />
+	<!-- temp folder where everything is put together (can be deleted afterwards) -->
+	<property name="build.dir" value="build" />
+	<!-- where the build product is put -->
+	<property name="deploy.dir" value="target" />
+	<!-- where required images are -->
+	<property name="image.dir" value="resources/images" />
+	<property name="build.src.dir" value="${build.dir}/${src.dir}" />
+	<property name="build.lib.dir" value="${build.dir}/${lib.dir}" />
+	<property name="build.bin.dir" value="${build.dir}/bin" />
+
+	<target name="clean">
+		<delete dir="${build.dir}" failonerror="false" />
+		<delete dir="${deploy.dir}" failonerror="false" />
+	</target>
+
+	<target name="init">
+		<mkdir dir="${build.dir}" />
+		<copy todir="${build.src.dir}">
+			<fileset dir="${src.dir}" />
+		</copy>
+		<mkdir dir="${build.bin.dir}" />
+	</target>
+
+	<target name="build" depends="clean,init">
+		<javac srcdir="${build.src.dir}" destdir="${build.bin.dir}">
+			<classpath>
+				<!-- Es ist irrelevant, mit welcher Version übersetzt wird -->
+				<pathelement path="${lib.dir}/swt_win32.jar" />
+				<pathelement path="zest.zip" />
+				<pathelement path="${lib.dir}/org.eclipse.draw2d_3.9.0.201308190730.jar" />
+			</classpath>
+		</javac>
+		<copy todir="${build.bin.dir}/images">
+			<fileset dir="${image.dir}" />
+		</copy>
+		<foreach list="win32,win64,linux32,linux64" param="version" target="create_run_jar" />
+		
+	</target>
+
+	<target name="create_run_jar">
+		<copy file="${lib.dir}/swt_${version}.jar" tofile="${build.lib.dir}/swt.jar" overwrite="true" />
+		<copy todir="${build.lib.dir}" overwrite="true">
+			<fileset file="${lib.dir}/org.eclipse.draw2d*.jar" />
+		</copy>
+		<jar destfile="${deploy.dir}/parisolve_${version}.jar">
+			<manifest>
+				<attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader" />
+				<attribute name="Rsrc-Main-Class" value="parisolve.StartUp" />
+				<attribute name="Class-Path" value="." />
+				<attribute name="Rsrc-Class-Path" value="./ swt.jar org.eclipse.draw2d_3.9.0.201308190730.jar" />
+			</manifest>
+			<zipfileset src="jar-in-jar-loader.zip" />
+			<!-- TODO: Build these from Source -->
+			<zipfileset src="zest.zip" />
+			<fileset dir="${build.bin.dir}" />
+			<zipfileset dir="${build.lib.dir}" includes="swt.jar" />
+			<zipfileset dir="${build.lib.dir}" includes="org.eclipse.draw2d*.jar"/>
+		</jar>
+	</target>
+</project>
