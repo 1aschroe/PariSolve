@@ -42,7 +42,7 @@
 		<copy todir="${build.bin.dir}/images">
 			<fileset dir="${image.dir}" />
 		</copy>
-		<foreach list="win32,win64,linux32,linux64" param="version" target="create_run_jar" />
+		<foreach list="win32,win64,linux32,linux64,mac32,mac64" param="version" target="create_run_jar" />
 		
 	</target>
 
