@@ -24,27 +24,12 @@ public class SimpleAlgorithm implements Solver {
 		long maxK = calculateMaxK(vertices);
 
 		for (long k = 0; k <= maxK; k++) {
-			Map<ParityVertex, Long> nu = new HashMap<>();
+			Map<ParityVertex, Long> nuForCurrentK = new HashMap<>();
 			
 			for (ParityVertex v : vertices) {
-				Collection<? extends ParityVertex> successors = arena
-						.getSuccessors(v);
-				int vsPlayer = v.getPlayer();
-				ParityVertex bestSuc = null;
-				for (ParityVertex suc : successors) {
-					if (bestSuc == null) {
-						bestSuc = suc;
-					} else {
-						long sucValue = getValue(v, suc, nuForLastK, n);
-						long bestValue = getValue(v, bestSuc, nuForLastK, n);
-						if ((vsPlayer == 0 && (sucValue > bestValue)) || (vsPlayer == 1 && (sucValue < bestValue))) {
-							bestSuc = suc;
-						}
-					}
-				}
-				nu.put(v, getValue(v, bestSuc, nuForLastK, n));
+				nuForCurrentK.put(v, getValue(v, getBestSuccessor(arena, nuForLastK, n, v), nuForLastK, n));
 			}
-			nuForLastK = nu;
+			nuForLastK = nuForCurrentK;
 		}
 		
 		Set<ParityVertex> winningRegion = new HashSet<>();
@@ -57,6 +42,31 @@ public class SimpleAlgorithm implements Solver {
 		return winningRegion;
 	}
 
+    /**
+     * chooses u maximal with respect to Zwick, Paterson (1996), Theorem 2.1.
+     */
+    private ParityVertex getBestSuccessor(Arena arena, Map<ParityVertex, Long> nuForLastK, int numberOfVerticesInArena, ParityVertex v) {
+        Collection<? extends ParityVertex> successors = arena
+        		.getSuccessors(v);
+        int playerOfV = v.getPlayer();
+        ParityVertex bestSuc = null;
+        for (ParityVertex suc : successors) {
+        	if (bestSuc == null) {
+        		bestSuc = suc;
+        	} else {
+        		long sucValue = getValue(v, suc, nuForLastK, numberOfVerticesInArena);
+        		long bestValue = getValue(v, bestSuc, nuForLastK, numberOfVerticesInArena);
+        		if ((playerOfV == 0 && (sucValue > bestValue)) || (playerOfV == 1 && (sucValue < bestValue))) {
+        			bestSuc = suc;
+        		}
+        	}
+        }
+        return bestSuc;
+    }
+
+    /**
+     * calculates k according to Zwick, Paterson (1996), Theorem 2.4.
+     */
 	private long calculateMaxK(Collection<? extends ParityVertex> vertices) {
 		int n = vertices.size();
 		int maxPriority = Integer.MIN_VALUE;
@@ -65,9 +75,12 @@ public class SimpleAlgorithm implements Solver {
 				maxPriority = vertex.getPriority();
 			}
 		}
-		return (long) (n * n * Math.pow(n, maxPriority));
+		return (long) (4 * n * n * Math.pow(n, maxPriority));
 	}
 
+    /**
+     * calculates \nu_k(v) according to Zwick, Paterson (1996), Theorem 2.1. \nu is used as in LNCS 2500.
+     */
     public static long getValue(ParityVertex v, ParityVertex u,
             Map<ParityVertex, Long> nuForLastK, int n) {
         return getValueFromPriority(v.getPriority(), n) + nuForLastK.get(u);

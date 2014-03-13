@@ -9,10 +9,14 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Naive approach by trying all possible strategies, to have a comparison
- * 
+ * Naive approach, trying all possible strategies and comparing their value for
+ * a specific player. Implemented to have a comparison for future algorithms.
  */
 public class PrimitiveAlgorithm implements Solver {
+    /**
+     * Helper-class, to be able to return both strategy and its value. A
+     * strategies value is the number of vertices in a player's winning region.
+     */
     class StrategyValuePair {
         private Map<ParityVertex, ParityVertex> strategy = null;
         private int strategiesValue = Integer.MIN_VALUE;
@@ -50,7 +54,7 @@ public class PrimitiveAlgorithm implements Solver {
         oneVertices.removeAll(zeroVertices);
 
         StrategyValuePair strategyValuePair = tryAllStrategiesForZeroRecursively(oneVertices, zeroVertices, strategy, arena, new StrategyValuePair());
-        
+
         Set<ParityVertex> winningRegion = new HashSet<>();
         for (ParityVertex vertex : arena.getVertices()) {
             if (findWinner(vertex, strategyValuePair.getStrategy()) == player) {
@@ -60,10 +64,14 @@ public class PrimitiveAlgorithm implements Solver {
         return winningRegion;
     }
 
+    /**
+     * recursive function to fix strategy for player 0
+     */
     private StrategyValuePair tryAllStrategiesForZeroRecursively(Set<ParityVertex> oneVertices, Set<ParityVertex> zeroVertices,
             Map<ParityVertex, ParityVertex> strategy, Arena arena, StrategyValuePair bestStrategy) {
         if (zeroVertices.isEmpty()) {
-            StrategyValuePair newStrategyWithValue = tryAllStrategiesForOneRecursively(oneVertices, arena, strategy, new StrategyValuePair(null, Integer.MAX_VALUE));
+            StrategyValuePair newStrategyWithValue = tryAllStrategiesForOneRecursively(oneVertices, arena, strategy, new StrategyValuePair(null,
+                    Integer.MAX_VALUE));
             if (newStrategyWithValue.getStrategiesValue() > bestStrategy.getStrategiesValue()) {
                 return newStrategyWithValue;
             }
@@ -80,6 +88,9 @@ public class PrimitiveAlgorithm implements Solver {
         return bestStrategy;
     }
 
+    /**
+     * recursive function to fix strategy for player 1
+     */
     private StrategyValuePair tryAllStrategiesForOneRecursively(Set<ParityVertex> oneVertices, Arena arena, Map<ParityVertex, ParityVertex> strategy,
             StrategyValuePair bestStrategy) {
         if (oneVertices.isEmpty()) {
@@ -106,6 +117,11 @@ public class PrimitiveAlgorithm implements Solver {
         return bestStrategy;
     }
 
+    /**
+     * given a fixed strategy and a starting point, determines, which player
+     * would win. Follows strategy until a cycle is found and then determines
+     * the highest value in cycle.
+     */
     private static int findWinner(ParityVertex vertex, Map<ParityVertex, ParityVertex> strategy) {
         ParityVertex currentVertex = vertex;
         List<ParityVertex> path = new ArrayList<ParityVertex>();
@@ -122,7 +138,10 @@ public class PrimitiveAlgorithm implements Solver {
         }
         return maxPriority % 2;
     }
-    
+
+    /**
+     * utility method for printing GraphViz-representation to inspect strategy.
+     */
     private static String getGraphVizFromStrategy(Map<ParityVertex, ParityVertex> strategy) {
         StringBuilder resultBuilder = new StringBuilder();
         resultBuilder.append("digraph strategy {\n");
