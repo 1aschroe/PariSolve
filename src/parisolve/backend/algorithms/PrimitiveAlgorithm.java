@@ -1,4 +1,4 @@
-package parisolve.backend;
+package parisolve.backend.algorithms;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,6 +7,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import parisolve.backend.Arena;
+import parisolve.backend.ParityVertex;
 
 /**
  * Naive approach, trying all possible strategies and comparing their value for

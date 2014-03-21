@@ -24,8 +24,8 @@ import org.eclipse.zest.layouts.algorithms.SpringLayoutAlgorithm;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
-import parisolve.backend.PrimitiveAlgorithm;
-import parisolve.backend.Solver;
+import parisolve.backend.algorithms.PrimitiveAlgorithm;
+import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
 
 public class StartUp {
