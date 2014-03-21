@@ -1,0 +1,5 @@
+- Zeitmessung
+- Commandline-Interface
+- Kommentare
+- Tastatur-Shortcuts für Open und Solve
+- Einlesen des anderen Arena-Formats
