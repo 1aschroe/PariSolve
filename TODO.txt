@@ -2,6 +2,5 @@
 - Commandline-Interface
 - Kommentare
 - Tastatur-Shortcuts für Open und Solve
-- Einlesen des anderen Arena-Formats
 - Besseres Markieren der Winning Region
 - größere Kreise, wenn auf sich selbst
