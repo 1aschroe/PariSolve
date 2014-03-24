@@ -120,6 +120,7 @@ public class UI {
     }
 
     Color GREEN = new Color(display, 0, 255, 0);
+    Color BLACK = new Color(display, 0, 0, 0);
 
     public void highlightWinningRegion(Collection<? extends ParityVertex> winningRegion) {
         for (ParityVertex winningVertex : winningRegion) {
@@ -140,7 +141,13 @@ public class UI {
         }
         for (ParityVertex fromVertex : vertices) {
             for (ParityVertex toVertex : arena.getSuccessors(fromVertex)) {
-                new GraphConnection(graph, ZestStyles.CONNECTIONS_DIRECTED, correspondence.get(fromVertex), correspondence.get(toVertex));
+                GraphConnection connection = new GraphConnection(graph, ZestStyles.CONNECTIONS_DIRECTED, correspondence.get(fromVertex), correspondence.get(toVertex));
+                if (fromVertex == toVertex) {
+                    connection.setCurveDepth(20);
+                } else if (arena.getSuccessors(toVertex).contains(fromVertex)) {
+                    connection.setCurveDepth(10);
+                }
+                connection.setLineColor(BLACK);
             }
         }
 

@@ -2,4 +2,3 @@
 - Commandline-Interface
 - Kommentare
 - Tastatur-Shortcuts für Open und Solve
-- größere Kreise, wenn auf sich selbst
