@@ -10,6 +10,7 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
@@ -37,7 +38,7 @@ public class UI {
     static Map<ParityVertex, GraphNode> correspondence = new HashMap<>();
     protected List<SolveListener> solveListeners = new ArrayList<>();
     protected List<OpenListener> openListeners = new ArrayList<>();
-    
+
     public UI() {
         shell.setText("PariSolve");
 
@@ -59,7 +60,8 @@ public class UI {
     }
 
     private void createOpenButton(final ToolBar bar) {
-        // image's source: https://openclipart.org/detail/119905/load-cedric-bosdonnat-01-by-anonymous
+        // image's source:
+        // https://openclipart.org/detail/119905/load-cedric-bosdonnat-01-by-anonymous
         final Image openIcon = new Image(display, StartUp.class.getClassLoader().getResourceAsStream("images/load_cedric_bosdonnat_01.png"));
 
         final ToolItem openToolItem = new ToolItem(bar, SWT.PUSH);
@@ -89,7 +91,8 @@ public class UI {
     }
 
     private void createSolveButton(final ToolBar bar) {
-        // image's source: https://commons.wikimedia.org/wiki/File:Pocket_cube_twisted.jpg
+        // image's source:
+        // https://commons.wikimedia.org/wiki/File:Pocket_cube_twisted.jpg
         final Image solveIcon = new Image(display, StartUp.class.getClassLoader().getResourceAsStream("images/Pocket_cube_twisted.jpg"));
 
         final ToolItem solveToolItem = new ToolItem(bar, SWT.PUSH);
@@ -115,10 +118,12 @@ public class UI {
         }
         display.dispose();
     }
-    
+
+    Color GREEN = new Color(display, 0, 255, 0);
+
     public void highlightWinningRegion(Collection<? extends ParityVertex> winningRegion) {
         for (ParityVertex winningVertex : winningRegion) {
-            correspondence.get(winningVertex).highlight();
+            correspondence.get(winningVertex).setBackgroundColor(GREEN);
         }
     }
 
@@ -126,11 +131,11 @@ public class UI {
         for (GraphNode node : correspondence.values()) {
             node.dispose();
         }
-        
+
         Collection<? extends ParityVertex> vertices = arena.getVertices();
         correspondence = new HashMap<>();
         for (ParityVertex vertex : vertices) {
-            correspondence.put(vertex, new GraphNode(graph, ZestStyles.NODES_EMPTY | (vertex.getPlayer() == 0 ? ZestStyles.NODES_CIRCULAR_SHAPE : 0),
+            correspondence.put(vertex, new GraphNode(graph, (vertex.getPlayer() == 0 ? ZestStyles.NODES_CIRCULAR_SHAPE : 0),
                     vertex.getPriority() + ""));
         }
         for (ParityVertex fromVertex : vertices) {
