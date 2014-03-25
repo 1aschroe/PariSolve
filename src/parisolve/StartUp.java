@@ -2,8 +2,6 @@ package parisolve;
 
 import java.util.Collection;
 
-import org.eclipse.swt.widgets.MessageBox;
-
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.algorithms.PrimitiveAlgorithm;
