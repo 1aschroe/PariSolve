@@ -208,4 +208,11 @@ public class UI {
         errorBox.setMessage(string);
         errorBox.open();
     }
+
+    public void displayMessage(String string) {
+        MessageBox errorBox = new MessageBox(shell, SWT.ICON_INFORMATION);
+        errorBox.setText("Info!");
+        errorBox.setMessage(string);
+        errorBox.open();
+    }
 }
