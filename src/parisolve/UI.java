@@ -11,7 +11,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.MessageBox;
@@ -31,28 +34,75 @@ import parisolve.io.ArenaManager;
 
 public class UI {
 
+	private final class SolveSelectionAdapter extends SelectionAdapter {
+		@Override
+		public void widgetSelected(SelectionEvent arg0) {
+			for (SolveListener listener : solveListeners) {
+				listener.solve();
+			}
+		}
+	}
+
+	private final class SelectionOpenAdapter extends SelectionAdapter {
+		@Override
+		public void widgetSelected(SelectionEvent arg0) {
+			FileDialog fileDialog = new FileDialog(shell, SWT.OPEN);
+			fileDialog.setText("Load Arena");
+			try {
+				String filename = fileDialog.open();
+				if (filename != null) {
+					Arena arena = ArenaManager.loadArena(filename);
+					for (OpenListener listener : openListeners) {
+						listener.openedArena(arena);
+					}
+				}
+			} catch (IOException e) {
+				MessageBox box = new MessageBox(shell, SWT.ERROR);
+				box.setText("Exception occurred");
+				box.setMessage("While loading the arena, the following exception occurred:\n"
+						+ e.getMessage() + "\n" + e.getStackTrace());
+			}
+		}
+	}
+
     private static Display display = new Display();
     final static Shell shell = new Shell(display, SWT.SHELL_TRIM | SWT.RESIZE | SWT.SCROLL_PAGE);
 
-    final static Graph graph = new Graph(shell, SWT.NONE);
-    static Map<ParityVertex, GraphNode> correspondence = new HashMap<>();
-    protected List<SolveListener> solveListeners = new ArrayList<>();
-    protected List<OpenListener> openListeners = new ArrayList<>();
+	static Graph graph = null;
+    static Map<ParityVertex, GraphNode> correspondence = new HashMap<ParityVertex, GraphNode>();
+    protected List<SolveListener> solveListeners = new ArrayList<SolveListener>();
+    protected List<OpenListener> openListeners = new ArrayList<OpenListener>();
 
     public UI() {
         shell.setText("PariSolve");
+		GridLayout layout = new GridLayout();
+		shell.setLayout(layout);
 
-        graph.setLocation(0, 55);
-        graph.setSize(500, 500);
+		createToolbar();
 
-        createToolbar();
+		createGraph();
+	}
+
+	private void createGraph() {
+		graph = new Graph(shell, SWT.NONE);
+
+		GridData gridData = new GridData();
+		gridData.horizontalAlignment = GridData.FILL;
+		gridData.verticalAlignment = GridData.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.grabExcessVerticalSpace = true;
+		gridData.heightHint = 500;
+		gridData.widthHint = 500;
+		graph.setLayoutData(gridData);
     }
 
     private void createToolbar() {
-        // set the size and location of the user interface widgets
-        final ToolBar bar = new ToolBar(shell, SWT.HORIZONTAL | SWT.FLAT | SWT.WRAP);
-        bar.setSize(500, 55);
-        bar.setLocation(0, 0);
+		final ToolBar bar = new ToolBar(shell, SWT.NONE);
+		GridData data = new GridData();
+		data.heightHint = 55;
+		data.grabExcessVerticalSpace = false;
+		bar.setLayoutData(data);
+		bar.setLayout(new GridLayout());
 
         createOpenButton(bar);
 
@@ -65,29 +115,10 @@ public class UI {
         final Image openIcon = new Image(display, StartUp.class.getClassLoader().getResourceAsStream("images/load_cedric_bosdonnat_01.png"));
 
         final ToolItem openToolItem = new ToolItem(bar, SWT.PUSH);
-        openToolItem.setImage(openIcon);
+		openToolItem.setImage(resize(openIcon, 32, 32));
         openToolItem.setText("Open");
 
-        openToolItem.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent arg0) {
-                FileDialog fileDialog = new FileDialog(shell, SWT.OPEN);
-                fileDialog.setText("Load Arena");
-                try {
-                    String filename = fileDialog.open();
-                    if (filename != null) {
-                        Arena arena = ArenaManager.loadArena(filename);
-                        for (OpenListener listener : openListeners) {
-                            listener.openedArena(arena);
-                        }
-                    }
-                } catch (IOException e) {
-                    MessageBox box = new MessageBox(shell, SWT.ERROR);
-                    box.setText("Exception occurred");
-                    box.setMessage("While loading the arena, the following exception occurred:\n" + e.getMessage() + "\n" + e.getStackTrace());
-                }
-            }
-        });
+		openToolItem.addSelectionListener(new SelectionOpenAdapter());
     }
 
     private void createSolveButton(final ToolBar bar) {
@@ -96,17 +127,22 @@ public class UI {
         final Image solveIcon = new Image(display, StartUp.class.getClassLoader().getResourceAsStream("images/Pocket_cube_twisted.jpg"));
 
         final ToolItem solveToolItem = new ToolItem(bar, SWT.PUSH);
-        solveToolItem.setImage(solveIcon);
+		solveToolItem.setImage(resize(solveIcon, 32, 32));
         solveToolItem.setText("Solve");
 
-        solveToolItem.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent arg0) {
-                for (SolveListener listener : solveListeners) {
-                    listener.solve();
+		solveToolItem.addSelectionListener(new SolveSelectionAdapter());
                 }
-            }
-        });
+
+	private Image resize(Image image, int width, int height) {
+		Image scaled = new Image(Display.getDefault(), width, height);
+		GC gc = new GC(scaled);
+		gc.setAntialias(SWT.ON);
+		gc.setInterpolation(SWT.HIGH);
+		gc.drawImage(image, 0, 0, image.getBounds().width,
+				image.getBounds().height, 0, 0, width, height);
+		gc.dispose();
+		image.dispose(); // don't forget about me!
+		return scaled;
     }
 
     public void run() {
