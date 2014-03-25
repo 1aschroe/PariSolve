@@ -165,4 +165,11 @@ public class UI {
             openListeners.add(openListener);
         }
     }
+
+    public void displayError(String string) {
+        MessageBox errorBox = new MessageBox(shell, SWT.ICON_ERROR);
+        errorBox.setText("Error!");
+        errorBox.setMessage(string);
+        errorBox.open();
+    }
 }

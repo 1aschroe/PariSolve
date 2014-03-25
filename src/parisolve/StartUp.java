@@ -2,6 +2,8 @@ package parisolve;
 
 import java.util.Collection;
 
+import org.eclipse.swt.widgets.MessageBox;
+
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.algorithms.PrimitiveAlgorithm;
@@ -12,6 +14,10 @@ public class StartUp {
     static Arena currentArena;
 
     public static void main(String[] args) {
+        if (args.length > 0) {
+            
+        }
+        
         final UI ui = new UI();
         ui.addOpenListener(new OpenListener() {
             @Override
@@ -23,9 +29,12 @@ public class StartUp {
         ui.addSolveListener(new SolveListener() {
             @Override
             public void solve() {
+                if (currentArena != null) {
                 Solver solver = new PrimitiveAlgorithm();
                 Collection<? extends ParityVertex> winningRegionForPlayer = solver.getWinningRegionForPlayer(currentArena, 0);
-                ui.highlightWinningRegion(winningRegionForPlayer);
+                ui.highlightWinningRegion(winningRegionForPlayer);} else {
+                    ui.displayError("No arena loaded");
+                }
             }
         });
         ui.run();
