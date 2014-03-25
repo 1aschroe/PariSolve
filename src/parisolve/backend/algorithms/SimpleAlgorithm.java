@@ -38,6 +38,9 @@ public class SimpleAlgorithm implements Solver {
     private Map<ParityVertex, Long> runAlgorithm(Arena arena, Collection<? extends ParityVertex> vertices, int n, long maxK) {
         // stores nu_k-1
         Map<ParityVertex, Long> nuForLastK = new HashMap<>();
+        for (ParityVertex vertex : vertices) {
+            nuForLastK.put(vertex, 0l);
+        }
         for (long k = 0; k <= maxK; k++) {
             // stores nu_k
             Map<ParityVertex, Long> nuForCurrentK = new HashMap<>();
@@ -92,7 +95,8 @@ public class SimpleAlgorithm implements Solver {
                 maxPriority = vertex.getPriority();
             }
         }
-        return (long) (4 * n * n * Math.pow(n, maxPriority));
+        // it is important to have 4 as long to not have an overflow when calculating 4*n^2.
+        return (long) (4l * n * n * Math.pow(n, maxPriority));
     }
 
     /**
