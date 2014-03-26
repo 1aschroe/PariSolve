@@ -2,11 +2,11 @@ package parisolve.backend.algorithms;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
@@ -22,12 +22,14 @@ import parisolve.backend.ParityVertex;
 public class SimpleAlgorithm implements Solver {
 
     @Override
-    public Collection<? extends ParityVertex> getWinningRegionForPlayer(Arena arena, int player) {
-        Collection<? extends ParityVertex> vertices = arena.getVertices();
-        int n = vertices.size();
-        long maxK = calculateMaxK(vertices);
+    public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
+            final Arena arena, final int player) {
+        final Collection<? extends ParityVertex> vertices = arena.getVertices();
+        final int n = vertices.size();
+        final long maxK = calculateMaxK(vertices);
 
-        Map<ParityVertex, Long> nuForLastK = runAlgorithm(arena, vertices, n, maxK);
+        final Map<ParityVertex, Long> nuForLastK = runAlgorithm(arena, vertices, n,
+                maxK);
 
         return determineWinningRegion(player, nuForLastK, vertices);
     }
@@ -35,29 +37,36 @@ public class SimpleAlgorithm implements Solver {
     /**
      * actually runs the algorithm.
      */
-    private Map<ParityVertex, Long> runAlgorithm(Arena arena, Collection<? extends ParityVertex> vertices, int n, long maxK) {
+    private Map<ParityVertex, Long> runAlgorithm(final Arena arena,
+            final Collection<? extends ParityVertex> vertices, final int n,
+            final long maxK) {
         // stores nu_k-1
-        Map<ParityVertex, Long> nuForLastK = new HashMap<>();
-        for (ParityVertex vertex : vertices) {
-            nuForLastK.put(vertex, 0l);
+        Map<ParityVertex, Long> nuForLastK = new ConcurrentHashMap<>();
+        for (final ParityVertex vertex : vertices) {
+            nuForLastK.put(vertex, 0L);
         }
         for (long k = 0; k <= maxK; k++) {
             // stores nu_k
-            Map<ParityVertex, Long> nuForCurrentK = new HashMap<>();
+            final Map<ParityVertex, Long> nuForCurrentK = new ConcurrentHashMap<>();
 
-            for (ParityVertex v : vertices) {
-                nuForCurrentK.put(v, getValue(v, getBestSuccessor(arena, nuForLastK, n, v), nuForLastK, n));
+            for (final ParityVertex v : vertices) {
+                nuForCurrentK.put(
+                        v,
+                        getValue(v, getBestSuccessor(arena, nuForLastK, n, v),
+                                nuForLastK, n));
             }
             nuForLastK = nuForCurrentK;
         }
         return nuForLastK;
     }
 
-    private Set<ParityVertex> determineWinningRegion(int player, Map<ParityVertex, Long> nuForLastK, Collection<? extends ParityVertex> vertices) {
-        Set<ParityVertex> winningRegion = new HashSet<>();
-        for (ParityVertex v : vertices) {
-            if (Math.pow(-1, player) * nuForLastK.get(v) > 0) {
-                winningRegion.add(v);
+    private Set<ParityVertex> determineWinningRegion(final int player,
+            final Map<ParityVertex, Long> nuForLastK,
+            final Collection<? extends ParityVertex> vertices) {
+        final Set<ParityVertex> winningRegion = new HashSet<>();
+        for (final ParityVertex vertex : vertices) {
+            if (Math.pow(-1, player) * nuForLastK.get(vertex) > 0) {
+                winningRegion.add(vertex);
             }
         }
         return winningRegion;
@@ -66,17 +75,23 @@ public class SimpleAlgorithm implements Solver {
     /**
      * chooses u maximal with respect to Zwick, Paterson (1996), Theorem 2.1.
      */
-    private ParityVertex getBestSuccessor(Arena arena, Map<ParityVertex, Long> nuForLastK, int numberOfVerticesInArena, ParityVertex v) {
-        Collection<? extends ParityVertex> successors = arena.getSuccessors(v);
-        int playerOfV = v.getPlayer();
+    private ParityVertex getBestSuccessor(final Arena arena,
+            final Map<ParityVertex, Long> nuForLastK,
+            final int numberOfVerticesInArena, final ParityVertex v) {
+        final Collection<? extends ParityVertex> successors = arena
+                .getSuccessors(v);
+        final int playerOfV = v.getPlayer();
         ParityVertex bestSuc = null;
-        for (ParityVertex suc : successors) {
+        for (final ParityVertex suc : successors) {
             if (bestSuc == null) {
                 bestSuc = suc;
             } else {
-                long sucValue = getValue(v, suc, nuForLastK, numberOfVerticesInArena);
-                long bestValue = getValue(v, bestSuc, nuForLastK, numberOfVerticesInArena);
-                if ((playerOfV == 0 && (sucValue > bestValue)) || (playerOfV == 1 && (sucValue < bestValue))) {
+                final long sucValue = getValue(v, suc, nuForLastK,
+                        numberOfVerticesInArena);
+                final long bestValue = getValue(v, bestSuc, nuForLastK,
+                        numberOfVerticesInArena);
+                if ((playerOfV == 0 && sucValue > bestValue)
+                        || (playerOfV == 1 && sucValue < bestValue)) {
                     bestSuc = suc;
                 }
             }
@@ -87,16 +102,17 @@ public class SimpleAlgorithm implements Solver {
     /**
      * calculates k according to Zwick, Paterson (1996), Theorem 2.4.
      */
-    private long calculateMaxK(Collection<? extends ParityVertex> vertices) {
-        int n = vertices.size();
+    private long calculateMaxK(final Collection<? extends ParityVertex> vertices) {
+        final int n = vertices.size();
         int maxPriority = Integer.MIN_VALUE;
-        for (ParityVertex vertex : vertices) {
+        for (final ParityVertex vertex : vertices) {
             if (vertex.getPriority() > maxPriority) {
                 maxPriority = vertex.getPriority();
             }
         }
-        // it is important to have 4 as long to not have an overflow when calculating 4*n^2.
-        return (long) (4l * n * n * Math.pow(n, maxPriority));
+        // it is important to have 4 as long to not have an overflow when
+        // calculating 4*n^2.
+        return (long) (4L * n * n * Math.pow(n, maxPriority));
     }
 
     /**
@@ -114,14 +130,21 @@ public class SimpleAlgorithm implements Solver {
      *            number of vertices in arena
      * @return edge's value
      */
-    public static long getValue(ParityVertex v, ParityVertex u, Map<ParityVertex, Long> nuForLastK, int n) {
+    public static long getValue(final ParityVertex v, final ParityVertex u,
+            final Map<ParityVertex, Long> nuForLastK, final int n) {
         return getValueFromPriority(v.getPriority(), n) + nuForLastK.get(u);
     }
 
-    // These are used for memoization to not always calculate Math.pow(-n, i).
-    public static int currentN = 0;
-    // stores the d+1 values (-n)^0 ... (-n)^d
-    public static List<Long> valuesForPriority = new ArrayList<>();
+    /**
+     * used for memoization to not always calculate Math.pow(-n, i). As n
+     * usually does not change, values are only stored for one n, which is
+     * stored in currentN.
+     */
+    private static int currentN;
+    /**
+     * stores the d+1 values (-n)^0 ... (-n)^d
+     */
+    private static List<Long> valuesForPriority = new ArrayList<>();
 
     /**
      * returns the value of <code>calculateValueFromPriority</code> but
@@ -133,7 +156,7 @@ public class SimpleAlgorithm implements Solver {
      *            number of vertices in arena
      * @return weight of priority
      */
-    public static long getValueFromPriority(int i, int n) {
+    public static long getValueFromPriority(final int i, final int n) {
         if (currentN != n) {
             // we assume n to not be changed often therefore we only store
             // values for one n and have to reset those if there is a new value
@@ -161,7 +184,7 @@ public class SimpleAlgorithm implements Solver {
      *            number of vertices in arena
      * @return weight of priority
      */
-    public static long calculateValueFromPriority(int i, int n) {
+    public static long calculateValueFromPriority(final int i, final int n) {
         return (long) Math.pow(-n, i);
     }
 }

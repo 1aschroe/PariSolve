@@ -15,84 +15,109 @@ import parisolve.backend.algorithms.PrimitiveAlgorithm;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
 
+/**
+ * Entry point for PariSolve.
+ */
 public class StartUp {
 
     static Arena currentArena;
-    final static String ARENA_NOT_READ_MSG = "Arena %s could not be read.";
-    final static String TIME_MSG = "Solving took %d milliseconds";
+    /**
+     * display-string when an arenas file could not be loaded.
+     */
+    static final String ARENA_NOT_READ_MSG = "Arena %s could not be read.";
+    static final String TIME_MSG = "Solving took %d milliseconds";
+    static final String NON_UI_OPTION = "non-ui";
+    static final String TIME_OPTION = "time";
+    static final String HELP_OPTION = "help";
 
-    public static void main(String[] args) {
+    /**
+     * Entry point for PariSolve.
+     * 
+     * @param args
+     *            command line arguments
+     */
+    public static void main(final String[] args) {
 
-        Options options = new Options();
-        options.addOption("n", "non-ui", false, "use UI");
-        options.addOption("t", "time", false, "time solving");
-        options.addOption("?", "help", false, "display help");
+        final Options options = new Options();
+        options.addOption("n", NON_UI_OPTION, false, "use UI");
+        options.addOption("t", TIME_OPTION, false, "time solving");
+        options.addOption("?", HELP_OPTION, false, "display help");
 
         try {
             final CommandLine line = new BasicParser().parse(options, args);
-            String[] arenas = line.getArgs();
+            final String[] arenas = line.getArgs();
 
-            if (line.hasOption("help")) {
-                HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp("PariSolve [OPTIONS] [ARENAFILES] (order is not important)", "Options:", options, "");
+            if (line.hasOption(HELP_OPTION)) {
+                final HelpFormatter formatter = new HelpFormatter();
+                formatter
+                        .printHelp(
+                                "PariSolve [OPTIONS] [ARENAFILES] (order is not important)",
+                                "Options:", options, "");
                 return;
             }
 
-            if (!line.hasOption("non-ui")) {
-                final UI ui = new UI();
-                ui.addOpenListener(new OpenListener() {
+            if (line.hasOption(NON_UI_OPTION)) {
+                // command line mode
+                if (arenas.length == 0) {
+                    System.out.println("No arenas specified.");
+                    // TODO: enter interactive mode
+                }
+
+                final Solver solver = new PrimitiveAlgorithm();
+                for (final String arenaFile : arenas) {
+                    try {
+                        final Arena arena = ArenaManager.loadArena(arenaFile);
+                        final long start = System.currentTimeMillis();
+                        solver.getWinningRegionForPlayer(arena, 0);
+                        final long stop = System.currentTimeMillis();
+                        if (line.hasOption("time")) {
+                            System.out.println(String.format(TIME_MSG, stop
+                                    - start));
+                        }
+                    } catch (IOException e) {
+                        System.err.println(String.format(ARENA_NOT_READ_MSG,
+                                arenaFile));
+                    }
+                }
+            } else {
+                // GUI mode
+                final GraphicalUI gui = new GraphicalUI();
+                gui.addOpenListener(new OpenListener() {
                     @Override
-                    public void openedArena(Arena arena) {
+                    public void openedArena(final Arena arena) {
                         currentArena = arena;
-                        ui.populateGraphWithArena(currentArena);
+                        gui.populateGraphWithArena(currentArena);
                     }
                 });
-                ui.addSolveListener(new SolveListener() {
+                gui.addSolveListener(new SolveListener() {
                     @Override
                     public void solve() {
-                        if (currentArena != null) {
-                            Solver solver = new PrimitiveAlgorithm();
-                            long start = System.currentTimeMillis();
-                            Collection<? extends ParityVertex> winningRegionForPlayer = solver.getWinningRegionForPlayer(currentArena, 0);
-                            long stop = System.currentTimeMillis();
-                            ui.highlightWinningRegion(winningRegionForPlayer);
-                            if (line.hasOption("time")) {
-                                ui.displayMessage(String.format(TIME_MSG, stop - start));
-                            }
-                        } else {
-                            ui.displayError("No arena loaded");
+                        if (currentArena == null) {
+                            gui.displayError("No arena loaded");
+                            return;
+                        }
+                        final Solver solver = new PrimitiveAlgorithm();
+                        final long start = System.currentTimeMillis();
+                        final Collection<? extends ParityVertex> winningRegion = solver
+                                .getWinningRegionForPlayer(currentArena, 0);
+                        final long stop = System.currentTimeMillis();
+                        gui.highlightWinningRegion(winningRegion);
+                        if (line.hasOption(TIME_OPTION)) {
+                            gui.displayInfo(String.format(TIME_MSG, stop
+                                    - start));
                         }
                     }
                 });
                 if (arenas.length > 0) {
                     try {
                         currentArena = ArenaManager.loadArena(arenas[0]);
-                        ui.populateGraphWithArena(currentArena);
+                        gui.populateGraphWithArena(currentArena);
                     } catch (IOException e) {
-                        ui.displayError(String.format(ARENA_NOT_READ_MSG, arenas[0]));
+                        gui.displayError(String.format(ARENA_NOT_READ_MSG,
+                                arenas[0]));
                     }
                 }
-                ui.run();
-            } else {
-                if (arenas.length == 0) {
-                    System.out.println("No arenas specified.");
-                    // TODO: enter interactive mode
-                }
-
-                Solver solver = new PrimitiveAlgorithm();
-                for (String arenaFile : arenas) {
-                    try {
-                        Arena arena = ArenaManager.loadArena(arenaFile);
-                        long start = System.currentTimeMillis();
-                        solver.getWinningRegionForPlayer(arena, 0);
-                        long stop = System.currentTimeMillis();
-                        if (line.hasOption("time")) {
-                            System.out.println(String.format(TIME_MSG, stop - start));
-                        }
-                    } catch (IOException e) {
-                        System.err.println(String.format(ARENA_NOT_READ_MSG, arenaFile));
-                    }
-                }
+                gui.run();
             }
         } catch (ParseException e) {
             e.printStackTrace();
