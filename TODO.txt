@@ -5,5 +5,4 @@
 - Batch-Datei als Alternative für launch_parisolve.sh
 - Generator(en) für Arenen mit variabler Größe
   -> H4,3 aus LNCS und Arenen aus "... Practice"
-- Bisherige Arenen als Tests
  
