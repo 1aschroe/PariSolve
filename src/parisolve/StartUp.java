@@ -11,7 +11,7 @@ import org.apache.commons.cli.ParseException;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
-import parisolve.backend.algorithms.PrimitiveAlgorithm;
+import parisolve.backend.algorithms.RecursiveAlgorithm;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
 
@@ -63,7 +63,7 @@ public class StartUp {
                     // TODO: enter interactive mode
                 }
 
-                final Solver solver = new PrimitiveAlgorithm();
+                final Solver solver = new RecursiveAlgorithm();
                 for (final String arenaFile : arenas) {
                     try {
                         final Arena arena = ArenaManager.loadArena(arenaFile);
@@ -96,7 +96,7 @@ public class StartUp {
                             gui.displayError("No arena loaded");
                             return;
                         }
-                        final Solver solver = new PrimitiveAlgorithm();
+                        final Solver solver = new RecursiveAlgorithm();
                         final long start = System.currentTimeMillis();
                         final Collection<? extends ParityVertex> winningRegion = solver
                                 .getWinningRegionForPlayer(currentArena, 0);

@@ -12,6 +12,7 @@ import org.junit.Test;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.algorithms.PrimitiveAlgorithm;
+import parisolve.backend.algorithms.RecursiveAlgorithm;
 import parisolve.backend.algorithms.SimpleAlgorithm;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
@@ -96,6 +97,6 @@ public class KnownArenasTest {
      * @return algorithms, able to solve parity games
      */
     public static final List<Solver> getAlgorithms() {
-        return Arrays.asList(new PrimitiveAlgorithm(), new SimpleAlgorithm());
+        return Arrays.asList(new PrimitiveAlgorithm(), new SimpleAlgorithm(), new RecursiveAlgorithm());
     }
 }
