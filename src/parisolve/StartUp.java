@@ -91,17 +91,16 @@ public class StartUp {
                 });
                 gui.addSolveListener(new SolveListener() {
                     @Override
-                    public void solve() {
+                    public void solve(final Solver solver) {
                         if (currentArena == null) {
                             gui.displayError("No arena loaded");
                             return;
                         }
-                        final Solver solver = new RecursiveAlgorithm();
                         final long start = System.currentTimeMillis();
                         final Collection<? extends ParityVertex> winningRegion = solver
                                 .getWinningRegionForPlayer(currentArena, 0);
                         final long stop = System.currentTimeMillis();
-                        gui.highlightWinningRegion(winningRegion);
+                        gui.highlightRegion(winningRegion);
                         if (line.hasOption(TIME_OPTION)) {
                             gui.displayInfo(String.format(TIME_MSG, stop
                                     - start));
