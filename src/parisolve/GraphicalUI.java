@@ -315,8 +315,7 @@ public class GraphicalUI {
                     .put(vertex,
                             new GraphNode(
                                     graph,
-                                    (vertex.getPlayer() == 0 ? ZestStyles.NODES_CIRCULAR_SHAPE
-                                            : ZestStyles.NONE), Integer
+                                    vertex.getPlayer().getZestStyleFlag(), Integer
                                             .toString(vertex.getPriority())));
         }
         for (final ParityVertex fromVertex : vertices) {

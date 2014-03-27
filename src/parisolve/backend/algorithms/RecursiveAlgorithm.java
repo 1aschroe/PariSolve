@@ -3,10 +3,13 @@ package parisolve.backend.algorithms;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
+import parisolve.backend.Player;
 
 /**
  * implementation of the recursive algorithm given in Automatentheorie und Logik
@@ -17,36 +20,26 @@ public class RecursiveAlgorithm implements Solver {
      * Helper class to return a partition of winning regions.
      */
     class WinningRegionPartition {
-        public final Collection<? extends ParityVertex> winningRegionForOne;
-        public final Collection<? extends ParityVertex> winningRegionForZero;
+        Map<Player, Collection<? extends ParityVertex>> partition = new ConcurrentHashMap<>();
 
         // TODO: do I need this?
 
         WinningRegionPartition(
-                final Collection<? extends ParityVertex> winningRegionForZero,
-                final Collection<? extends ParityVertex> winningRegionForOne,
-                int sigma) {
-            if (sigma == 0) {
-                this.winningRegionForZero = winningRegionForZero;
-                this.winningRegionForOne = winningRegionForOne;
-            } else {
-                this.winningRegionForZero = winningRegionForOne;
-                this.winningRegionForOne = winningRegionForZero;
-            }
+                final Collection<? extends ParityVertex> winningRegionForSigma,
+                final Collection<? extends ParityVertex> winningRegionForOponent,
+                Player sigma) {
+            partition.put(sigma, winningRegionForSigma);
+            partition.put(sigma.getOponent(), winningRegionForOponent);
         }
 
-        Collection<? extends ParityVertex> getWinningRegionFor(final int player) {
-            if (player == 0) {
-                return winningRegionForZero;
-            } else {
-                return winningRegionForOne;
-            }
+        Collection<? extends ParityVertex> getWinningRegionFor(final Player player) {
+            return partition.get(player);
         }
     }
 
     @Override
     public Collection<? extends ParityVertex> getWinningRegionForPlayer(
-            Arena arena, int player) {
+            Arena arena, Player player) {
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
         WinningRegionPartition partition = solveGame(vertices);
         return partition.getWinningRegionFor(player);
@@ -74,9 +67,9 @@ public class RecursiveAlgorithm implements Solver {
             }
         }
         if (maxPriority <= 0) {
-            return new WinningRegionPartition(vertices, EMPTY_SET, 0);
+            return new WinningRegionPartition(vertices, EMPTY_SET, Player.A);
         }
-        final int sigma = maxPriority % 2;
+        final Player sigma = Player.getPlayerForInt(maxPriority % 2);
 
         // in Abbildung 15.5 this is N
         final Set<ParityVertex> verticesWithMaxPriority = new HashSet<>();
@@ -94,19 +87,19 @@ public class RecursiveAlgorithm implements Solver {
         final WinningRegionPartition partition = getPartitionForUnsolvedVertices(
                 vertices, attractor);
 
-        if (partition.getWinningRegionFor(1 - sigma).isEmpty()) {
+        if (partition.getWinningRegionFor(sigma.getOponent()).isEmpty()) {
             // this means player sigma wins all vertices in G\N' and therefore in G
             return new WinningRegionPartition(vertices, EMPTY_SET, sigma);
         }
 
         // in Abbildung 15.5 this is N''
         Collection<ParityVertex> attractor2 = getAttractor(
-                partition.getWinningRegionFor(1 - sigma), 1 - sigma, vertices);
+                partition.getWinningRegionFor(sigma.getOponent()), sigma.getOponent(), vertices);
 
         final WinningRegionPartition partition2 = getPartitionForUnsolvedVertices(
                 vertices, attractor2);
         final Set<ParityVertex> winningRegion2 = new HashSet<>(
-                partition2.getWinningRegionFor(1 - sigma));
+                partition2.getWinningRegionFor(sigma.getOponent()));
         winningRegion2.addAll(attractor2);
         return new WinningRegionPartition(
                 partition2.getWinningRegionFor(sigma), winningRegion2, sigma);
@@ -121,7 +114,7 @@ public class RecursiveAlgorithm implements Solver {
     }
 
     private Collection<ParityVertex> getAttractor(
-            final Collection<? extends ParityVertex> vertices, final int sigma,
+            final Collection<? extends ParityVertex> vertices, final Player sigma,
             final Collection<? extends ParityVertex> allVertices) {
         Set<ParityVertex> attractor = new HashSet<>(vertices);
         Set<ParityVertex> otherVertices = new HashSet<>(allVertices);
@@ -136,7 +129,7 @@ public class RecursiveAlgorithm implements Solver {
                 successorsInSubGame.retainAll(allVertices);
                 if ((vertex.getPlayer() == sigma && !Collections.disjoint(
                         attractor, successorsInSubGame))
-                        || (vertex.getPlayer() == 1 - sigma && attractor
+                        || (vertex.getPlayer() == sigma.getOponent() && attractor
                                 .containsAll(successorsInSubGame))) {
                     attractor.add(vertex);
                 }

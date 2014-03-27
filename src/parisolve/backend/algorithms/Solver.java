@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
+import parisolve.backend.Player;
 
 /**
  * interface implemented by every algorithm for solving parity games.
@@ -22,5 +23,5 @@ public interface Solver {
      *         which they win.
      */
     Collection<? extends ParityVertex> getWinningRegionForPlayer(
-            final Arena arena, final int player);
+            final Arena arena, final Player player);
 }

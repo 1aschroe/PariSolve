@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
+import parisolve.backend.Player;
 import parisolve.backend.algorithms.PrimitiveAlgorithm;
 import parisolve.backend.algorithms.RecursiveAlgorithm;
 import parisolve.backend.algorithms.SimpleAlgorithm;
@@ -61,11 +62,11 @@ public class KnownArenasTest {
         // TODO come up with a solution which is implementation independent
         final PrimitiveAlgorithm primitiveAlgorithm = new PrimitiveAlgorithm();
         final Collection<? extends ParityVertex> referenceWinningRegion = primitiveAlgorithm
-                .getWinningRegionForPlayer(aulArena, 0);
+                .getWinningRegionForPlayer(aulArena, Player.A);
 
         for (final Solver algorithm : getAlgorithms()) {
             final Collection<? extends ParityVertex> winningRegion = algorithm
-                    .getWinningRegionForPlayer(aulArena, 0);
+                    .getWinningRegionForPlayer(aulArena, Player.A);
             Assert.assertEquals("Algorithm did not solve correctly.",
                     referenceWinningRegion, winningRegion);
         }

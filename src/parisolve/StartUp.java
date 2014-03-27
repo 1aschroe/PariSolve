@@ -11,6 +11,7 @@ import org.apache.commons.cli.ParseException;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
+import parisolve.backend.Player;
 import parisolve.backend.algorithms.RecursiveAlgorithm;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
@@ -68,7 +69,7 @@ public class StartUp {
                     try {
                         final Arena arena = ArenaManager.loadArena(arenaFile);
                         final long start = System.currentTimeMillis();
-                        solver.getWinningRegionForPlayer(arena, 0);
+                        solver.getWinningRegionForPlayer(arena, Player.A);
                         final long stop = System.currentTimeMillis();
                         if (line.hasOption("time")) {
                             System.out.println(String.format(TIME_MSG, stop
@@ -98,7 +99,7 @@ public class StartUp {
                         }
                         final long start = System.currentTimeMillis();
                         final Collection<? extends ParityVertex> winningRegion = solver
-                                .getWinningRegionForPlayer(currentArena, 0);
+                                .getWinningRegionForPlayer(currentArena, Player.A);
                         final long stop = System.currentTimeMillis();
                         gui.highlightRegion(winningRegion);
                         if (line.hasOption(TIME_OPTION)) {

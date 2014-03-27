@@ -9,10 +9,10 @@ import java.util.Set;
 public class LinkedArena implements Arena {
 	class LinkedParityVertex implements ParityVertex {
 		private int priority;
-		private int player;
+		private Player player;
 		private Set<LinkedParityVertex> successors = new HashSet<>();
 		
-		public LinkedParityVertex(int priority, int player) {
+		public LinkedParityVertex(int priority, Player player) {
 			this.priority = priority;
 			this.player = player;
 		}
@@ -23,7 +23,7 @@ public class LinkedArena implements Arena {
 		}
 
 		@Override
-		public int getPlayer() {
+		public Player getPlayer() {
 			return player;
 		}
 		
@@ -47,7 +47,7 @@ public class LinkedArena implements Arena {
 	
 	Map<String, LinkedParityVertex> vertices = new HashMap<>();
 	
-	public void addVertex(String name, int priority, int player) {
+	public void addVertex(String name, int priority, Player player) {
 		vertices.put(name, new LinkedParityVertex(priority, player));
 	}
 	

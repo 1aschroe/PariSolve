@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
+import parisolve.backend.Player;
 
 /**
  * Idea given in theorem 7.6 LNCS 2500 p. 113 and respectively Zwick, Paterson
@@ -23,13 +24,13 @@ public class SimpleAlgorithm implements Solver {
 
     @Override
     public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
-            final Arena arena, final int player) {
+            final Arena arena, final Player player) {
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
         final int n = vertices.size();
         final long maxK = calculateMaxK(vertices);
 
-        final Map<ParityVertex, Long> nuForLastK = runAlgorithm(arena, vertices, n,
-                maxK);
+        final Map<ParityVertex, Long> nuForLastK = runAlgorithm(arena,
+                vertices, n, maxK);
 
         return determineWinningRegion(player, nuForLastK, vertices);
     }
@@ -60,12 +61,13 @@ public class SimpleAlgorithm implements Solver {
         return nuForLastK;
     }
 
-    private Set<ParityVertex> determineWinningRegion(final int player,
+    private Set<ParityVertex> determineWinningRegion(final Player player,
             final Map<ParityVertex, Long> nuForLastK,
             final Collection<? extends ParityVertex> vertices) {
         final Set<ParityVertex> winningRegion = new HashSet<>();
         for (final ParityVertex vertex : vertices) {
-            if (Math.pow(-1, player) * nuForLastK.get(vertex) > 0) {
+            // TODO so wirklich schön ist das ja nicht...
+            if (Math.pow(-1, player.getNumber()) * nuForLastK.get(vertex) > 0) {
                 winningRegion.add(vertex);
             }
         }
@@ -80,7 +82,7 @@ public class SimpleAlgorithm implements Solver {
             final int numberOfVerticesInArena, final ParityVertex v) {
         final Collection<? extends ParityVertex> successors = arena
                 .getSuccessors(v);
-        final int playerOfV = v.getPlayer();
+        final Player playerOfV = v.getPlayer();
         ParityVertex bestSuc = null;
         for (final ParityVertex suc : successors) {
             if (bestSuc == null) {
@@ -90,8 +92,8 @@ public class SimpleAlgorithm implements Solver {
                         numberOfVerticesInArena);
                 final long bestValue = getValue(v, bestSuc, nuForLastK,
                         numberOfVerticesInArena);
-                if ((playerOfV == 0 && sucValue > bestValue)
-                        || (playerOfV == 1 && sucValue < bestValue)) {
+                if ((playerOfV == Player.A && sucValue > bestValue)
+                        || (playerOfV == Player.B && sucValue < bestValue)) {
                     bestSuc = suc;
                 }
             }
@@ -111,7 +113,7 @@ public class SimpleAlgorithm implements Solver {
             }
         }
         // it is important to have 4 as long to not have an overflow when
-        // calculating 4*n^2.
+        // calculating 4*n^2 as int.
         return (long) (4L * n * n * Math.pow(n, maxPriority));
     }
 

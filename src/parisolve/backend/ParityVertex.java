@@ -5,7 +5,7 @@ import java.util.Collection;
 public interface ParityVertex {
 	int getPriority();
 	
-	int getPlayer();
+	Player getPlayer();
 
     Collection<? extends ParityVertex> getSuccessors();
 }

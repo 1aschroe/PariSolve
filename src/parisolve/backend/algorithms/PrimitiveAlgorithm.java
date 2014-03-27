@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
+import parisolve.backend.Player;
 
 /**
  * Naive approach, trying all possible strategies and comparing their value for
@@ -64,13 +65,13 @@ public class PrimitiveAlgorithm implements Solver {
 
     @Override
     public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
-            final Arena arena, final int player) {
+            final Arena arena, final Player player) {
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
         final Map<ParityVertex, ParityVertex> strategy = new ConcurrentHashMap<>();
         // TODO: simplify this with streams and lambda-expressions
         final Set<ParityVertex> zeroVertices = new HashSet<>();
         for (final ParityVertex vertex : vertices) {
-            if (vertex.getPlayer() == 0) {
+            if (vertex.getPlayer() == Player.A) {
                 zeroVertices.add(vertex);
             }
         }
@@ -191,7 +192,7 @@ public class PrimitiveAlgorithm implements Solver {
         int numberOfVerticesToZero = 0;
         // the strategy contains all vertices as keys
         for (final ParityVertex vertex : strategy.keySet()) {
-            if (findWinner(vertex, strategy) == 0) {
+            if (findWinner(vertex, strategy) == Player.A) {
                 numberOfVerticesToZero++;
             }
         }
@@ -209,7 +210,7 @@ public class PrimitiveAlgorithm implements Solver {
      *            the strategy fixed
      * @return number of player to win (either 0 or 1)
      */
-    private static int findWinner(final ParityVertex vertex,
+    private static Player findWinner(final ParityVertex vertex,
             final Map<ParityVertex, ParityVertex> strategy) {
         ParityVertex currentVertex = vertex;
         final List<ParityVertex> path = new ArrayList<ParityVertex>();
@@ -224,13 +225,7 @@ public class PrimitiveAlgorithm implements Solver {
                 maxPriority = path.get(i).getPriority();
             }
         }
-        return maxPriority % 2;
-    }
-
-    public static final String[] PLAYER_SHAPES = new String[2];
-    static {
-        PLAYER_SHAPES[0] = "oval";
-        PLAYER_SHAPES[1] = "box";
+        return Player.getPlayerForInt(maxPriority);
     }
 
     /**
@@ -251,9 +246,11 @@ public class PrimitiveAlgorithm implements Solver {
         final Map<ParityVertex, Integer> numbersOfVertices = new ConcurrentHashMap<>();
         int numberOfVertex = 0;
         for (final ParityVertex vertex : strategy.keySet()) {
-            resultBuilder.append(String.format(
-                    "  z%d[shape=%s,label=\"%d\"];\n", numberOfVertex,
-                    PLAYER_SHAPES[vertex.getPlayer()], vertex.getPriority()));
+            resultBuilder
+                    .append(String.format("  z%d[shape=%s,label=\"%d\"];\n",
+                            numberOfVertex,
+                            vertex.getPlayer().getShapeString(),
+                            vertex.getPriority()));
             numbersOfVertices.put(vertex, numberOfVertex);
             numberOfVertex++;
         }
