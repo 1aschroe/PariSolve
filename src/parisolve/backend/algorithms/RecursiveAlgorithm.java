@@ -55,11 +55,14 @@ public class RecursiveAlgorithm implements Solver {
     private final static Set<ParityVertex> EMPTY_SET = new HashSet<ParityVertex>();
 
     /**
+     * solves an arena specified by the vertices given by returning the
+     * partition of the given vertices into the winning regions. This
      * corresponds to Abbildung 15.5 in Automatentheorie und Logik
      * 
      * @param vertices
-     *            this is G in Abbildung 15.5
-     * @return
+     *            the vertices, to solve the parity game on. This is G in
+     *            Abbildung 15.5
+     * @return a partition with a set of vertices for each player to win upon.
      */
     private WinningRegionPartition solveGame(
             final Collection<? extends ParityVertex> vertices) {
@@ -88,34 +91,38 @@ public class RecursiveAlgorithm implements Solver {
         final Collection<ParityVertex> attractor = getAttractor(
                 verticesWithMaxPriority, sigma, vertices);
 
-        final Set<ParityVertex> unsolvedVertices = new HashSet<>(vertices);
-        unsolvedVertices.removeAll(attractor);
-        final WinningRegionPartition partition = solveGame(unsolvedVertices);
+        final WinningRegionPartition partition = getPartitionForUnsolvedVertices(
+                vertices, attractor);
 
         if (partition.getWinningRegionFor(1 - sigma).isEmpty()) {
-            final Set<ParityVertex> winningRegion = new HashSet<>(
-                    partition.getWinningRegionFor(sigma));
-            winningRegion.addAll(attractor);
-            return new WinningRegionPartition(winningRegion, EMPTY_SET, sigma);
+            // this means player sigma wins all vertices in G\N' and therefore in G
+            return new WinningRegionPartition(vertices, EMPTY_SET, sigma);
         }
 
         // in Abbildung 15.5 this is N''
         Collection<ParityVertex> attractor2 = getAttractor(
                 partition.getWinningRegionFor(1 - sigma), 1 - sigma, vertices);
 
-        final Set<ParityVertex> unsolvedVertices2 = new HashSet<>(vertices);
-        unsolvedVertices2.removeAll(attractor2);
-        final WinningRegionPartition partition2 = solveGame(unsolvedVertices2);
+        final WinningRegionPartition partition2 = getPartitionForUnsolvedVertices(
+                vertices, attractor2);
         final Set<ParityVertex> winningRegion2 = new HashSet<>(
                 partition2.getWinningRegionFor(1 - sigma));
         winningRegion2.addAll(attractor2);
-        return new WinningRegionPartition(partition2.getWinningRegionFor(sigma),
-                winningRegion2, sigma);
+        return new WinningRegionPartition(
+                partition2.getWinningRegionFor(sigma), winningRegion2, sigma);
+    }
+
+    private WinningRegionPartition getPartitionForUnsolvedVertices(
+            final Collection<? extends ParityVertex> vertices,
+            final Collection<ParityVertex> attractor) {
+        final Set<ParityVertex> unsolvedVertices = new HashSet<>(vertices);
+        unsolvedVertices.removeAll(attractor);
+        return solveGame(unsolvedVertices);
     }
 
     private Collection<ParityVertex> getAttractor(
             final Collection<? extends ParityVertex> vertices, final int sigma,
-            Collection<? extends ParityVertex> allVertices) {
+            final Collection<? extends ParityVertex> allVertices) {
         Set<ParityVertex> attractor = new HashSet<>(vertices);
         Set<ParityVertex> otherVertices = new HashSet<>(allVertices);
         int otherSize = otherVertices.size();
@@ -124,7 +131,8 @@ public class RecursiveAlgorithm implements Solver {
         while (otherSize > otherVertices.size()) {
             otherSize = otherVertices.size();
             for (ParityVertex vertex : otherVertices) {
-                Set<ParityVertex> successorsInSubGame = new HashSet<>(vertex.getSuccessors());
+                Set<ParityVertex> successorsInSubGame = new HashSet<>(
+                        vertex.getSuccessors());
                 successorsInSubGame.retainAll(allVertices);
                 if ((vertex.getPlayer() == sigma && !Collections.disjoint(
                         attractor, successorsInSubGame))
