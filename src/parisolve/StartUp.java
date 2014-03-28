@@ -57,22 +57,21 @@ public class StartUp {
                 return;
             }
 
+            final UserInterface ui;
             if (line.hasOption(NON_UI_OPTION)) {
                 // command line mode
-                if (arenas.length == 0) {
-                    System.out.println("No arenas specified.");
-                    // TODO: enter interactive mode
-                }
+                ui = new CommandLineInterface();
 
                 final Solver solver = new RecursiveAlgorithm();
                 for (final String arenaFile : arenas) {
                     try {
                         final Arena arena = ArenaManager.loadArena(arenaFile);
+                        ui.displayInfo("Solving " + arenaFile);
                         final long start = System.currentTimeMillis();
                         solver.getWinningRegionForPlayer(arena, Player.A);
                         final long stop = System.currentTimeMillis();
                         if (line.hasOption("time")) {
-                            System.out.println(String.format(TIME_MSG, stop
+                           ui.displayInfo(String.format(TIME_MSG, stop
                                     - start));
                         }
                     } catch (IOException e) {
@@ -82,43 +81,43 @@ public class StartUp {
                 }
             } else {
                 // GUI mode
-                final GraphicalUI gui = new GraphicalUI();
-                gui.addOpenListener(new OpenListener() {
-                    @Override
-                    public void openedArena(final Arena arena) {
-                        currentArena = arena;
-                        gui.populateGraphWithArena(currentArena);
-                    }
-                });
-                gui.addSolveListener(new SolveListener() {
-                    @Override
-                    public void solve(final Solver solver) {
-                        if (currentArena == null) {
-                            gui.displayError("No arena loaded");
-                            return;
-                        }
-                        final long start = System.currentTimeMillis();
-                        final Collection<? extends ParityVertex> winningRegion = solver
-                                .getWinningRegionForPlayer(currentArena, Player.A);
-                        final long stop = System.currentTimeMillis();
-                        gui.highlightRegion(winningRegion);
-                        if (line.hasOption(TIME_OPTION)) {
-                            gui.displayInfo(String.format(TIME_MSG, stop
-                                    - start));
-                        }
-                    }
-                });
+                ui = new GraphicalUI();
                 if (arenas.length > 0) {
                     try {
                         currentArena = ArenaManager.loadArena(arenas[0]);
-                        gui.populateGraphWithArena(currentArena);
+                        ui.populateGraphWithArena(currentArena);
                     } catch (IOException e) {
-                        gui.displayError(String.format(ARENA_NOT_READ_MSG,
+                        ui.displayError(String.format(ARENA_NOT_READ_MSG,
                                 arenas[0]));
                     }
                 }
-                gui.run();
             }
+            ui.addOpenListener(new OpenListener() {
+                @Override
+                public void openedArena(final Arena arena) {
+                    currentArena = arena;
+                    ui.populateGraphWithArena(currentArena);
+                }
+            });
+            ui.addSolveListener(new SolveListener() {
+                @Override
+                public void solve(final Solver solver) {
+                    if (currentArena == null) {
+                        ui.displayError("No arena loaded");
+                        return;
+                    }
+                    final long start = System.currentTimeMillis();
+                    final Collection<? extends ParityVertex> winningRegion = solver
+                            .getWinningRegionForPlayer(currentArena, Player.A);
+                    final long stop = System.currentTimeMillis();
+                    ui.highlightRegion(winningRegion);
+                    if (line.hasOption(TIME_OPTION)) {
+                        ui.displayInfo(String.format(TIME_MSG, stop
+                                - start));
+                    }
+                }
+            });
+            ui.run();
         } catch (ParseException e) {
             e.printStackTrace();
         }

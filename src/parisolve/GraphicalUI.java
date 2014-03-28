@@ -1,8 +1,5 @@
 package parisolve;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -35,9 +32,8 @@ import org.eclipse.zest.layouts.algorithms.SpringLayoutAlgorithm;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.algorithms.Solver;
-import parisolve.io.ArenaManager;
 
-public class GraphicalUI {
+public class GraphicalUI extends AbstractUI {
 
     private final class SolveSelectionAdapter extends SelectionAdapter {
         @Override
@@ -46,9 +42,7 @@ public class GraphicalUI {
                 displayError("No algorithm selected.");
                 return;
             }
-            for (final SolveListener listener : solveListeners) {
-                listener.solve(algorithmCombo.getSelectedAlgorithm());
-            }
+            fireSolve(algorithmCombo.getSelectedAlgorithm());
         }
     }
 
@@ -57,19 +51,9 @@ public class GraphicalUI {
         public void widgetSelected(final SelectionEvent arg0) {
             final FileDialog fileDialog = new FileDialog(SHELL, SWT.OPEN);
             fileDialog.setText("Load Arena");
-            try {
-                final String filename = fileDialog.open();
-                if (filename != null) {
-                    final Arena arena = ArenaManager.loadArena(filename);
-                    for (final OpenListener listener : openListeners) {
-                        listener.openedArena(arena);
-                    }
-                }
-            } catch (IOException e) {
-                displayError("While loading the arena, the following exception occurred:\n"
-                        + e.getMessage()
-                        + "\n"
-                        + Arrays.toString(e.getStackTrace()));
+            final String filename = fileDialog.open();
+            if (filename != null) {
+                loadArenaFromFile(filename);
             }
         }
     }
@@ -108,8 +92,6 @@ public class GraphicalUI {
 
     static Graph graph = null;
     static Map<ParityVertex, GraphNode> correspondence = new HashMap<ParityVertex, GraphNode>();
-    protected List<SolveListener> solveListeners = new ArrayList<SolveListener>();
-    protected List<OpenListener> openListeners = new ArrayList<OpenListener>();
 
     public GraphicalUI() {
         SHELL.setText("PariSolve");
@@ -268,6 +250,7 @@ public class GraphicalUI {
     /**
      * display GUI. Blocks the current thread until the GUI is closed.
      */
+    @Override
     public final void run() {
         SHELL.pack();
         SHELL.open();
@@ -303,7 +286,7 @@ public class GraphicalUI {
      * @param arena
      *            the arena to display
      */
-    protected final void populateGraphWithArena(final Arena arena) {
+    public final void populateGraphWithArena(final Arena arena) {
         for (final GraphNode node : correspondence.values()) {
             node.dispose();
         }
@@ -311,12 +294,9 @@ public class GraphicalUI {
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
         correspondence = new HashMap<>();
         for (final ParityVertex vertex : vertices) {
-            correspondence
-                    .put(vertex,
-                            new GraphNode(
-                                    graph,
-                                    vertex.getPlayer().getZestStyleFlag(), Integer
-                                            .toString(vertex.getPriority())));
+            correspondence.put(vertex,
+                    new GraphNode(graph, vertex.getPlayer().getZestStyleFlag(),
+                            Integer.toString(vertex.getPriority())));
         }
         for (final ParityVertex fromVertex : vertices) {
             for (final ParityVertex toVertex : arena.getSuccessors(fromVertex)) {
@@ -337,24 +317,13 @@ public class GraphicalUI {
                 LayoutStyles.NO_LAYOUT_NODE_RESIZING), true);
     }
 
-    public void addSolveListener(final SolveListener solveListener) {
-        if (!solveListeners.contains(solveListener)) {
-            solveListeners.add(solveListener);
-        }
-    }
-
-    public void addOpenListener(final OpenListener openListener) {
-        if (!openListeners.contains(openListener)) {
-            openListeners.add(openListener);
-        }
-    }
-
     /**
      * display an error-box with the message specified.
      * 
      * @param message
      *            the message to be inside the error-box
      */
+    @Override
     public final void displayError(final String message) {
         displayMessage(message, "Error!", SWT.ICON_ERROR);
     }
@@ -365,6 +334,7 @@ public class GraphicalUI {
      * @param message
      *            the message to be inside the info-box
      */
+    @Override
     public final void displayInfo(final String message) {
         displayMessage(message, "Info", SWT.ICON_INFORMATION);
     }
