@@ -9,7 +9,7 @@ import parisolve.backend.Player;
 /**
  * interface implemented by every algorithm for solving parity games.
  * 
- * @author Arne Schröder
+ * @author Arne SchrÃ¶der
  */
 public interface Solver {
     /**

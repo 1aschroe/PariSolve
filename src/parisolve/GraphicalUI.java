@@ -31,6 +31,7 @@ import org.eclipse.zest.layouts.algorithms.SpringLayoutAlgorithm;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
+import parisolve.backend.algorithms.AlgorithmManager;
 import parisolve.backend.algorithms.Solver;
 
 public class GraphicalUI extends AbstractUI {
@@ -58,7 +59,7 @@ public class GraphicalUI extends AbstractUI {
         }
     }
 
-    final static List<Solver> ALGORITHMS = KnownArenasTest.getAlgorithms();
+    final static List<Solver> ALGORITHMS = AlgorithmManager.getAlgorithms();
     final static String[] ALGORITHM_NAMES = new String[ALGORITHMS.size()];
     static {
         for (int i = 0; i < ALGORITHMS.size(); i++) {

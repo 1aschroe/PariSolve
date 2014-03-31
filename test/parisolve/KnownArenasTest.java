@@ -2,9 +2,7 @@ package parisolve;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -12,9 +10,8 @@ import org.junit.Test;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
+import parisolve.backend.algorithms.AlgorithmManager;
 import parisolve.backend.algorithms.PrimitiveAlgorithm;
-import parisolve.backend.algorithms.RecursiveAlgorithm;
-import parisolve.backend.algorithms.SimpleAlgorithm;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
 
@@ -64,7 +61,7 @@ public class KnownArenasTest {
         final Collection<? extends ParityVertex> referenceWinningRegion = primitiveAlgorithm
                 .getWinningRegionForPlayer(aulArena, Player.A);
 
-        for (final Solver algorithm : getAlgorithms()) {
+        for (final Solver algorithm : AlgorithmManager.getAlgorithms()) {
             final Collection<? extends ParityVertex> winningRegion = algorithm
                     .getWinningRegionForPlayer(aulArena, Player.A);
             Assert.assertEquals("Algorithm did not solve correctly.",
@@ -90,14 +87,5 @@ public class KnownArenasTest {
         return ArenaManager.loadArena(Thread.currentThread()
                 .getContextClassLoader().getResource(filename).toURI()
                 .getPath().substring(1));
-    }
-
-    /**
-     * returns a list of currently implemented algorithms to solve parity games.
-     * 
-     * @return algorithms, able to solve parity games
-     */
-    public static final List<Solver> getAlgorithms() {
-        return Arrays.asList(new PrimitiveAlgorithm(), new SimpleAlgorithm(), new RecursiveAlgorithm());
     }
 }

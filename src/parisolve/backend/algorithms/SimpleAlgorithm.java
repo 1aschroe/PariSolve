@@ -66,7 +66,7 @@ public class SimpleAlgorithm implements Solver {
             final Collection<? extends ParityVertex> vertices) {
         final Set<ParityVertex> winningRegion = new HashSet<>();
         for (final ParityVertex vertex : vertices) {
-            // TODO so wirklich schön ist das ja nicht...
+            // TODO so wirklich schÃ¶n ist das ja nicht...
             if (Math.pow(-1, player.getNumber()) * nuForLastK.get(vertex) > 0) {
                 winningRegion.add(vertex);
             }

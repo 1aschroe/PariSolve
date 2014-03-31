@@ -6,17 +6,18 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import parisolve.backend.algorithms.AlgorithmManager;
 import parisolve.backend.algorithms.Solver;
 
 public class CommandLineInterface extends AbstractUI {
 
     @Override
-    public void displayInfo(String message) {
+    public void displayInfo(final String message) {
         System.out.println(message);
     }
 
     @Override
-    public void displayError(String message) {
+    public void displayError(final String message) {
         System.err.println(message);
     }
 
@@ -50,7 +51,7 @@ public class CommandLineInterface extends AbstractUI {
                     String algorithm;
                     if (parts.length == 1) {
                         displayInfo("Possible Solvers are: "
-                                + KnownArenasTest.getAlgorithms());
+                                + AlgorithmManager.getAlgorithms());
                         System.out.print("solve> ");
                         algorithm = br.readLine();
                     } else {
