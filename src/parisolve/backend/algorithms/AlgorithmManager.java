@@ -11,7 +11,7 @@ public class AlgorithmManager {
 	 * @return algorithms, able to solve parity games
 	 */
 	public static final List<Solver> getAlgorithms() {
-	    return Arrays.asList(new PrimitiveAlgorithm(), new SimpleAlgorithm(), new RecursiveAlgorithm());
+	    return Arrays.asList(new PrimitiveAlgorithm(), new SimpleAlgorithm(), new RecursiveAlgorithm(), new BetterAlgorithm());
 	}
 
 }
