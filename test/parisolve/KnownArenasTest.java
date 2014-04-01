@@ -11,7 +11,7 @@ import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 import parisolve.backend.algorithms.AlgorithmManager;
-import parisolve.backend.algorithms.PrimitiveAlgorithm;
+import parisolve.backend.algorithms.RecursiveAlgorithm;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
 
@@ -41,11 +41,15 @@ public class KnownArenasTest {
         doTestArena("trivial.arena");
     }
 
-    // @Test
-    // public final void testWikipedia() throws IOException, URISyntaxException
-    // {
-    // doTestArena("wikipedia.arena");
-    // }
+    @Test
+    public final void testWikipedia() throws IOException, URISyntaxException {
+        doTestArena("wikipedia.arena");
+    }
+
+    @Test
+    public final void testH43() throws IOException, URISyntaxException {
+        doTestArena("H43.txt");
+    }
 
     @Test
     public final void testSchewe() throws IOException, URISyntaxException {
@@ -67,8 +71,8 @@ public class KnownArenasTest {
             URISyntaxException {
         final Arena aulArena = loadArenaFromResources(filename);
         // TODO come up with a solution which is implementation independent
-        final PrimitiveAlgorithm primitiveAlgorithm = new PrimitiveAlgorithm();
-        final Collection<? extends ParityVertex> referenceWinningRegion = primitiveAlgorithm
+        final Solver referenceAlgorithm = new RecursiveAlgorithm();
+        final Collection<? extends ParityVertex> referenceWinningRegion = referenceAlgorithm
                 .getSolution(aulArena).getWinningRegionFor(Player.A);
 
         for (final Solver algorithm : AlgorithmManager.getAlgorithms()) {
