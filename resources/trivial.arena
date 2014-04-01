@@ -1,0 +1,12 @@
+// This is a trivial arena to test the most basic functionality of algorithms
+digraph arena {
+  z0[shape=box,label="1"];
+  z1[shape=oval,label="2"];
+  z2[shape=oval,label="1"];
+  z3[shape=box,label="2"];
+  
+  z0->z1;
+  z1->z0;
+  z2->z2;
+  z3->z3;
+}

@@ -36,6 +36,11 @@ public class KnownArenasTest {
         doTestArena("example.arena");
     }
 
+    @Test
+    public final void testTrivial() throws IOException, URISyntaxException {
+        doTestArena("trivial.arena");
+    }
+
     // @Test
     // public final void testWikipedia() throws IOException, URISyntaxException
     // {
@@ -64,7 +69,7 @@ public class KnownArenasTest {
         for (final Solver algorithm : AlgorithmManager.getAlgorithms()) {
             final Collection<? extends ParityVertex> winningRegion = algorithm
                     .getWinningRegionForPlayer(aulArena, Player.A);
-            Assert.assertEquals("Algorithm did not solve correctly.",
+            Assert.assertEquals("Algorithm " + algorithm.getClass().getSimpleName() + " did not solve correctly.",
                     referenceWinningRegion, winningRegion);
         }
     }
