@@ -8,20 +8,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 
-
 public class ProgressMeasure {
     private int maxPriority;
     /**
      * represents the map from V to M_G^T. The empty array is interpreted as T.
-     * value[0] is a_1, value[1] is a_3 and so on. In contrast to the book,
-     * we compare measures from the back to the front in order to solve
+     * value[0] is a_1, value[1] is a_3 and so on. In contrast to the book, we
+     * compare measures from the back to the front in order to solve
      * max-parity-games. This behaviour is encoded in getIndexFromPriority.
      */
     private Map<ParityVertex, MeasureValue> measure = new ConcurrentHashMap<>();
     private long sizeOfMG;
     
-    
-
     public ProgressMeasure(final int maxPriority, final long sizeOfMG) {
         this.maxPriority = maxPriority;
         this.sizeOfMG = sizeOfMG;
@@ -36,9 +33,9 @@ public class ProgressMeasure {
     }
 
     /**
-     * lifts vertex u as in Definition 7.22 and assigns its value back to
-     * this ProgressMeasure-instance. That is, it implements mu := Lift(mu,
-     * v) as of LNCS 2500 top of p. 123
+     * lifts vertex u as in Definition 7.22 and assigns its value back to this
+     * ProgressMeasure-instance. That is, it implements mu := Lift(mu, v) as of
+     * LNCS 2500 top of p. 123
      * 
      * @param v
      *            the vertex to lift the progress measure on
@@ -50,29 +47,39 @@ public class ProgressMeasure {
             return false;
         }
         final Collection<? extends ParityVertex> successors = v.getSuccessors();
-        MeasureValue valueToCompareWith;
+        int maxOrMin;
         if (v.getPlayer() == Player.A) {
-            valueToCompareWith = MeasureValue.getTValue();
-            for (final ParityVertex w : successors) {
-                final MeasureValue prog = prog(v, w);
-                if (valueToCompareWith.compareTo(prog, 0) > 0) {
-                    valueToCompareWith = prog;
-                }
-            }
+            maxOrMin = -1;
         } else {
-            valueToCompareWith = new MeasureValue(maxPriority);
-            for (ParityVertex w : successors) {
-                final MeasureValue prog = prog(v, w);
-                if (valueToCompareWith.compareTo(prog, 0) < 0) {
-                    valueToCompareWith = prog;
-                }
+            maxOrMin = 1;
             }
-        }
-        if (valueToCompareWith.compareTo(currentValue, 0) > 0) {
+        MeasureValue valueToCompareWith = prog(v, successors, maxOrMin);
+        if (valueToCompareWith.compareTo(currentValue) > 0) {
             measure.put(v, valueToCompareWith);
             return true;
         }
         return false;
+    }
+
+    /**
+     * 
+     * @param v
+     * @param successors
+     * @param max
+     *            is 1 iff we are looking for the maximal value and -1 iff
+     *            looking for a minimal value
+     * @return
+     */
+    private MeasureValue prog(final ParityVertex v,
+            final Collection<? extends ParityVertex> successors, final int max) {
+        ParityVertex bestSuccessor = null;
+        for (final ParityVertex w : successors) {
+            if (bestSuccessor == null
+                    || get(bestSuccessor).compareTo(get(w)) * max < 0) {
+                bestSuccessor = w;
+            }
+        }
+        return get(bestSuccessor).getProgValue(v.getPriority(), sizeOfMG);
     }
 
     /**
@@ -91,7 +98,8 @@ public class ProgressMeasure {
     public String toString() {
         StringBuilder resultBuilder = new StringBuilder();
         for (Entry<ParityVertex, MeasureValue> pair : measure.entrySet()) {
-            resultBuilder.append(pair.getKey() + " -> " + pair.getValue() + "\n");
+            resultBuilder.append(pair.getKey() + " -> " + pair.getValue()
+                    + "\n");
         }
         return resultBuilder.toString();
     }

@@ -67,7 +67,7 @@ public class MeasureValue implements Comparable<MeasureValue> {
 
     @Override
     public int compareTo(MeasureValue o) {
-        return compareTo(o, maxPriority);
+        return compareTo(o, 0);
     }
 
     @Override
