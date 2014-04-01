@@ -12,7 +12,7 @@ import org.apache.commons.cli.ParseException;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
-import parisolve.backend.algorithms.RecursiveAlgorithm;
+import parisolve.backend.algorithms.BetterAlgorithm;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
 
@@ -62,7 +62,7 @@ public class StartUp {
                 // command line mode
                 ui = new CommandLineInterface();
 
-                final Solver solver = new RecursiveAlgorithm();
+                final Solver solver = new BetterAlgorithm();
                 for (final String arenaFile : arenas) {
                     try {
                         final Arena arena = ArenaManager.loadArena(arenaFile);
@@ -71,11 +71,11 @@ public class StartUp {
                         solver.getWinningRegionForPlayer(arena, Player.A);
                         final long stop = System.currentTimeMillis();
                         if (line.hasOption("time")) {
-                           ui.displayInfo(String.format(TIME_MSG, stop
-                                    - start));
+                            ui.displayInfo(String
+                                    .format(TIME_MSG, stop - start));
                         }
                     } catch (IOException e) {
-                        System.err.println(String.format(ARENA_NOT_READ_MSG,
+                        ui.displayError(String.format(ARENA_NOT_READ_MSG,
                                 arenaFile));
                     }
                 }
@@ -112,8 +112,7 @@ public class StartUp {
                     final long stop = System.currentTimeMillis();
                     ui.highlightRegion(winningRegion);
                     if (line.hasOption(TIME_OPTION)) {
-                        ui.displayInfo(String.format(TIME_MSG, stop
-                                - start));
+                        ui.displayInfo(String.format(TIME_MSG, stop - start));
                     }
                 }
             });

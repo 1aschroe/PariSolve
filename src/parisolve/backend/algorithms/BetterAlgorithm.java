@@ -38,15 +38,14 @@ public class BetterAlgorithm implements Solver {
             product *= count + 1;
         }
         ProgressMeasure measure = new ProgressMeasure(maxPriority, product);
+
+        // TODO: implement liftable construct
         boolean didChange = true;
-        int loops = 0;
         while (didChange) {
             didChange = false;
             for (ParityVertex vertex : vertices) {
-                // TODO: does this skip the right part if didChange is true?
                 didChange |= measure.lift(vertex);
             }
-            loops++;
         }
 
         Set<ParityVertex> winningRegion = new HashSet<>();

@@ -44,18 +44,17 @@ public class ProgressMeasure {
      *            the vertex to lift the progress measure on
      * @return whether this has changed anything
      */
-    public boolean lift(final ParityVertex v) {
-        MeasureValue currentValue = get(v);
+    public final boolean lift(final ParityVertex v) {
+        final MeasureValue currentValue = get(v);
         if (currentValue.isT()) {
             return false;
         }
-        Collection<? extends ParityVertex> successors = v.getSuccessors();
+        final Collection<? extends ParityVertex> successors = v.getSuccessors();
         MeasureValue valueToCompareWith;
         if (v.getPlayer() == Player.A) {
             valueToCompareWith = MeasureValue.getTValue();
-            for (ParityVertex w : successors) {
-                MeasureValue prog = prog(v, w);
-                // TODO: is this comparison, what we want?
+            for (final ParityVertex w : successors) {
+                final MeasureValue prog = prog(v, w);
                 if (valueToCompareWith.compareTo(prog, 0) > 0) {
                     valueToCompareWith = prog;
                 }
@@ -63,8 +62,7 @@ public class ProgressMeasure {
         } else {
             valueToCompareWith = new MeasureValue(maxPriority);
             for (ParityVertex w : successors) {
-                MeasureValue prog = prog(v, w);
-                // TODO: is this comparison, what we want?
+                final MeasureValue prog = prog(v, w);
                 if (valueToCompareWith.compareTo(prog, 0) < 0) {
                     valueToCompareWith = prog;
                 }

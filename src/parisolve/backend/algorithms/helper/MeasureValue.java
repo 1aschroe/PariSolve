@@ -3,9 +3,8 @@ package parisolve.backend.algorithms.helper;
 import java.util.Arrays;
 
 public class MeasureValue implements Comparable<MeasureValue> {
-    Integer[] value;
+    int[] value;
 
-    // TODO: does -1 work?
     static MeasureValue T = new MeasureValue(-1) {
         public MeasureValue getProgValue(int priority, long sizeOfMG) {
             return this;
@@ -32,8 +31,12 @@ public class MeasureValue implements Comparable<MeasureValue> {
 
     public MeasureValue(int maxPriority) {
         this.maxPriority = maxPriority;
-        value = new Integer[getIndexFromPriority(maxPriority) + 1];
-        Arrays.fill(value, 0);
+        value = new int[maxPriority + 1];
+    }
+    
+    private MeasureValue(int[] value) {
+        maxPriority = value.length - 1;
+        this.value = value.clone();
     }
 
     static MeasureValue getTValue() {
@@ -42,12 +45,11 @@ public class MeasureValue implements Comparable<MeasureValue> {
 
     /**
      * compares the two values on their first components up to maxComponents and
-     * returns a number greater than zero iff value1 is greater, a number
-     * smaller than zero iff value2 is greater and zero iff value1 and value2
-     * are the same on the first components.
+     * returns a number greater than zero iff this is greater, a number smaller
+     * than zero iff value is greater and zero iff this and value are equal on
+     * the first components.
      * 
-     * @param value1
-     * @param value2
+     * @param value
      * @param maxComponents
      * @return
      */
@@ -55,16 +57,12 @@ public class MeasureValue implements Comparable<MeasureValue> {
         if (value.isT()) {
             return -1;
         }
-        for (int i = getIndexFromPriority(maxPriority); i >= getIndexFromPriority(maxComponents); i--) {
+        for (int i = maxPriority; i >= maxComponents; i--) {
             if (this.value[i] != value.value[i]) {
                 return this.value[i] - value.value[i];
             }
         }
         return 0;
-    }
-
-    private static int getIndexFromPriority(int priority) {
-        return priority;
     }
 
     @Override
@@ -82,14 +80,14 @@ public class MeasureValue implements Comparable<MeasureValue> {
     }
 
     public MeasureValue getProgValue(int priority, long sizeOfMG) {
-        MeasureValue prog = new MeasureValue(maxPriority);
-        prog.value = value.clone();
-        for (int i = 0; i < getIndexFromPriority(priority); i++) {
+        // FIXME: this is probably where it becomes slow
+        MeasureValue prog = new MeasureValue(value);
+        for (int i = 0; i < priority; i++) {
             prog.value[i] = 0;
         }
         if (priority % 2 == 1) {
-            prog.value[getIndexFromPriority(priority)]++;
-            if (prog.value[getIndexFromPriority(priority)] > sizeOfMG) {
+            prog.value[priority]++;
+            if (prog.value[priority] > sizeOfMG) {
                 return getTValue();
             }
         }
