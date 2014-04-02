@@ -27,7 +27,7 @@ public class RecursiveAlgorithm implements Solver {
         WinningRegionPartition(
                 final Collection<? extends ParityVertex> winningRegionForSigma,
                 final Collection<? extends ParityVertex> winningRegionForOponent,
-                Player sigma) {
+                final Player sigma) {
             partition.put(sigma, winningRegionForSigma);
             partition.put(sigma.getOponent(), winningRegionForOponent);
         }

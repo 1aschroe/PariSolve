@@ -16,15 +16,15 @@ public class ProgressMeasure {
      * compare measures from the back to the front in order to solve
      * max-parity-games. This behaviour is encoded in getIndexFromPriority.
      */
-    private Map<ParityVertex, MeasureValue> measure = new ConcurrentHashMap<>();
-    private long sizeOfMG;
-    
+    private final Map<ParityVertex, MeasureValue> measure = new ConcurrentHashMap<>();
+    private final long sizeOfMG;
+
     public ProgressMeasure(final int maxPriority, final long sizeOfMG) {
         this.maxPriority = maxPriority;
         this.sizeOfMG = sizeOfMG;
     }
 
-    public MeasureValue get(ParityVertex v) {
+    public MeasureValue get(final ParityVertex v) {
         if (!measure.containsKey(v)) {
             MeasureValue value = new MeasureValue(maxPriority);
             measure.put(v, value);
@@ -43,17 +43,17 @@ public class ProgressMeasure {
      */
     public final boolean lift(final ParityVertex v) {
         final MeasureValue currentValue = get(v);
-        if (currentValue.isT()) {
+        if (currentValue.isTop()) {
             return false;
         }
         final Collection<? extends ParityVertex> successors = v.getSuccessors();
-        int maxOrMin;
+        final int maxOrMin;
         if (v.getPlayer() == Player.A) {
             maxOrMin = -1;
         } else {
             maxOrMin = 1;
-            }
-        MeasureValue valueToCompareWith = prog(v, successors, maxOrMin);
+        }
+        final MeasureValue valueToCompareWith = prog(v, successors, maxOrMin);
         if (valueToCompareWith.compareTo(currentValue) > 0) {
             measure.put(v, valueToCompareWith);
             return true;
@@ -96,8 +96,8 @@ public class ProgressMeasure {
 
     @Override
     public String toString() {
-        StringBuilder resultBuilder = new StringBuilder();
-        for (Entry<ParityVertex, MeasureValue> pair : measure.entrySet()) {
+        final StringBuilder resultBuilder = new StringBuilder();
+        for (final Entry<ParityVertex, MeasureValue> pair : measure.entrySet()) {
             resultBuilder.append(pair.getKey() + " -> " + pair.getValue()
                     + "\n");
         }
