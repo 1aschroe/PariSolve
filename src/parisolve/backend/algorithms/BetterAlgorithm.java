@@ -1,6 +1,7 @@
 package parisolve.backend.algorithms;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -24,8 +25,9 @@ public class BetterAlgorithm implements Solver {
     public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
             final Arena arena, final Player player) {
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
-        final ProgressMeasure measure = new ProgressMeasure(
-                getMaxPriority(vertices), getSizeOfMG(vertices));
+        int maxPriority = getMaxPriority(vertices);
+        final ProgressMeasure measure = new ProgressMeasure(maxPriority,
+                getSizeOfMG(vertices, maxPriority));
 
         // TODO: implement liftable construct
         boolean didChange = true;
@@ -73,26 +75,17 @@ public class BetterAlgorithm implements Solver {
      * determines the size of M_G.
      * 
      * @param vertices
+     * @param maxPriority
      * @return
      */
-    protected long getSizeOfMG(final Collection<? extends ParityVertex> vertices) {
-        final List<Integer> counts = new ArrayList<>();
+    protected int[] getSizeOfMG(
+            final Collection<? extends ParityVertex> vertices,
+            final int maxPriority) {
+        final int[] counts = new int[maxPriority + 1];
         for (final ParityVertex vertex : vertices) {
-            if (counts.size() <= vertex.getPriority()) {
-                // we insert all values so i is the highest value
-                for (int newPriority = counts.size(); newPriority <= vertex
-                        .getPriority(); newPriority++) {
-                    counts.add(0);
-                }
-            }
-            final int currentValue = counts.get(vertex.getPriority());
-            counts.set(vertex.getPriority(), currentValue + 1);
+            counts[vertex.getPriority()]++;
         }
-        long product = 1;
-        for (final int count : counts) {
-            product *= count + 1;
-        }
-        return product;
+        return counts;
     }
 
     // TODO: move this to arena
@@ -106,5 +99,4 @@ public class BetterAlgorithm implements Solver {
         }
         return maxPriority;
     }
-
 }

@@ -20,7 +20,8 @@ public class MeasureValue implements Comparable<MeasureValue> {
      */
     private static final MeasureValue TOP = new MeasureValue(-1) {
         @Override
-        public MeasureValue getProgValue(final int priority, final long sizeOfMG) {
+        public MeasureValue getProgValue(final int priority,
+                final int[] sizeOfMG) {
             return this;
         };
 
@@ -118,7 +119,7 @@ public class MeasureValue implements Comparable<MeasureValue> {
         return false;
     }
 
-    public MeasureValue getProgValue(final int priority, final long sizeOfMG) {
+    public MeasureValue getProgValue(final int priority, final int[] sizeOfMG) {
         // FIXME: this is probably where it becomes slow
         MeasureValue prog = new MeasureValue(value);
         for (int i = 0; i < priority; i++) {
@@ -126,7 +127,7 @@ public class MeasureValue implements Comparable<MeasureValue> {
         }
         if (priority % 2 == 1) {
             prog.value[priority]++;
-            if (prog.value[priority] > sizeOfMG) {
+            if (prog.value[priority] > sizeOfMG[priority]) {
                 prog = getTopValue();
             }
         }

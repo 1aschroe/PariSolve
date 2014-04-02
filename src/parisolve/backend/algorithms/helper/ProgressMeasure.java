@@ -17,9 +17,9 @@ public class ProgressMeasure {
      * max-parity-games. This behaviour is encoded in getIndexFromPriority.
      */
     private final Map<ParityVertex, MeasureValue> measure = new ConcurrentHashMap<>();
-    private final long sizeOfMG;
+    private final int[] sizeOfMG;
 
-    public ProgressMeasure(final int maxPriority, final long sizeOfMG) {
+    public ProgressMeasure(final int maxPriority, final int[] sizeOfMG) {
         this.maxPriority = maxPriority;
         this.sizeOfMG = sizeOfMG;
     }
