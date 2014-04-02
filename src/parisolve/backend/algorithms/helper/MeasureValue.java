@@ -6,7 +6,7 @@ import java.util.Arrays;
  * This is a helper class for the better algorithm, representing the values in
  * M_G^T, their handling and comparison.
  * 
- * @author Arne Schröder
+ * @author Arne SchrÃ¶der
  * 
  */
 public class MeasureValue implements Comparable<MeasureValue> {

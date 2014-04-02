@@ -1,13 +1,11 @@
 package parisolve.backend.algorithms;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import parisolve.backend.Arena;
+import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 import parisolve.backend.algorithms.helper.ProgressMeasure;
@@ -18,14 +16,14 @@ import parisolve.backend.algorithms.helper.ProgressMeasure;
  * also stretches to the classes <code>ProgressMeasure</code> and
  * <code>MeasureValue</code> in the <code>helper</code>-package.
  * 
- * @author Arne Schröder
+ * @author Arne SchrÃ¶der
  */
 public class BetterAlgorithm implements Solver {
     @Override
     public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
             final Arena arena, final Player player) {
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
-        int maxPriority = getMaxPriority(vertices);
+        int maxPriority = LinkedArena.getMaxPriority(vertices);
         final ProgressMeasure measure = new ProgressMeasure(maxPriority,
                 getSizeOfMG(vertices, maxPriority));
 
@@ -64,7 +62,7 @@ public class BetterAlgorithm implements Solver {
         // TODO: the measure also knows all vertices. Therefore, the
         // parameter vertices is redundant
         for (final ParityVertex vertex : vertices) {
-            if ((player == Player.A) == (!measure.get(vertex).isTop())) {
+            if ((player == Player.B) == measure.get(vertex).isTop()) {
                 winningRegion.add(vertex);
             }
         }
@@ -72,11 +70,15 @@ public class BetterAlgorithm implements Solver {
     }
 
     /**
-     * determines the size of M_G.
+     * determines the size of M_G. This is the number of each priority.
      * 
      * @param vertices
+     *            the vertices of G to consider
      * @param maxPriority
-     * @return
+     *            the maximal priority in G. This could be determined from
+     *            vertices. However, handing this as a parameter is saving one
+     *            iteration over the vertices.
+     * @return an array of the sizes of the components in M_G
      */
     protected int[] getSizeOfMG(
             final Collection<? extends ParityVertex> vertices,
@@ -86,17 +88,5 @@ public class BetterAlgorithm implements Solver {
             counts[vertex.getPriority()]++;
         }
         return counts;
-    }
-
-    // TODO: move this to arena
-    protected int getMaxPriority(
-            final Collection<? extends ParityVertex> vertices) {
-        int maxPriority = Integer.MIN_VALUE;
-        for (final ParityVertex vertex : vertices) {
-            if (vertex.getPriority() > maxPriority) {
-                maxPriority = vertex.getPriority();
-            }
-        }
-        return maxPriority;
     }
 }

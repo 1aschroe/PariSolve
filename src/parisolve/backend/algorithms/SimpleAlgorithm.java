@@ -9,16 +9,25 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.Arena;
+import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 
 /**
  * Idea given in theorem 7.6 LNCS 2500 p. 113 and respectively Zwick, Paterson
- * (1996): The complexity of mean payoff games on graphs
+ * (1996): The complexity of mean payoff games on graphs.
+ * 
+ * The main idea is that parity games can be transformed into mean payoff games
+ * by using an exponential formula, implemented in
+ * <code>calculateValueFromPriority</code>. Then a function nu is used to give
+ * the expected payoff from a given vertex. Vertices with positive nu are
+ * winning vertices for player A and vice versa.
  * 
  * The description of the algorithm is given in a recursive form. As we only
  * need the values of nu_k-1 to determine the values of nu_k, calculation can be
- * done iteratively, by incrementing k.
+ * done iteratively, by incrementing k and only storing the values of nu_k-1.
+ * 
+ * @author Arne SchrÃ¶der
  */
 public class SimpleAlgorithm implements Solver {
 
@@ -32,11 +41,15 @@ public class SimpleAlgorithm implements Solver {
         final Map<ParityVertex, Long> nuForLastK = runAlgorithm(arena,
                 vertices, n, maxK);
 
-        return determineWinningRegion(player, nuForLastK, vertices);
+        return determineWinningRegion(player, nuForLastK);
     }
 
     /**
-     * actually runs the algorithm.
+     * runs the algorithm to determine nu.
+     * 
+     * 
+     * 
+     * @return a map mapping each vertex to its value, assigned by nu.
      */
     private Map<ParityVertex, Long> runAlgorithm(final Arena arena,
             final Collection<? extends ParityVertex> vertices, final int n,
@@ -51,22 +64,29 @@ public class SimpleAlgorithm implements Solver {
             final Map<ParityVertex, Long> nuForCurrentK = new ConcurrentHashMap<>();
 
             for (final ParityVertex v : vertices) {
-                nuForCurrentK.put(
-                        v,
-                        getValue(v, getBestSuccessor(arena, nuForLastK, n, v),
-                                nuForLastK, n));
+                nuForCurrentK.put(v,
+                        getBestSuccessorsValue(arena, nuForLastK, n, v));
             }
             nuForLastK = nuForCurrentK;
         }
         return nuForLastK;
     }
 
+    /**
+     * determining winning region of the player specified. In case of player A
+     * these are all vertices with positive nu-value. For player B those are the
+     * vertices with negative nu-value.
+     * 
+     * @param player
+     *            player to calculate the winning region for
+     * @param nuForLastK
+     *            the last nu_k calculated
+     * @return
+     */
     private Set<ParityVertex> determineWinningRegion(final Player player,
-            final Map<ParityVertex, Long> nuForLastK,
-            final Collection<? extends ParityVertex> vertices) {
+            final Map<ParityVertex, Long> nuForLastK) {
         final Set<ParityVertex> winningRegion = new HashSet<>();
-        for (final ParityVertex vertex : vertices) {
-            // TODO so wirklich schön ist das ja nicht...
+        for (final ParityVertex vertex : nuForLastK.keySet()) {
             if (Math.pow(-1, player.getNumber()) * nuForLastK.get(vertex) > 0) {
                 winningRegion.add(vertex);
             }
@@ -75,43 +95,38 @@ public class SimpleAlgorithm implements Solver {
     }
 
     /**
-     * chooses u maximal with respect to Zwick, Paterson (1996), Theorem 2.1.
+     * returns the maximal value of a successor u as in Zwick, Paterson (1996),
+     * Theorem 2.1.
      */
-    private ParityVertex getBestSuccessor(final Arena arena,
+    private long getBestSuccessorsValue(final Arena arena,
             final Map<ParityVertex, Long> nuForLastK,
             final int numberOfVerticesInArena, final ParityVertex v) {
         final Collection<? extends ParityVertex> successors = arena
                 .getSuccessors(v);
         final Player playerOfV = v.getPlayer();
-        ParityVertex bestSuc = null;
-        for (final ParityVertex suc : successors) {
-            if (bestSuc == null) {
-                bestSuc = suc;
+        long bestValue = 0;
+        for (final ParityVertex successor : successors) {
+            final long successorsValue = getValue(v, successor, nuForLastK,
+                    numberOfVerticesInArena);
+            if (bestValue == 0) {
+                bestValue = successorsValue;
             } else {
-                final long sucValue = getValue(v, suc, nuForLastK,
-                        numberOfVerticesInArena);
-                final long bestValue = getValue(v, bestSuc, nuForLastK,
-                        numberOfVerticesInArena);
-                if ((playerOfV == Player.A && sucValue > bestValue)
-                        || (playerOfV == Player.B && sucValue < bestValue)) {
-                    bestSuc = suc;
+                if ((playerOfV == Player.A && successorsValue > bestValue)
+                        || (playerOfV == Player.B && successorsValue < bestValue)) {
+                    bestValue = successorsValue;
                 }
             }
         }
-        return bestSuc;
+        return bestValue;
     }
 
     /**
-     * calculates k according to Zwick, Paterson (1996), Theorem 2.4.
+     * calculates the maximal k according to Zwick, Paterson (1996), Theorem
+     * 2.4.
      */
     private long calculateMaxK(final Collection<? extends ParityVertex> vertices) {
         final int n = vertices.size();
-        int maxPriority = Integer.MIN_VALUE;
-        for (final ParityVertex vertex : vertices) {
-            if (vertex.getPriority() > maxPriority) {
-                maxPriority = vertex.getPriority();
-            }
-        }
+        int maxPriority = LinkedArena.getMaxPriority(vertices);
         // it is important to have 4 as long to not have an overflow when
         // calculating 4*n^2 as int.
         return (long) (4L * n * n * Math.pow(n, maxPriority));
