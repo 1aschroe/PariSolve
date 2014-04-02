@@ -70,7 +70,9 @@ public class BetterAlgorithm implements Solver {
     }
 
     /**
-     * determines the size of M_G. This is the number of each priority.
+     * determines the size of M_G, as argued in the proof of Lemma 7.18. The
+     * numbers in the array are the numbers of each priority and are used as
+     * maximum value for each component.
      * 
      * @param vertices
      *            the vertices of G to consider
@@ -80,12 +82,15 @@ public class BetterAlgorithm implements Solver {
      *            iteration over the vertices.
      * @return an array of the sizes of the components in M_G
      */
-    protected int[] getSizeOfMG(
+    protected final int[] getSizeOfMG(
             final Collection<? extends ParityVertex> vertices,
             final int maxPriority) {
         final int[] counts = new int[maxPriority + 1];
         for (final ParityVertex vertex : vertices) {
-            counts[vertex.getPriority()]++;
+            int priority = vertex.getPriority();
+            if (priority % 2 == 1) {
+                counts[priority]++;
+            }
         }
         return counts;
     }
