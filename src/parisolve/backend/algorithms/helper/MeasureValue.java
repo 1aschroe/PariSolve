@@ -11,7 +11,7 @@ import java.util.Arrays;
  */
 public class MeasureValue implements Comparable<MeasureValue> {
     // TODO: make MeasureValue immutable
-    private int[] value;
+    private final int[] value;
 
     /**
      * this field is the single instance of the maximal element Top. It
@@ -82,25 +82,25 @@ public class MeasureValue implements Comparable<MeasureValue> {
      * than zero iff value is greater and zero iff this and value are equal on
      * the first components.
      * 
-     * @param value
+     * @param otherValue
      * @param maxComponents
      * @return
      */
-    public int compareTo(final MeasureValue value, final int maxComponents) {
-        if (value.isTop()) {
+    public int compareTo(final MeasureValue otherValue, final int maxComponents) {
+        if (otherValue.isTop()) {
             return -1;
         }
         for (int i = maxPriority; i >= maxComponents; i--) {
-            if (this.value[i] != value.value[i]) {
-                return this.value[i] - value.value[i];
+            if (this.value[i] != otherValue.value[i]) {
+                return this.value[i] - otherValue.value[i];
             }
         }
         return 0;
     }
 
     @Override
-    public final int compareTo(final MeasureValue o) {
-        return compareTo(o, 0);
+    public final int compareTo(final MeasureValue otherValue) {
+        return compareTo(otherValue, 0);
     }
 
     @Override
@@ -119,6 +119,19 @@ public class MeasureValue implements Comparable<MeasureValue> {
         return false;
     }
 
+    /**
+     * calculates m = prog(rho, v, w) \in M_G^T as in LNCS 2500 - Definition
+     * 7.19 for <code>this</code> being rho(w), <code>priority</code> = Omega(v)
+     * and <code>sizeOfMG</code> being the maximal value for a
+     * <code>MeasureValue</code> before it can be treated as Top.
+     * 
+     * @param priority
+     *            the priority of v, the successor of w, which's value
+     *            <code>this</code> is
+     * @param sizeOfMG
+     *            maximal value of <code>MeasureValue</code>
+     * @return prog(rho, v, w)
+     */
     public MeasureValue getProgValue(final int priority, final int[] sizeOfMG) {
         // FIXME: this is probably where it becomes slow
         MeasureValue prog = new MeasureValue(value);

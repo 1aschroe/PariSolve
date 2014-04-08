@@ -12,9 +12,8 @@ public class ProgressMeasure {
     private int maxPriority;
     /**
      * represents the map from V to M_G^T. The empty array is interpreted as T.
-     * value[0] is a_1, value[1] is a_3 and so on. In contrast to the book, we
-     * compare measures from the back to the front in order to solve
-     * max-parity-games. This behaviour is encoded in getIndexFromPriority.
+     * In contrast to the book, we compare measures from the back to the front
+     * in order to solve max-parity-games.
      */
     private final Map<ParityVertex, MeasureValue> measure = new ConcurrentHashMap<>();
     private final int[] sizeOfMG;
@@ -24,6 +23,13 @@ public class ProgressMeasure {
         this.sizeOfMG = sizeOfMG;
     }
 
+    /**
+     * the progress measure's value for the vertex given
+     * 
+     * @param v
+     *            the vertex to receive the progress measure's value for
+     * @return the progress measure's value
+     */
     public MeasureValue get(final ParityVertex v) {
         if (!measure.containsKey(v)) {
             MeasureValue value = new MeasureValue(maxPriority);
@@ -43,55 +49,40 @@ public class ProgressMeasure {
      */
     public final boolean lift(final ParityVertex v) {
         final MeasureValue currentValue = get(v);
-        if (currentValue.isTop()) {
-            return false;
-        }
-        final Collection<? extends ParityVertex> successors = v.getSuccessors();
-        final int maxOrMin;
-        if (v.getPlayer() == Player.A) {
-            maxOrMin = -1;
-        } else {
-            maxOrMin = 1;
-        }
-        final MeasureValue valueToCompareWith = prog(v, successors, maxOrMin);
-        if (valueToCompareWith.compareTo(currentValue) > 0) {
-            measure.put(v, valueToCompareWith);
-            return true;
+        if (!currentValue.isTop()) {
+            final boolean searchForMax = v.getPlayer() == Player.B;
+            final MeasureValue valueToCompareWith = prog(v, searchForMax);
+            if (valueToCompareWith.compareTo(currentValue) > 0) {
+                measure.put(v, valueToCompareWith);
+                return true;
+            }
         }
         return false;
     }
 
     /**
+     * calculates the maximum or minimum value of prog(rho, v, w) for all
+     * successors w of v as in LNCS 2500 - Definition 7.22 in order to lift rho
+     * at v.The measure rho used is <code>this</code> measure.
      * 
      * @param v
-     * @param successors
-     * @param max
-     *            is 1 iff we are looking for the maximal value and -1 iff
-     *            looking for a minimal value
-     * @return
+     *            the vertex to calculate prog for
+     * @param searchForMax
+     *            <code>true</code> iff we are looking for the maximal value and
+     *            <code>false</code> iff we are looking for a minimal value
+     * @return the maximum or minimum value of prog(rho, v, w) respectively
      */
-    private MeasureValue prog(final ParityVertex v,
-            final Collection<? extends ParityVertex> successors, final int max) {
+    private MeasureValue prog(final ParityVertex v, final boolean searchForMax) {
+        final Collection<? extends ParityVertex> successors = v.getSuccessors();
+        final int maxMinMultiplier = searchForMax ? 1 : -1;
         ParityVertex bestSuccessor = null;
         for (final ParityVertex w : successors) {
             if (bestSuccessor == null
-                    || get(bestSuccessor).compareTo(get(w)) * max < 0) {
+                    || get(bestSuccessor).compareTo(get(w)) * maxMinMultiplier < 0) {
                 bestSuccessor = w;
             }
         }
         return get(bestSuccessor).getProgValue(v.getPriority(), sizeOfMG);
-    }
-
-    /**
-     * calculates prog as in LNCS 2500 Definition 7.19. The measure used is
-     * <code>this</code> measure.
-     * 
-     * @param v
-     * @param w
-     * @return
-     */
-    public MeasureValue prog(final ParityVertex v, final ParityVertex w) {
-        return get(w).getProgValue(v.getPriority(), sizeOfMG);
     }
 
     @Override

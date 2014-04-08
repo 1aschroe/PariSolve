@@ -5,11 +5,14 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import parisolve.backend.Arena;
 import parisolve.backend.LinkedArena;
+import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 
 /**
@@ -63,7 +66,7 @@ public class ArenaManager {
             if (vertexMatcher.find()) {
                 arena.addVertex(vertexMatcher.group(1), Integer
                         .parseInt(vertexMatcher.group(2)), Player
-                        .getPlayerForInt(Integer.parseInt(vertexMatcher
+                        .getPlayerForPriority(Integer.parseInt(vertexMatcher
                                 .group(3))));
             }
         }
@@ -75,5 +78,44 @@ public class ArenaManager {
                 }
             }
         }
+    }
+
+    /**
+     * utility method for printing GraphViz-representation to inspect strategy.
+     * That is, for every vertex only the outgoing edge, chosen by the strategy,
+     * is shown.
+     * 
+     * @param strategy
+     *            the strategy to convert
+     * @return String in dot-format to be understood by GraphViz
+     */
+    public static String getGraphVizFromStrategy(
+            final Map<ParityVertex, ParityVertex> strategy) {
+        final StringBuilder resultBuilder = new StringBuilder(25);
+        resultBuilder.append("digraph strategy {\n");
+
+        // print vertices and store their numbers
+        final Map<ParityVertex, Integer> numbersOfVertices = new ConcurrentHashMap<>();
+        int numberOfVertex = 0;
+        for (final ParityVertex vertex : strategy.keySet()) {
+            resultBuilder
+                    .append(String.format("  z%d[shape=%s,label=\"%d\"];\n",
+                            numberOfVertex,
+                            vertex.getPlayer().getShapeString(),
+                            vertex.getPriority()));
+            numbersOfVertices.put(vertex, numberOfVertex);
+            numberOfVertex++;
+        }
+
+        resultBuilder.append('\n');
+
+        // print edges
+        for (final ParityVertex vertex : strategy.keySet()) {
+            resultBuilder.append(String.format("  z%d->z%d;\n",
+                    numbersOfVertices.get(vertex),
+                    numbersOfVertices.get(strategy.get(vertex))));
+        }
+        resultBuilder.append('}');
+        return resultBuilder.toString();
     }
 }

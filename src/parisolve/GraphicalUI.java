@@ -293,7 +293,7 @@ public class GraphicalUI extends AbstractUI {
         }
 
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
-        correspondence = new HashMap<>();
+        correspondence.clear();
         for (final ParityVertex vertex : vertices) {
             correspondence.put(vertex,
                     new GraphNode(graph, vertex.getPlayer().getZestStyleFlag(),
