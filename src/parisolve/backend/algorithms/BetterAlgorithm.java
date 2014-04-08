@@ -23,9 +23,21 @@ public class BetterAlgorithm implements Solver {
     public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
             final Arena arena, final Player player) {
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
+        return solveGame(player, vertices.size(), vertices);
+    }
+
+    /**
+     * abstraction introduced to use this code from <code>BigStepAlgorithm</code>
+     * 
+     * @param player 
+     * @param vertices
+     * @return
+     */
+    protected Collection<? extends ParityVertex> solveGame(final Player player, final int n,
+            final Collection<? extends ParityVertex> vertices) {
         int maxPriority = LinkedArena.getMaxPriority(vertices);
         final ProgressMeasure measure = new ProgressMeasure(maxPriority,
-                getSizeOfMG(vertices, maxPriority));
+                getSizeOfMG(vertices, maxPriority), n);
 
         // TODO: implement liftable construct
         boolean didChange = true;

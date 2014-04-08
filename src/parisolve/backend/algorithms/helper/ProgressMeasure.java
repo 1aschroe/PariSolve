@@ -17,10 +17,12 @@ public class ProgressMeasure {
      */
     private final Map<ParityVertex, MeasureValue> measure = new ConcurrentHashMap<>();
     private final int[] sizeOfMG;
+    private final int maxSumAllowed;
 
-    public ProgressMeasure(final int maxPriority, final int[] sizeOfMG) {
+    public ProgressMeasure(final int maxPriority, final int[] sizeOfMG, int maxSumAllowed) {
         this.maxPriority = maxPriority;
         this.sizeOfMG = sizeOfMG;
+        this.maxSumAllowed = maxSumAllowed;
     }
 
     /**
@@ -82,7 +84,7 @@ public class ProgressMeasure {
                 bestSuccessor = w;
             }
         }
-        return get(bestSuccessor).getProgValue(v.getPriority(), sizeOfMG);
+        return get(bestSuccessor).getProgValue(v.getPriority(), sizeOfMG, maxSumAllowed);
     }
 
     @Override

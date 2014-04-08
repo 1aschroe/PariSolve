@@ -21,7 +21,7 @@ public class MeasureValue implements Comparable<MeasureValue> {
     private static final MeasureValue TOP = new MeasureValue(-1) {
         @Override
         public MeasureValue getProgValue(final int priority,
-                final int[] sizeOfMG) {
+                final int[] sizeOfMG, final int n) {
             return this;
         };
 
@@ -130,9 +130,25 @@ public class MeasureValue implements Comparable<MeasureValue> {
      *            <code>this</code> is
      * @param sizeOfMG
      *            maximal value of <code>MeasureValue</code>
+     * @param maxSumAllowed
+     *            maximal sum of the values in <code>MeasureValue</code>
+     *            allowed. This is used in the <code>BigStepAlgorithm</code>
      * @return prog(rho, v, w)
      */
-    public MeasureValue getProgValue(final int priority, final int[] sizeOfMG) {
+    public MeasureValue getProgValue(final int priority, final int[] sizeOfMG,
+            final int maxSumAllowed) {
+        if (priority % 2 == 1) {
+            if (value[priority] >= sizeOfMG[priority]) {
+                return getTopValue();
+            }
+            int sum = 0;
+            for (int prio = priority; prio <= maxPriority; prio++) {
+                sum += value[prio];
+            }
+            if (sum >= maxSumAllowed) {
+                return getTopValue();
+            }
+        }
         // FIXME: this is probably where it becomes slow
         MeasureValue prog = new MeasureValue(value);
         for (int i = 0; i < priority; i++) {
@@ -140,9 +156,6 @@ public class MeasureValue implements Comparable<MeasureValue> {
         }
         if (priority % 2 == 1) {
             prog.value[priority]++;
-            if (prog.value[priority] > sizeOfMG[priority]) {
-                prog = getTopValue();
-            }
         }
         return prog;
     }
