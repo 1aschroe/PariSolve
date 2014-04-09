@@ -54,7 +54,7 @@ public class RecursiveAlgorithm implements Solver {
         }
         final Player sigma = Player.getPlayerForPriority(maxPriority);
 
-        // in Abbildung 15.5 this is N
+        // in Abbildung 15.5 verticesWithMaxPriority is N
         final Set<ParityVertex> verticesWithMaxPriority = new HashSet<>();
         for (final ParityVertex vertex : vertices) {
             if (vertex.getPriority() == maxPriority) {
@@ -62,12 +62,13 @@ public class RecursiveAlgorithm implements Solver {
             }
         }
 
-        // in Abbildung 15.5 this is N'
-        final Collection<ParityVertex> attractor = getAttractor(
+        // in Abbildung 15.5 attractorOfMaxPrio is N'
+        final Collection<ParityVertex> attractorOfMaxPrio = getAttractor(
                 verticesWithMaxPriority, sigma, vertices);
 
+        // in Abbildung 15.5 partition is W'
         final WinningRegionPartition partition = solveGameForOtherVertices(
-                vertices, attractor);
+                vertices, attractorOfMaxPrio);
 
         if (partition.getWinningRegionFor(sigma.getOponent()).isEmpty()) {
             // this means player sigma wins all vertices in G\N' and therefore
@@ -75,16 +76,18 @@ public class RecursiveAlgorithm implements Solver {
             return new WinningRegionPartition(vertices, EMPTY_SET, sigma);
         }
 
-        // in Abbildung 15.5 this is N''
-        final Collection<ParityVertex> attractor2 = getAttractor(
+        // in Abbildung 15.5 dominionOfSigmaOpponent is N''
+        final Collection<ParityVertex> dominionOfSigmaOpponent = getAttractor(
                 partition.getWinningRegionFor(sigma.getOponent()),
                 sigma.getOponent(), vertices);
 
+        // this is the end-recursive call
+        // in Abbildung 15.5 partition2 is W''
         final WinningRegionPartition partition2 = solveGameForOtherVertices(
-                vertices, attractor2);
+                vertices, dominionOfSigmaOpponent);
         final Set<ParityVertex> winningRegion2 = new HashSet<>(
                 partition2.getWinningRegionFor(sigma.getOponent()));
-        winningRegion2.addAll(attractor2);
+        winningRegion2.addAll(dominionOfSigmaOpponent);
         return new WinningRegionPartition(
                 partition2.getWinningRegionFor(sigma), winningRegion2, sigma);
     }
