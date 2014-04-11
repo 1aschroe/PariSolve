@@ -32,7 +32,7 @@ public class RecursiveAlgorithm implements Solver {
      * singleton for empty set to not create an empty set for every instance
      * when one is needed.
      */
-    private final static Set<ParityVertex> EMPTY_SET = new HashSet<ParityVertex>();
+    protected static final Set<ParityVertex> EMPTY_SET = new HashSet<ParityVertex>();
 
     /**
      * solves an arena specified by the vertices given by returning the
@@ -45,15 +45,59 @@ public class RecursiveAlgorithm implements Solver {
      *            Abbildung 15.5
      * @return a partition with a set of vertices for each player to win upon.
      */
-    private WinningRegionPartition solveGame(
+    protected WinningRegionPartition solveGame(
             final Collection<? extends ParityVertex> vertices) {
         // in Abbildung 15.5 this is n
         final int maxPriority = LinkedArena.getMaxPriority(vertices);
         if (maxPriority <= 0) {
             return new WinningRegionPartition(vertices, EMPTY_SET, Player.A);
         }
+
+        WinningRegionPartition shortcut = takeShortcut(vertices, maxPriority);
+        if (shortcut != null) {
+            return shortcut;
+        }
+
         final Player sigma = Player.getPlayerForPriority(maxPriority);
 
+        final WinningRegionPartition dominionPartition = removeDominionOfSigmaOpponent(
+                vertices, maxPriority, sigma);
+        Collection<? extends ParityVertex> verticesWinnableForSigma = dominionPartition
+                .getWinningRegionFor(sigma);
+
+        final Collection<ParityVertex> dominionOfSigmaOpponent = getDominionOfSigmaOpponent(
+                verticesWinnableForSigma, maxPriority, sigma);
+
+        if (dominionOfSigmaOpponent.isEmpty()) {
+            return dominionPartition;
+        }
+
+        // this is the end-recursive call
+        // in Abbildung 15.5 partition2 is W''
+        // in Schewe (2008) partition2 is W
+        final WinningRegionPartition partition2 = solveGameForOtherVertices(
+                verticesWinnableForSigma, dominionOfSigmaOpponent);
+        final Set<ParityVertex> winningRegion2 = new HashSet<>(
+                partition2.getWinningRegionFor(sigma.getOponent()));
+        winningRegion2.addAll(dominionOfSigmaOpponent);
+        winningRegion2.addAll(dominionPartition.getWinningRegionFor(sigma.getOponent()));
+        return new WinningRegionPartition(
+                partition2.getWinningRegionFor(sigma), winningRegion2, sigma);
+    }
+
+    /**
+     * method for extension by BigStepAlgorithm. currently with a
+     * dummy-implementation
+     */
+    protected WinningRegionPartition removeDominionOfSigmaOpponent(
+            final Collection<? extends ParityVertex> vertices,
+            final int maxPriority, final Player sigma) {
+        return new WinningRegionPartition(vertices, EMPTY_SET, sigma);
+    }
+
+    protected Collection<ParityVertex> getDominionOfSigmaOpponent(
+            final Collection<? extends ParityVertex> vertices,
+            final int maxPriority, final Player sigma) {
         // in Abbildung 15.5 verticesWithMaxPriority is N
         final Set<ParityVertex> verticesWithMaxPriority = new HashSet<>();
         for (final ParityVertex vertex : vertices) {
@@ -73,23 +117,28 @@ public class RecursiveAlgorithm implements Solver {
         if (partition.getWinningRegionFor(sigma.getOponent()).isEmpty()) {
             // this means player sigma wins all vertices in G\N' and therefore
             // all in G
-            return new WinningRegionPartition(vertices, EMPTY_SET, sigma);
+            return EMPTY_SET;
         }
 
         // in Abbildung 15.5 dominionOfSigmaOpponent is N''
         final Collection<ParityVertex> dominionOfSigmaOpponent = getAttractor(
                 partition.getWinningRegionFor(sigma.getOponent()),
                 sigma.getOponent(), vertices);
+        return dominionOfSigmaOpponent;
+    }
 
-        // this is the end-recursive call
-        // in Abbildung 15.5 partition2 is W''
-        final WinningRegionPartition partition2 = solveGameForOtherVertices(
-                vertices, dominionOfSigmaOpponent);
-        final Set<ParityVertex> winningRegion2 = new HashSet<>(
-                partition2.getWinningRegionFor(sigma.getOponent()));
-        winningRegion2.addAll(dominionOfSigmaOpponent);
-        return new WinningRegionPartition(
-                partition2.getWinningRegionFor(sigma), winningRegion2, sigma);
+    /**
+     * this is for BigStepAlgorithm to insert the d=2-case. The return value is
+     * either <code>null</code> or the correct winning partition.
+     * 
+     * @param vertices
+     * @param maxPriority
+     * @return
+     */
+    protected WinningRegionPartition takeShortcut(
+            final Collection<? extends ParityVertex> vertices,
+            final int maxPriority) {
+        return null;
     }
 
     /**
@@ -102,7 +151,7 @@ public class RecursiveAlgorithm implements Solver {
      *            nodes to exclude when solving the game
      * @return partition of winning regions for the vertices left
      */
-    private WinningRegionPartition solveGameForOtherVertices(
+    protected WinningRegionPartition solveGameForOtherVertices(
             final Collection<? extends ParityVertex> allVertices,
             final Collection<ParityVertex> verticesToExclude) {
         final Set<ParityVertex> unsolvedVertices = new HashSet<>(allVertices);
@@ -110,7 +159,21 @@ public class RecursiveAlgorithm implements Solver {
         return solveGame(unsolvedVertices);
     }
 
-    private Collection<ParityVertex> getAttractor(
+    /**
+     * calculates the attractor of a given set of vertices with respect to
+     * player <code>sigma</code>. That is, from the collection of vertices
+     * returned, sigma can force every path into <code>vertices</code>.
+     * 
+     * @param vertices
+     *            the vertices to attract to
+     * @param sigma
+     *            the player to force
+     * @param allVertices
+     *            the vertices to consider
+     * @return the attractor of <code>sigma</code> to <code>vertices</code> with
+     *         respect to the subgame on <code>allVertices</code>
+     */
+    protected Collection<ParityVertex> getAttractor(
             final Collection<? extends ParityVertex> vertices,
             final Player sigma,
             final Collection<? extends ParityVertex> allVertices) {

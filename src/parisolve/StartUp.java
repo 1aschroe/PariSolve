@@ -12,7 +12,7 @@ import org.apache.commons.cli.ParseException;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
-import parisolve.backend.algorithms.BetterAlgorithm;
+import parisolve.backend.algorithms.BigStepAlgorithm;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
 
@@ -62,7 +62,7 @@ public class StartUp {
                 // command line mode
                 ui = new CommandLineInterface();
 
-                final Solver solver = new BetterAlgorithm();
+                final Solver solver = new BigStepAlgorithm();
                 for (final String arenaFile : arenas) {
                     try {
                         final Arena arena = ArenaManager.loadArena(arenaFile);

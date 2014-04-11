@@ -33,7 +33,7 @@ public class BetterAlgorithm implements Solver {
      * @param vertices
      * @return
      */
-    protected Collection<? extends ParityVertex> solveGame(final Player player, final int n,
+    public static Collection<? extends ParityVertex> solveGame(final Player player, final int n,
             final Collection<? extends ParityVertex> vertices) {
         int maxPriority = LinkedArena.getMaxPriority(vertices);
         final ProgressMeasure measure = new ProgressMeasure(maxPriority,
@@ -67,7 +67,7 @@ public class BetterAlgorithm implements Solver {
      * @return <code>player</code>'s winning region on <code>vertices</code>
      *         according to <code>measure</code>
      */
-    protected Set<ParityVertex> getWinningRegion(final Player player,
+    protected static Set<ParityVertex> getWinningRegion(final Player player,
             final Collection<? extends ParityVertex> vertices,
             final ProgressMeasure measure) {
         final Set<ParityVertex> winningRegion = new HashSet<>();
@@ -94,7 +94,7 @@ public class BetterAlgorithm implements Solver {
      *            iteration over the vertices.
      * @return an array of the sizes of the components in M_G
      */
-    protected final int[] getSizeOfMG(
+    protected final static int[] getSizeOfMG(
             final Collection<? extends ParityVertex> vertices,
             final int maxPriority) {
         final int[] counts = new int[maxPriority + 1];
