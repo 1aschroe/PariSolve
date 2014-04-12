@@ -76,17 +76,37 @@ public class ProgressMeasure {
      */
     private MeasureValue prog(final ParityVertex v, final boolean searchForMax) {
         final Collection<? extends ParityVertex> successors = v.getSuccessors();
-        final int maxMinMultiplier = searchForMax ? 1 : -1;
-        ParityVertex bestSuccessor = null;
-        for (final ParityVertex w : successors) {
-            if (bestSuccessor == null
-                    || get(bestSuccessor).compareTo(get(w)) * maxMinMultiplier < 0) {
-                bestSuccessor = w;
-            }
+        final MeasureValue bestSuccessorValue;
+        if (searchForMax) {
+            bestSuccessorValue = getMaxSuccessorValue(v, successors);
+        } else {
+            bestSuccessorValue = getMinSuccessorValue(v, successors);
         }
-        return get(bestSuccessor).getProgValue(v.getPriority(), sizeOfMG, maxSumAllowed);
+        return bestSuccessorValue.getProgValue(v.getPriority(), sizeOfMG, maxSumAllowed);
     }
 
+    private MeasureValue getMaxSuccessorValue(final ParityVertex v, final Collection<? extends ParityVertex> successors) {
+        MeasureValue bestSuccessorValue = new MeasureValue(maxPriority);
+        for (final ParityVertex w : successors) {
+            final MeasureValue successorValue = get(w);
+            if (bestSuccessorValue.compareTo(successorValue) < 0) {
+                bestSuccessorValue = successorValue;
+            }
+        }
+        return bestSuccessorValue;
+    }
+
+    private MeasureValue getMinSuccessorValue(final ParityVertex v, final Collection<? extends ParityVertex> successors) {
+        MeasureValue bestSuccessorValue = MeasureValue.getTopValue();
+        for (final ParityVertex w : successors) {
+            final MeasureValue successorValue = get(w);
+            if (bestSuccessorValue.compareTo(successorValue) > 0) {
+                bestSuccessorValue = successorValue;
+            }
+        }
+        return bestSuccessorValue;
+    }
+    
     @Override
     public String toString() {
         final StringBuilder resultBuilder = new StringBuilder();
