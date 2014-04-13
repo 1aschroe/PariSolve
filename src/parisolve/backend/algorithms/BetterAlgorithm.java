@@ -2,17 +2,15 @@ package parisolve.backend.algorithms;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
-import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.Arena;
 import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
+import parisolve.backend.algorithms.helper.Liftable;
 import parisolve.backend.algorithms.helper.ProgressMeasure;
+import parisolve.backend.algorithms.helper.SetStackLiftable;
 
 /**
  * implementation of the algorithm of Jurdzinski - Small Progress Measures for
@@ -23,71 +21,6 @@ import parisolve.backend.algorithms.helper.ProgressMeasure;
  * @author Arne Schröder
  */
 public class BetterAlgorithm implements Solver {
-    static class Liftable implements Iterable<ParityVertex>,
-            Iterator<ParityVertex> {
-        final private Stack<ParityVertex> vertices = new Stack<ParityVertex>();
-        final private Map<ParityVertex, Set<ParityVertex>> predecessors = new ConcurrentHashMap<>();
-
-        Liftable(final Collection<? extends ParityVertex> vertices) {
-            for (ParityVertex vertex : vertices) {
-                Set<ParityVertex> successorsInSubGame = new HashSet<>(
-                        vertex.getSuccessors());
-                successorsInSubGame.retainAll(vertices);
-                for (ParityVertex successor : successorsInSubGame) {
-                    if (!predecessors.containsKey(successor)) {
-                        predecessors
-                                .put(successor, new HashSet<ParityVertex>());
-                    }
-                    predecessors.get(successor).add(vertex);
-                }
-            }
-            this.vertices.addAll(vertices);
-
-        }
-
-        Collection<ParityVertex> getPredecessorsOf(final ParityVertex vertex) {
-            if (!predecessors.containsKey(vertex)) {
-                return new HashSet<>();
-            }
-            return predecessors.get(vertex);
-        }
-
-        /**
-         * tells the <code>Liftable</code>, whether the given vertex was lifted
-         * successfully.
-         * 
-         * @param vertex
-         *            this vertex was lifted successfully.
-         */
-        void liftWasSuccessful(final ParityVertex vertex) {
-            for (ParityVertex successor : getPredecessorsOf(vertex)) {
-                if (!vertices.contains(successor)) {
-                    vertices.add(successor);
-                }
-            }
-        }
-
-        @Override
-        public Iterator<ParityVertex> iterator() {
-            return this;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return !vertices.isEmpty();
-        }
-
-        @Override
-        public ParityVertex next() {
-            return vertices.pop();
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-    }
-
     @Override
     public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
             final Arena arena, final Player player) {
@@ -117,7 +50,7 @@ public class BetterAlgorithm implements Solver {
         final ProgressMeasure measure = new ProgressMeasure(maxPriority,
                 getSizeOfMG(vertices, maxPriority), n);
 
-        Liftable iterator = new Liftable(vertices);
+        Liftable iterator = new SetStackLiftable(vertices);
         for (ParityVertex vertex : iterator) {
             boolean lifted = measure.lift(vertex);
             if (lifted) {
