@@ -8,12 +8,14 @@ import java.util.Set;
 
 public class LinkedArena implements Arena {
 	class LinkedParityVertex implements ParityVertex {
-		private int priority;
-		private Player player;
-		private Set<LinkedParityVertex> successors = new HashSet<>();
+		final private int priority;
+		final private Player player;
+		final private Set<LinkedParityVertex> successors = new HashSet<>();
+        final private String name;
 
-		public LinkedParityVertex(int priority, Player player) {
-			this.priority = priority;
+		public LinkedParityVertex(final String name, final int priority, final Player player) {
+			this.name = name;
+            this.priority = priority;
 			this.player = player;
 		}
 
@@ -25,6 +27,11 @@ public class LinkedArena implements Arena {
 		@Override
 		public Player getPlayer() {
 			return player;
+		}
+		
+		@Override
+		public String getName() {
+		    return name;
 		}
 
 		public Collection<? extends ParityVertex> getSuccessors() {
@@ -41,7 +48,7 @@ public class LinkedArena implements Arena {
 
 		@Override
 		public String toString() {
-			return "[player=" + getPlayer() + ",label=\"" + getPriority()
+			return getName() + ": [player=" + getPlayer() + ",label=\"" + getPriority()
 					+ "\"]";
 		}
 	}
@@ -49,7 +56,7 @@ public class LinkedArena implements Arena {
 	Map<String, LinkedParityVertex> vertices = new HashMap<>();
 
 	public void addVertex(String name, int priority, Player player) {
-		vertices.put(name, new LinkedParityVertex(priority, player));
+		vertices.put(name, new LinkedParityVertex(name, priority, player));
 	}
 
 	public void addEdge(String from, String to) {
