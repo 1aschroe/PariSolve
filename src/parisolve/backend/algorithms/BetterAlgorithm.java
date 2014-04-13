@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.Arena;
@@ -24,7 +25,7 @@ import parisolve.backend.algorithms.helper.ProgressMeasure;
 public class BetterAlgorithm implements Solver {
     static class Liftable implements Iterable<ParityVertex>,
             Iterator<ParityVertex> {
-        final private Set<ParityVertex> vertices;
+        final private Stack<ParityVertex> vertices = new Stack<ParityVertex>();
         final private Map<ParityVertex, Set<ParityVertex>> predecessors = new ConcurrentHashMap<>();
 
         Liftable(final Collection<? extends ParityVertex> vertices) {
@@ -40,7 +41,8 @@ public class BetterAlgorithm implements Solver {
                     predecessors.get(successor).add(vertex);
                 }
             }
-            this.vertices = new HashSet<>(vertices);
+            this.vertices.addAll(vertices);
+            
         }
 
         Collection<ParityVertex> getPredecessorsOf(final ParityVertex vertex) {
@@ -73,9 +75,7 @@ public class BetterAlgorithm implements Solver {
 
         @Override
         public ParityVertex next() {
-            final ParityVertex next = vertices.iterator().next();
-            vertices.remove(next);
-            return next;
+            return vertices.pop();
         }
 
         @Override
