@@ -42,7 +42,7 @@ public class BetterAlgorithm implements Solver {
                 }
             }
             this.vertices.addAll(vertices);
-            
+
         }
 
         Collection<ParityVertex> getPredecessorsOf(final ParityVertex vertex) {
@@ -60,7 +60,11 @@ public class BetterAlgorithm implements Solver {
          *            this vertex was lifted successfully.
          */
         void liftWasSuccessful(final ParityVertex vertex) {
-            vertices.addAll(getPredecessorsOf(vertex));
+            for (ParityVertex successor : getPredecessorsOf(vertex)) {
+                if (!vertices.contains(successor)) {
+                    vertices.add(successor);
+                }
+            }
         }
 
         @Override

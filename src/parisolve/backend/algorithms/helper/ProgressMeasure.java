@@ -75,14 +75,19 @@ public class ProgressMeasure {
      * @return the maximum or minimum value of prog(rho, v, w) respectively
      */
     private MeasureValue prog(final ParityVertex v, final boolean searchForMax) {
+        int priority = v.getPriority();
+        // TODO: check, whether this works with sum-games.
         final Collection<? extends ParityVertex> successors = v.getSuccessors();
+        if (priority % 2 == 1 & successors.size() == 1 && successors.contains(v)) {
+            return MeasureValue.getTopValue();
+        }
         final MeasureValue bestSuccessorValue;
         if (searchForMax) {
             bestSuccessorValue = getMaxSuccessorValue(v, successors);
         } else {
             bestSuccessorValue = getMinSuccessorValue(v, successors);
         }
-        return bestSuccessorValue.getProgValue(v.getPriority(), sizeOfMG, maxSumAllowed);
+        return bestSuccessorValue.getProgValue(priority, sizeOfMG, maxSumAllowed);
     }
 
     private MeasureValue getMaxSuccessorValue(final ParityVertex v, final Collection<? extends ParityVertex> successors) {
