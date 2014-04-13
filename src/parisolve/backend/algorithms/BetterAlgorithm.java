@@ -1,7 +1,10 @@
 package parisolve.backend.algorithms;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import parisolve.backend.Arena;
@@ -19,6 +22,48 @@ import parisolve.backend.algorithms.helper.ProgressMeasure;
  * @author Arne Schröder
  */
 public class BetterAlgorithm implements Solver {
+    static class Liftable implements Iterable<ParityVertex>,
+            Iterator<ParityVertex> {
+        final private List<ParityVertex> vertices;
+        private int currentIndex = 0;
+
+        Liftable(final Collection<? extends ParityVertex> vertices) {
+            this.vertices = new ArrayList<>(vertices);
+
+        }
+
+        /**
+         * tells the <code>Liftable</code>, whether the given vertex was lifted
+         * successfully.
+         * 
+         * @param vertex
+         *            this vertex was lifted successfully.
+         */
+        void liftWasSuccessful(final ParityVertex vertex) {
+            currentIndex = 0;
+        }
+
+        @Override
+        public Iterator<ParityVertex> iterator() {
+            return this;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return currentIndex < vertices.size();
+        }
+
+        @Override
+        public ParityVertex next() {
+            return vertices.get(currentIndex++);
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
     @Override
     public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
             final Arena arena, final Player player) {
@@ -27,24 +72,32 @@ public class BetterAlgorithm implements Solver {
     }
 
     /**
-     * abstraction introduced to use this code from <code>BigStepAlgorithm</code>
+     * calculates a dominion of the player given, using a progress measure of
+     * size <code>n</code> on the vertices given. If <code>n</code> equals the
+     * number of vertices, the maximal dominion, the winning region of
+     * <code>player</code> is calculated. This method is used in
+     * <code>BigStepAlgorithm</code>.
      * 
-     * @param player 
+     * @param player
+     *            the player to solve the parity game for
+     * @param n
+     *            size of progress measure to consider
      * @param vertices
-     * @return
+     *            the vertices to consider when solving the game
+     * @return the winning region
      */
-    public static Collection<? extends ParityVertex> solveGame(final Player player, final int n,
+    public static Collection<? extends ParityVertex> solveGame(
+            final Player player, final int n,
             final Collection<? extends ParityVertex> vertices) {
         int maxPriority = LinkedArena.getMaxPriority(vertices);
         final ProgressMeasure measure = new ProgressMeasure(maxPriority,
                 getSizeOfMG(vertices, maxPriority), n);
 
-        // TODO: implement liftable construct
-        boolean didChange = true;
-        while (didChange) {
-            didChange = false;
-            for (final ParityVertex vertex : vertices) {
-                didChange |= measure.lift(vertex);
+        Liftable iterator = new Liftable(vertices);
+        for (ParityVertex vertex : iterator) {
+            boolean lifted = measure.lift(vertex);
+            if (lifted) {
+                iterator.liftWasSuccessful(vertex);
             }
         }
 
@@ -72,7 +125,7 @@ public class BetterAlgorithm implements Solver {
             final ProgressMeasure measure) {
         final Set<ParityVertex> winningRegion = new HashSet<>();
         // TODO: the measure also knows all vertices. Therefore, the
-        // parameter vertices is redundant
+        // parameter "vertices" is redundant
         for (final ParityVertex vertex : vertices) {
             if ((player == Player.B) == measure.get(vertex).isTop()) {
                 winningRegion.add(vertex);
