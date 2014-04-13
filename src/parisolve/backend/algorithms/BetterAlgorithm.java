@@ -1,11 +1,11 @@
 package parisolve.backend.algorithms;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.Arena;
 import parisolve.backend.LinkedArena;
@@ -24,12 +24,30 @@ import parisolve.backend.algorithms.helper.ProgressMeasure;
 public class BetterAlgorithm implements Solver {
     static class Liftable implements Iterable<ParityVertex>,
             Iterator<ParityVertex> {
-        final private List<ParityVertex> vertices;
-        private int currentIndex = 0;
+        final private Set<ParityVertex> vertices;
+        final private Map<ParityVertex, Set<ParityVertex>> predecessors = new ConcurrentHashMap<>();
 
         Liftable(final Collection<? extends ParityVertex> vertices) {
-            this.vertices = new ArrayList<>(vertices);
+            for (ParityVertex vertex : vertices) {
+                Set<ParityVertex> successorsInSubGame = new HashSet<>(
+                        vertex.getSuccessors());
+                successorsInSubGame.retainAll(vertices);
+                for (ParityVertex successor : successorsInSubGame) {
+                    if (!predecessors.containsKey(successor)) {
+                        predecessors
+                                .put(successor, new HashSet<ParityVertex>());
+                    }
+                    predecessors.get(successor).add(vertex);
+                }
+            }
+            this.vertices = new HashSet<>(vertices);
+        }
 
+        Collection<ParityVertex> getPredecessorsOf(final ParityVertex vertex) {
+            if (!predecessors.containsKey(vertex)) {
+                return new HashSet<>();
+            }
+            return predecessors.get(vertex);
         }
 
         /**
@@ -40,7 +58,7 @@ public class BetterAlgorithm implements Solver {
          *            this vertex was lifted successfully.
          */
         void liftWasSuccessful(final ParityVertex vertex) {
-            currentIndex = 0;
+            vertices.addAll(getPredecessorsOf(vertex));
         }
 
         @Override
@@ -50,12 +68,14 @@ public class BetterAlgorithm implements Solver {
 
         @Override
         public boolean hasNext() {
-            return currentIndex < vertices.size();
+            return !vertices.isEmpty();
         }
 
         @Override
         public ParityVertex next() {
-            return vertices.get(currentIndex++);
+            final ParityVertex next = vertices.iterator().next();
+            vertices.remove(next);
+            return next;
         }
 
         @Override
