@@ -7,10 +7,12 @@ import java.util.Arrays;
  * M_G^T, their handling and comparison.
  * 
  * @author Arne Schröder
- * 
  */
 public class MeasureValue implements Comparable<MeasureValue> {
     // TODO: make MeasureValue immutable
+    /**
+     * the measure value wrapped in this class.
+     */
     private final int[] value;
 
     /**
@@ -44,12 +46,18 @@ public class MeasureValue implements Comparable<MeasureValue> {
         }
     };
 
+    /**
+     * the maximal priority a vertex can have.
+     */
     private final int maxPriority;
 
     /**
-     * create a new minimal <code>MeasureValue</code>
+     * create a minimal <code>MeasureValue</code> with the maximal priority
+     * given. This should only be called once by the
+     * <code>ProgressMeasure</code> to create a minimal value.
      * 
      * @param maxPriority
+     *            the maximal priority in the arena given
      */
     public MeasureValue(final int maxPriority) {
         this.maxPriority = maxPriority;
@@ -58,6 +66,9 @@ public class MeasureValue implements Comparable<MeasureValue> {
 
     /**
      * create a new <code>MeasureValue</code> containing the values given.
+     * Should only be used by <code>MeasureValue</code> to create a
+     * <code>MeasureValue</code> consistent with <code>prog</code> as in LNCS
+     * 2500 - Definition 7.19.
      * 
      * @param value
      *            the value to be initialized from
@@ -77,14 +88,16 @@ public class MeasureValue implements Comparable<MeasureValue> {
     }
 
     /**
-     * compares the two values on their first components up to maxComponents and
-     * returns a number greater than zero iff this is greater, a number smaller
-     * than zero iff value is greater and zero iff this and value are equal on
-     * the first components.
+     * compares the two values on their first components up to
+     * <code>maxComponents</code> and returns a number greater than zero iff
+     * this is greater, a number smaller than zero iff value is greater and zero
+     * iff this and value are equal on the first components.
      * 
      * @param otherValue
+     *            value to compare to
      * @param maxComponents
-     * @return
+     *            maximal component to which the values are compared
+     * @return value such that <code>sign(value) = this - otherValue</code>
      */
     public int compareTo(final MeasureValue otherValue, final int maxComponents) {
         if (otherValue.isTop()) {

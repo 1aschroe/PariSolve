@@ -5,37 +5,76 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 
+/**
+ * helper class for better algorithm, representing a progress measure, which
+ * will after all lifting operations become a game progress measur. It assigns a
+ * <code>MeasureValue</code> representing a value of M_G^T to every vertex in a
+ * arena. It provides <code>lift()</code>, the central method to the
+ * <code>BetterAlgorithm</code> and can return the <code>MeasureValue</code> of
+ * vertices via <code>get()</code>.
+ * 
+ * @author Arne Schröder
+ */
 public class ProgressMeasure {
+    /**
+     * the maximal priority in the arena considered.
+     */
     private int maxPriority;
     /**
-     * represents the map from V to M_G^T. The empty array is interpreted as T.
-     * In contrast to the book, we compare measures from the back to the front
-     * in order to solve max-parity-games.
+     * represents the map from V to M_G^T. In contrast to the book, we compare
+     * measures from the back to the front in order to solve max-parity-games.
      */
     private final Map<ParityVertex, MeasureValue> measure = new ConcurrentHashMap<>();
+    /**
+     * maximal dimensions of M_G before it becomes Top. This is the number of
+     * vertices of each odd priority.
+     */
     private final int[] sizeOfMG;
+    /**
+     * can be used to restrict the <code>ProgressMeasure</code> to measure
+     * values which's entries sum up to maximal <code>maxSumAllowed</code>. This
+     * is used in <code>BigStelAlgorithm</code>.
+     */
     private final int maxSumAllowed;
 
-    public ProgressMeasure(final int maxPriority, final int[] sizeOfMG, int maxSumAllowed) {
-        this.maxPriority = maxPriority;
-        this.sizeOfMG = sizeOfMG;
+    /**
+     * the minimal value a <code>ProgressMeasure</code> can assign to a vertex.
+     * It is everywhere 0.
+     */
+    private final MeasureValue minMeasure;
+
+    /**
+     * create <code>ProgressMeasure</code> on the given vertices which is
+     * restricted by <code>maxSumAllowed</code>.
+     * 
+     * @param vertices
+     *            vertices to apply the progress measure on
+     * @param maxSumAllowed
+     *            maximal sum of the values in <code>MeasureValue</code>
+     *            allowed. This is used in the <code>BigStepAlgorithm</code>
+     */
+    public ProgressMeasure(final Collection<? extends ParityVertex> vertices,
+            final int maxSumAllowed) {
+        this.maxPriority = LinkedArena.getMaxPriority(vertices);
+        this.sizeOfMG = getSizeOfMG(vertices, maxPriority);
         this.maxSumAllowed = maxSumAllowed;
+        minMeasure = new MeasureValue(maxPriority);
     }
 
     /**
-     * the progress measure's value for the vertex given
+     * the progress measure's value for the vertex given.
      * 
      * @param v
      *            the vertex to receive the progress measure's value for
      * @return the progress measure's value
      */
-    public MeasureValue get(final ParityVertex v) {
+    public final MeasureValue get(final ParityVertex v) {
         if (!measure.containsKey(v)) {
-            MeasureValue value = new MeasureValue(maxPriority);
-            measure.put(v, value);
+            measure.put(v, minMeasure);
         }
         return measure.get(v);
     }
@@ -75,43 +114,63 @@ public class ProgressMeasure {
      * @return the maximum or minimum value of prog(rho, v, w) respectively
      */
     private MeasureValue prog(final ParityVertex v, final boolean searchForMax) {
-        int priority = v.getPriority();
+        final int priority = v.getPriority();
         // TODO: check, whether this works with sum-games.
         final Collection<? extends ParityVertex> successors = v.getSuccessors();
-        if (priority % 2 == 1 & successors.size() == 1 && successors.contains(v)) {
+        if (priority % 2 == 1 & successors.size() == 1
+                && successors.contains(v)) {
             return MeasureValue.getTopValue();
         }
         final MeasureValue bestSuccessorValue;
         if (searchForMax) {
-            bestSuccessorValue = getMaxSuccessorValue(v, successors);
+            bestSuccessorValue = getMaxValueOf(successors);
         } else {
-            bestSuccessorValue = getMinSuccessorValue(v, successors);
+            bestSuccessorValue = getMinValueOf(successors);
         }
-        return bestSuccessorValue.getProgValue(priority, sizeOfMG, maxSumAllowed);
+        return bestSuccessorValue.getProgValue(priority, sizeOfMG,
+                maxSumAllowed);
     }
 
-    private MeasureValue getMaxSuccessorValue(final ParityVertex v, final Collection<? extends ParityVertex> successors) {
-        MeasureValue bestSuccessorValue = new MeasureValue(maxPriority);
-        for (final ParityVertex w : successors) {
-            final MeasureValue successorValue = get(w);
-            if (bestSuccessorValue.compareTo(successorValue) < 0) {
-                bestSuccessorValue = successorValue;
+    /**
+     * find the maximal <code>MeasureValue</code> of the <code>vertices</code>
+     * given.
+     * 
+     * @param vertices
+     *            vertices to consider
+     * @return the maximal value of the vertices given
+     */
+    private MeasureValue getMaxValueOf(
+            final Collection<? extends ParityVertex> vertices) {
+        MeasureValue maxValue = minMeasure;
+        for (final ParityVertex vertex : vertices) {
+            final MeasureValue value = get(vertex);
+            if (maxValue.compareTo(value) < 0) {
+                maxValue = value;
             }
         }
-        return bestSuccessorValue;
+        return maxValue;
     }
 
-    private MeasureValue getMinSuccessorValue(final ParityVertex v, final Collection<? extends ParityVertex> successors) {
-        MeasureValue bestSuccessorValue = MeasureValue.getTopValue();
-        for (final ParityVertex w : successors) {
-            final MeasureValue successorValue = get(w);
-            if (bestSuccessorValue.compareTo(successorValue) > 0) {
-                bestSuccessorValue = successorValue;
+    /**
+     * find the minimal <code>MeasureValue</code> of the <code>vertices</code>
+     * given.
+     * 
+     * @param vertices
+     *            vertices to consider
+     * @return the minimal value of the vertices given
+     */
+    private MeasureValue getMinValueOf(
+            final Collection<? extends ParityVertex> vertices) {
+        MeasureValue minValue = MeasureValue.getTopValue();
+        for (final ParityVertex vertex : vertices) {
+            final MeasureValue value = get(vertex);
+            if (minValue.compareTo(value) > 0) {
+                minValue = value;
             }
         }
-        return bestSuccessorValue;
+        return minValue;
     }
-    
+
     @Override
     public String toString() {
         final StringBuilder resultBuilder = new StringBuilder();
@@ -120,5 +179,31 @@ public class ProgressMeasure {
                     + "\n");
         }
         return resultBuilder.toString();
+    }
+
+    /**
+     * determines the size of M_G, as argued in the proof of Lemma 7.18. The
+     * numbers in the array are the numbers of each priority and are used as
+     * maximum value for each component.
+     * 
+     * @param vertices
+     *            the vertices of G to consider
+     * @param maxPriority
+     *            the maximal priority in G. This could be determined from
+     *            vertices. However, handing this as a parameter is saving one
+     *            iteration over the vertices.
+     * @return an array of the sizes of the components in M_G
+     */
+    protected static final int[] getSizeOfMG(
+            final Collection<? extends ParityVertex> vertices,
+            final int maxPriority) {
+        final int[] counts = new int[maxPriority + 1];
+        for (final ParityVertex vertex : vertices) {
+            final int priority = vertex.getPriority();
+            if (priority % 2 == 1) {
+                counts[priority]++;
+            }
+        }
+        return counts;
     }
 }

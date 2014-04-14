@@ -46,13 +46,11 @@ public class BetterAlgorithm implements Solver {
     public static Collection<? extends ParityVertex> solveGame(
             final Player player, final int n,
             final Collection<? extends ParityVertex> vertices) {
-        int maxPriority = LinkedArena.getMaxPriority(vertices);
-        final ProgressMeasure measure = new ProgressMeasure(maxPriority,
-                getSizeOfMG(vertices, maxPriority), n);
+        final ProgressMeasure measure = new ProgressMeasure(vertices, n);
 
-        Liftable iterator = new SetStackLiftable(vertices);
-        for (ParityVertex vertex : iterator) {
-            boolean lifted = measure.lift(vertex);
+        final Liftable iterator = new SetStackLiftable(vertices);
+        for (final ParityVertex vertex : iterator) {
+            final boolean lifted = measure.lift(vertex);
             if (lifted) {
                 iterator.liftWasSuccessful(vertex);
             }
@@ -89,31 +87,5 @@ public class BetterAlgorithm implements Solver {
             }
         }
         return winningRegion;
-    }
-
-    /**
-     * determines the size of M_G, as argued in the proof of Lemma 7.18. The
-     * numbers in the array are the numbers of each priority and are used as
-     * maximum value for each component.
-     * 
-     * @param vertices
-     *            the vertices of G to consider
-     * @param maxPriority
-     *            the maximal priority in G. This could be determined from
-     *            vertices. However, handing this as a parameter is saving one
-     *            iteration over the vertices.
-     * @return an array of the sizes of the components in M_G
-     */
-    protected final static int[] getSizeOfMG(
-            final Collection<? extends ParityVertex> vertices,
-            final int maxPriority) {
-        final int[] counts = new int[maxPriority + 1];
-        for (final ParityVertex vertex : vertices) {
-            int priority = vertex.getPriority();
-            if (priority % 2 == 1) {
-                counts[priority]++;
-            }
-        }
-        return counts;
     }
 }
