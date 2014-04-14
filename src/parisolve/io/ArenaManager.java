@@ -16,15 +16,28 @@ import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 
 /**
- * The ArenaManager loads and stores arenas. It does so in a DOT-compatible way
- * 
+ * The <code>ArenaManager</code> loads and stores arenas.
  */
-public class ArenaManager {
+public final class ArenaManager {
+    private ArenaManager() {
+        // to prevent instantiation of this utility class.
+    };
 
-    public static Arena loadArena(String fileName) throws IOException {
-        List<String> lines = Files.readAllLines(Paths.get(fileName),
+    /**
+     * opens file specified by <code>fileName</code> and returns the arena
+     * specified within.
+     * 
+     * @param fileName
+     *            arenas file's filename
+     * @return arena stored in file specified by <code>fileName</code>
+     * @throws IOException
+     *             the file specified by <code>fileName</code> could not be read
+     *             or the content did not conform to the default charset
+     */
+    public static Arena loadArena(final String fileName) throws IOException {
+        final List<String> lines = Files.readAllLines(Paths.get(fileName),
                 Charset.defaultCharset());
-        LinkedArena arena = new LinkedArena();
+        final LinkedArena arena = new LinkedArena();
         if (fileName.endsWith(".arena")) {
             fillArenaFromLinesInDotFormat(lines, arena);
         } else {
@@ -38,31 +51,56 @@ public class ArenaManager {
     public static Pattern EDGE_PATTERN = Pattern
             .compile("\\s*(\\w+)\\s*->\\s*(\\w+);");
 
-    private static void fillArenaFromLinesInDotFormat(List<String> lines,
-            LinkedArena arena) {
-        for (String line : lines) {
-            Matcher vertexMatcher = VERTEX_PATTERN.matcher(line);
+    /**
+     * fills <code>arena</code> with vertices and edges defined in
+     * <code>lines</code>. This is done in the arena-format which is compatible
+     * with GraphViz/DOT.
+     * 
+     * @param lines
+     *            lines from file, containing the information
+     * @param arena
+     *            arena to fill with vertices and edges
+     */
+    private static void fillArenaFromLinesInDotFormat(final List<String> lines,
+            final LinkedArena arena) {
+        for (final String line : lines) {
+            final Matcher vertexMatcher = VERTEX_PATTERN.matcher(line);
             if (vertexMatcher.find()) {
                 arena.addVertex(vertexMatcher.group(1),
                         Integer.parseInt(vertexMatcher.group(3)),
                         Player.getPlayerForShapeString(vertexMatcher.group(2)));
             }
         }
-        for (String line : lines) {
-            Matcher edgeMatcher = EDGE_PATTERN.matcher(line);
+        for (final String line : lines) {
+            final Matcher edgeMatcher = EDGE_PATTERN.matcher(line);
             if (edgeMatcher.find()) {
                 arena.addEdge(edgeMatcher.group(1), edgeMatcher.group(2));
             }
         }
     }
 
-    public static Pattern LINE_PATTERN = Pattern
-            .compile("(\\d+) (\\d+) (\\d+) (\\d+(,\\d+)*) \"([^\"]+)\";");
+    /**
+     * pattern describing the syntax of a line in the txt-format for arenas,
+     * grouping the relevant elements.
+     */
+    public static final Pattern LINE_PATTERN = Pattern
+            .compile("(\\d+) (\\d+) (\\d+) (\\d+(,\\d+)*)( \"([^\"]+)\")?;");
 
-    private static void fillArenaFromLinesInTxtFormat(List<String> lines,
-            LinkedArena arena) {
-        for (String line : lines) {
-            Matcher vertexMatcher = LINE_PATTERN.matcher(line);
+    /**
+     * fills <code>arena</code> with vertices and edges defined in
+     * <code>lines</code>. This is done in the txt/fg-format used by the
+     * benchmark arenas provided at
+     * https://www7.in.tum.de/tools/gpupg/index.php.
+     * 
+     * @param lines
+     *            lines from file, containing the information
+     * @param arena
+     *            arena to fill with vertices and edges
+     */
+    private static void fillArenaFromLinesInTxtFormat(final List<String> lines,
+            final LinkedArena arena) {
+        for (final String line : lines) {
+            final Matcher vertexMatcher = LINE_PATTERN.matcher(line);
             if (vertexMatcher.find()) {
                 arena.addVertex(vertexMatcher.group(1), Integer
                         .parseInt(vertexMatcher.group(2)), Player
@@ -70,10 +108,10 @@ public class ArenaManager {
                                 .group(3))));
             }
         }
-        for (String line : lines) {
-            Matcher edgeMatcher = LINE_PATTERN.matcher(line);
+        for (final String line : lines) {
+            final Matcher edgeMatcher = LINE_PATTERN.matcher(line);
             if (edgeMatcher.find()) {
-                for (String target : edgeMatcher.group(4).split(",")) {
+                for (final String target : edgeMatcher.group(4).split(",")) {
                     arena.addEdge(edgeMatcher.group(1), target);
                 }
             }
@@ -94,26 +132,19 @@ public class ArenaManager {
         final StringBuilder resultBuilder = new StringBuilder(25);
         resultBuilder.append("digraph strategy {\n");
 
-        // print vertices and store their numbers
-        final Map<ParityVertex, Integer> numbersOfVertices = new ConcurrentHashMap<>();
-        int numberOfVertex = 0;
         for (final ParityVertex vertex : strategy.keySet()) {
             resultBuilder
-                    .append(String.format("  z%d[shape=%s,label=\"%d\"];\n",
-                            numberOfVertex,
-                            vertex.getPlayer().getShapeString(),
-                            vertex.getPriority()));
-            numbersOfVertices.put(vertex, numberOfVertex);
-            numberOfVertex++;
+                    .append(String.format("  %s[shape=%s,label=\"%d\"];\n",
+                            vertex.getName(), vertex.getPlayer()
+                                    .getShapeString(), vertex.getPriority()));
         }
 
         resultBuilder.append('\n');
 
         // print edges
         for (final ParityVertex vertex : strategy.keySet()) {
-            resultBuilder.append(String.format("  z%d->z%d;\n",
-                    numbersOfVertices.get(vertex),
-                    numbersOfVertices.get(strategy.get(vertex))));
+            resultBuilder.append(String.format("  %s->%s;\n", vertex.getName(),
+                    strategy.get(vertex).getName()));
         }
         resultBuilder.append('}');
         return resultBuilder.toString();
