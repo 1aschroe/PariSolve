@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import parisolve.backend.Arena;
 import parisolve.backend.algorithms.AlgorithmManager;
 import parisolve.backend.algorithms.Solver;
 
@@ -19,6 +20,11 @@ public class CommandLineInterface extends AbstractUI {
     @Override
     public void displayError(final String message) {
         System.err.println(message);
+    }
+    
+    @Override
+    public void populateGraphWithArena(Arena currentArena) {
+        displayInfo(currentArena.getStatistics());
     }
 
     @Override

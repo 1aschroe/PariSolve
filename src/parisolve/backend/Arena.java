@@ -33,4 +33,6 @@ public interface Arena {
 	 * @return the maximal priority
 	 */
 	int getMaxPriority();
+
+    String getStatistics();
 }

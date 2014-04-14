@@ -91,4 +91,25 @@ public class LinkedArena implements Arena {
 		}
 		return maxPriority;
 	}
+
+    @Override
+    public String getStatistics() {
+        int maxDegree = 0;
+        int numberEdges = 0;
+        int numberOfSelfloops = 0;
+        for (final ParityVertex vertex : getVertices()) {
+            final int degree = vertex.getSuccessors().size();
+            if (degree > maxDegree) {
+                maxDegree = degree;
+            }
+            numberEdges += degree;
+            if (vertex.getSuccessors().contains(vertex)) {
+                numberOfSelfloops++;
+            }
+        }
+        final int numberVertices = vertices.size();
+        
+        return "Number of vertices\tNumber of edges\tAverage degree\tMaximal degree\tMaximal priority\tNumber of selfloops\n" + 
+        numberVertices + "\t" + numberEdges + "\t" + ((double) numberEdges)/numberVertices + "\t" + maxDegree + "\t" + getMaxPriority() + "\t" + numberOfSelfloops;
+    }
 }

@@ -66,6 +66,7 @@ public class StartUp {
                 for (final String arenaFile : arenas) {
                     try {
                         final Arena arena = ArenaManager.loadArena(arenaFile);
+                        ui.displayInfo(arena.getStatistics());
                         ui.displayInfo("Solving " + arenaFile + " using " + solver.getClass().getSimpleName());
                         final long start = System.currentTimeMillis();
                         solver.getWinningRegionForPlayer(arena, Player.A);
