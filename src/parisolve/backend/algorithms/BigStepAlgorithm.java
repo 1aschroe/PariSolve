@@ -28,7 +28,7 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
     private WinningRegionPartition getWinningPartitionFromBetterAlgorithm(
             Player sigma, int n, Collection<? extends ParityVertex> vertices) {
         Collection<? extends ParityVertex> winningRegion = BetterAlgorithm
-                .solveGame(sigma, n, vertices);
+                .solveGame(sigma, n, vertices, liftable);
         Set<ParityVertex> loosingRegion = new HashSet<>(vertices);
         loosingRegion.removeAll(winningRegion);
         return new WinningRegionPartition(winningRegion, loosingRegion,
@@ -52,12 +52,6 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
     }
 
     private int pi(int n, int c) {
-        // wolframalpha: (2 (-n+2 c n^b+c n^(1+b)))/(n-2 c n^b) für c = cbrt(c),
-        // b = beta(c) und p = pi
-        /*
-         * double a = 2.0 * Math.cbrt(c); return (int) Math.ceil(a /
-         * (Math.pow(n, -beta(c)) - a) - 2.0);
-         */
         final double rootExpression = 2.0 * Math.cbrt(c) * Math.pow(n, beta(c));
         return (int) Math.ceil(rootExpression * n + 2 * rootExpression - 2 * n / (n - rootExpression));
     }

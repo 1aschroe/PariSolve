@@ -3,33 +3,39 @@ package parisolve.backend.algorithms.helper;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.ParityVertex;
 
 /**
- * structure which helps <code>BetterAlgorithm</code> to efficiently lift those
- * vertices which need lifting. This is done on the basis of the idea expressed
+ * structure which helps to efficiently iterate over vertices, which tries to
+ * suggest a vertex as few times as possible. It does that by suggesting a
+ * vertex's predecessors, if the vertex itself could be used.
+ * 
+ * One application of this class is the iteration of liftable vertices in
+ * <code>BetterAlgorithm</code>. This is done on the basis of the idea expressed
  * in LNCS 2500 p. 123 to implement a queue which hold the liftable vertices.
  * The idea for this structures implementation bases on the fact that a lift is
  * recalculating the prog-values of vertices, which change iff the successors
  * value changes. Therefore, once a vertex has been lifted, its predecessors are
  * checked, whether these can also be lifted.
  * 
+ * Another application is that of finding vertices which might belong to a
+ * attractor as used in <code>RecursiveAlgorithm.getAttractor()</code>.
+ * 
  * As it implements the <code>Iterable</code> interface, one can use instances
- * of this class in for-each-loops.
+ * of this class in for-each-loops. If a vertex could be used and the
+ * predecessors of this vertex should be iterated as well, the method
+ * <code>liftWasSuccessful()</code> has to be called with this vertex.
+ * 
+ * Instances can be obtained from a <code>LiftableFactory</code> which for
+ * performance reasons stores the predecessor-structure to eliminate the need to
+ * recalculate it.
  * 
  * @author Arne Schröder
  */
 public abstract class Liftable implements Iterable<ParityVertex>,
         Iterator<ParityVertex> {
-    /**
-     * maps each vertex to the set of its predecessors.
-     */
-    private final Map<ParityVertex, Set<ParityVertex>> predecessors = new ConcurrentHashMap<>();
-
     /**
      * if we are to use (lift) a vertex only once, this set keeps track of what
      * vertices have been used.
@@ -41,43 +47,35 @@ public abstract class Liftable implements Iterable<ParityVertex>,
     private boolean liftOnce;
 
     /**
-     * the given vertices are preprocessed to the map of predecessors.
+     * can be queried what the predecessors of a vertex are. However, this might
+     * return vertices which are not included in this subgame. Therefore, one
+     * has to remove everything which does not belong to the subgame.
      * 
+     * May be replaced with a suitable interface if needed.
+     */
+    private LiftableFactory predecessorProvider;
+
+    /**
+     * the vertices of the subgame considered. Used to remove the predecessors
+     * from <code>predecessorProvider.getPredecessors()</code> which do not
+     * belong to the subgame considered.
+     */
+    private Collection<? extends ParityVertex> verticesOfSubgame;
+
+    /**
      * @param vertices
      *            vertices of the arena to consider
+     * @param liftableFactory
+     *            the factory this liftable came from, which can provide it with
+     *            the predecessor-relation
      * @param useOnce
      *            whether a vertex should only be iterated through once
      */
     public Liftable(final Collection<? extends ParityVertex> vertices,
-            final boolean useOnce) {
+            final LiftableFactory liftableFactory, final boolean useOnce) {
+        verticesOfSubgame = vertices;
+        predecessorProvider = liftableFactory;
         this.liftOnce = useOnce;
-        for (final ParityVertex vertex : vertices) {
-            final Set<ParityVertex> successorsInSubGame = new HashSet<>(
-                    vertex.getSuccessors());
-            successorsInSubGame.retainAll(vertices);
-            for (final ParityVertex successor : successorsInSubGame) {
-                if (!predecessors.containsKey(successor)) {
-                    predecessors.put(successor, new HashSet<ParityVertex>());
-                }
-                predecessors.get(successor).add(vertex);
-            }
-        }
-    }
-
-    /**
-     * gives the set of predecessors of a given vertex. This set should not be
-     * modified.
-     * 
-     * @param vertex
-     *            the vertex to return the predecessors for
-     * @return the predecessors of <code>vertex</code>
-     */
-    protected final Collection<ParityVertex> getPredecessorsOf(
-            final ParityVertex vertex) {
-        if (!predecessors.containsKey(vertex)) {
-            return new HashSet<>();
-        }
-        return predecessors.get(vertex);
     }
 
     /**
@@ -105,7 +103,10 @@ public abstract class Liftable implements Iterable<ParityVertex>,
         if (liftOnce) {
             liftedVertices.add(vertex);
         }
-        addPredecessors(getPredecessorsOf(vertex));
+        HashSet<ParityVertex> predecessors = new HashSet<>(
+                predecessorProvider.getPredecessorsOf(vertex));
+        predecessors.retainAll(verticesOfSubgame);
+        addPredecessors(predecessors);
     }
 
     /**

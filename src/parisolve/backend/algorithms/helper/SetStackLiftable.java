@@ -32,13 +32,17 @@ public class SetStackLiftable extends Liftable {
      * adds all vertices to both the set and the stack.
      * 
      * @param vertices
-     *            the vertices to consider
+     *            vertices of the arena to consider
+     * @param liftableFactory
+     *            the factory this liftable came from, which can provide it with
+     *            the predecessor-relation
      * @param useOnce
      *            whether a vertex should only be iterated through once
      */
-    public SetStackLiftable(final Collection<? extends ParityVertex> vertices,
-            final boolean useOnce) {
-        super(vertices, useOnce);
+    protected SetStackLiftable(
+            final Collection<? extends ParityVertex> vertices,
+            final LiftableFactory liftableFactory, final boolean useOnce) {
+        super(vertices, liftableFactory, useOnce);
         this.verticesSet = new HashSet<>(vertices);
         this.verticesStack.addAll(vertices);
     }

@@ -24,13 +24,16 @@ public class StackLiftable extends Liftable {
      * adds all vertices to the stack.
      * 
      * @param vertices
-     *            the vertices to consider
+     *            vertices of the arena to consider
+     * @param liftableFactory
+     *            the factory this liftable came from, which can provide it with
+     *            the predecessor-relation
      * @param useOnce
      *            whether a vertex should only be iterated through once
      */
     public StackLiftable(final Collection<? extends ParityVertex> vertices,
-            final boolean useOnce) {
-        super(vertices, useOnce);
+            final LiftableFactory liftableFactory, final boolean useOnce) {
+        super(vertices, liftableFactory, useOnce);
         this.verticesStack.addAll(vertices);
     }
 
@@ -38,9 +41,9 @@ public class StackLiftable extends Liftable {
     public final Collection<ParityVertex> getVerticesCollection() {
         return verticesStack;
     }
-
+    
     @Override
-    public final void addPredecessors(final Collection<ParityVertex> predecessors) {
+    protected final void addPredecessors(final Collection<ParityVertex> predecessors) {
         for (final ParityVertex predecessor : predecessors) {
             if (!verticesStack.contains(predecessor) && !liftedVertices.contains(predecessor)) {
                 verticesStack.add(predecessor);

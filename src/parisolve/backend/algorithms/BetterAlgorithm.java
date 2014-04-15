@@ -5,12 +5,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import parisolve.backend.Arena;
-import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 import parisolve.backend.algorithms.helper.Liftable;
+import parisolve.backend.algorithms.helper.LiftableFactory;
 import parisolve.backend.algorithms.helper.ProgressMeasure;
-import parisolve.backend.algorithms.helper.SetStackLiftable;
 
 /**
  * implementation of the algorithm of Jurdzinski - Small Progress Measures for
@@ -25,7 +24,8 @@ public class BetterAlgorithm implements Solver {
     public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
             final Arena arena, final Player player) {
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
-        return solveGame(player, vertices.size(), vertices);
+        final LiftableFactory liftable = new LiftableFactory(vertices);
+        return solveGame(player, vertices.size(), vertices, liftable);
     }
 
     /**
@@ -41,14 +41,18 @@ public class BetterAlgorithm implements Solver {
      *            size of progress measure to consider
      * @param vertices
      *            the vertices to consider when solving the game
+     * @param liftable
+     *            a liftable factory which has the arena's vertices stored and
+     *            can be queried for a liftable instance
      * @return the winning region
      */
     public static Collection<? extends ParityVertex> solveGame(
             final Player player, final int n,
-            final Collection<? extends ParityVertex> vertices) {
+            final Collection<? extends ParityVertex> vertices,
+            final LiftableFactory liftable) {
         final ProgressMeasure measure = new ProgressMeasure(vertices, n);
 
-        final Liftable iterator = new SetStackLiftable(vertices, false);
+        final Liftable iterator = liftable.getLiftableInstance(vertices, false);
         for (final ParityVertex vertex : iterator) {
             final boolean lifted = measure.lift(vertex);
             if (lifted) {

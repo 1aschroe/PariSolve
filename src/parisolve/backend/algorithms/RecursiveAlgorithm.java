@@ -10,7 +10,7 @@ import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 import parisolve.backend.algorithms.helper.Liftable;
-import parisolve.backend.algorithms.helper.SetStackLiftable;
+import parisolve.backend.algorithms.helper.LiftableFactory;
 
 /**
  * implementation of a recursive algorithm given in McNaughton (1993), Zielonka
@@ -23,12 +23,19 @@ import parisolve.backend.algorithms.helper.SetStackLiftable;
  */
 public class RecursiveAlgorithm implements Solver {
     @Override
-    public Collection<? extends ParityVertex> getWinningRegionForPlayer(
+    public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
             final Arena arena, final Player player) {
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
+        liftable = new LiftableFactory(vertices);
         final WinningRegionPartition partition = solveGame(vertices);
         return partition.getWinningRegionFor(player);
     }
+
+    /**
+     * liftable factory provided for a single run of the algorithm which knows
+     * the predecessors and can provide liftable instances.
+     */
+    protected LiftableFactory liftable;
 
     /**
      * singleton for empty set to not create an empty set for every instance
@@ -47,7 +54,7 @@ public class RecursiveAlgorithm implements Solver {
      *            Abbildung 15.5
      * @return a partition with a set of vertices for each player to win upon.
      */
-    protected WinningRegionPartition solveGame(
+    protected final WinningRegionPartition solveGame(
             final Collection<? extends ParityVertex> vertices) {
         // in Abbildung 15.5 this is n
         final int maxPriority = LinkedArena.getMaxPriority(vertices);
@@ -64,6 +71,10 @@ public class RecursiveAlgorithm implements Solver {
 
         final WinningRegionPartition dominionPartition = removeDominionOfSigmaOpponent(
                 vertices, maxPriority, sigma);
+        // 'verticesWinnableForSigma' is to be understood as 'vertices which
+        // sigma _could_ win on'. This does not mean that (s)he does, nor does
+        // it that (s)he does not. But it is not impossible from our point of
+        // view right now.
         Collection<? extends ParityVertex> verticesWinnableForSigma = dominionPartition
                 .getWinningRegionFor(sigma);
 
@@ -98,6 +109,22 @@ public class RecursiveAlgorithm implements Solver {
         return new WinningRegionPartition(vertices, EMPTY_SET, sigma);
     }
 
+    /**
+     * calculates a dominion of <code>sigma.getOpponent()</code> so one can take
+     * these vertices out of the problem as being solved. A dominion is a set,
+     * from which the opposing player (in this case <code>sigma</code>) cannot
+     * escape and which are part of the players (
+     * <code>sigma.getOpponent()</code>) winning region.
+     * 
+     * @param vertices
+     *            the vertices to consider
+     * @param maxPriority
+     *            the maximal priority in the whole graph
+     * @param sigma
+     *            the player for which we want to find a region, on which he
+     *            looses
+     * @return dominion of sigma's opponent.
+     */
     protected Collection<ParityVertex> getDominionOfSigmaOpponent(
             final Collection<? extends ParityVertex> vertices,
             final int maxPriority, final Player sigma) {
@@ -146,7 +173,7 @@ public class RecursiveAlgorithm implements Solver {
 
     /**
      * helper method: solves the game on the remaining vertices, when removing
-     * <code>verticesToExclude</code> from <code>allVertices</code>
+     * <code>verticesToExclude</code> from <code>allVertices</code>.
      * 
      * @param allVertices
      *            the entirety of all vertices
@@ -154,7 +181,7 @@ public class RecursiveAlgorithm implements Solver {
      *            nodes to exclude when solving the game
      * @return partition of winning regions for the vertices left
      */
-    protected WinningRegionPartition solveGameForOtherVertices(
+    protected final WinningRegionPartition solveGameForOtherVertices(
             final Collection<? extends ParityVertex> allVertices,
             final Collection<ParityVertex> verticesToExclude) {
         final Set<ParityVertex> unsolvedVertices = new HashSet<>(allVertices);
@@ -176,16 +203,15 @@ public class RecursiveAlgorithm implements Solver {
      * @return the attractor of <code>sigma</code> to <code>vertices</code> with
      *         respect to the subgame on <code>allVertices</code>
      */
-    protected Collection<ParityVertex> getAttractor(
+    protected final Collection<ParityVertex> getAttractor(
             final Collection<? extends ParityVertex> vertices,
             final Player sigma,
             final Collection<? extends ParityVertex> allVertices) {
         final Set<ParityVertex> attractor = new HashSet<>(vertices);
         // the vertices which might get into the attractor eventually
         final Set<ParityVertex> otherVertices = new HashSet<>(allVertices);
-        int otherSize = otherVertices.size();
         otherVertices.removeAll(attractor);
-        Liftable iterator = new SetStackLiftable(otherVertices, true);
+        Liftable iterator = liftable.getLiftableInstance(otherVertices, true);
 
         for (final ParityVertex vertex : iterator) {
             final Set<ParityVertex> successorsInSubGame = new HashSet<>(

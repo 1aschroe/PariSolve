@@ -24,13 +24,16 @@ public class SetLiftable extends Liftable {
      * adds all vertices to the set.
      * 
      * @param vertices
-     *            the vertices to consider
+     *            vertices of the arena to consider
+     * @param liftableFactory
+     *            the factory this liftable came from, which can provide it with
+     *            the predecessor-relation
      * @param useOnce
      *            whether a vertex should only be iterated through once
      */
     public SetLiftable(final Collection<? extends ParityVertex> vertices,
-            final boolean useOnce) {
-        super(vertices, useOnce);
+            final LiftableFactory liftableFactory, final boolean useOnce) {
+        super(vertices, liftableFactory, useOnce);
         this.verticesSet = new HashSet<>(vertices);
     }
 
