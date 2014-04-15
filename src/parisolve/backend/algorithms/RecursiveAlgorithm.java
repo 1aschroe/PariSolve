@@ -9,6 +9,8 @@ import parisolve.backend.Arena;
 import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
+import parisolve.backend.algorithms.helper.Liftable;
+import parisolve.backend.algorithms.helper.SetStackLiftable;
 
 /**
  * implementation of a recursive algorithm given in McNaughton (1993), Zielonka
@@ -80,7 +82,8 @@ public class RecursiveAlgorithm implements Solver {
         final Set<ParityVertex> winningRegion2 = new HashSet<>(
                 partition2.getWinningRegionFor(sigma.getOponent()));
         winningRegion2.addAll(dominionOfSigmaOpponent);
-        winningRegion2.addAll(dominionPartition.getWinningRegionFor(sigma.getOponent()));
+        winningRegion2.addAll(dominionPartition.getWinningRegionFor(sigma
+                .getOponent()));
         return new WinningRegionPartition(
                 partition2.getWinningRegionFor(sigma), winningRegion2, sigma);
     }
@@ -182,26 +185,21 @@ public class RecursiveAlgorithm implements Solver {
         final Set<ParityVertex> otherVertices = new HashSet<>(allVertices);
         int otherSize = otherVertices.size();
         otherVertices.removeAll(attractor);
+        Liftable iterator = new SetStackLiftable(otherVertices, true);
 
-        while (otherSize > otherVertices.size()) {
-            otherSize = otherVertices.size();
-            // TODO this loop could be optimised if one could call a vertex's
-            // predecessor
-            for (final ParityVertex vertex : otherVertices) {
-                final Set<ParityVertex> successorsInSubGame = new HashSet<>(
-                        vertex.getSuccessors());
-                // getSuccessors returns all successor in the original graph.
-                // Therefore, we must remove everything outside of allVertices.
-                successorsInSubGame.retainAll(allVertices);
-                if ((vertex.getPlayer() == sigma && !Collections.disjoint(
-                        attractor, successorsInSubGame))
-                        || (vertex.getPlayer() == sigma.getOponent() && attractor
-                                .containsAll(successorsInSubGame))) {
-                    attractor.add(vertex);
-                }
+        for (final ParityVertex vertex : iterator) {
+            final Set<ParityVertex> successorsInSubGame = new HashSet<>(
+                    vertex.getSuccessors());
+            // getSuccessors returns all successor in the original graph.
+            // Therefore, we must remove everything outside of allVertices.
+            successorsInSubGame.retainAll(allVertices);
+            if ((vertex.getPlayer() == sigma && !Collections.disjoint(
+                    attractor, successorsInSubGame))
+                    || (vertex.getPlayer() == sigma.getOponent() && attractor
+                            .containsAll(successorsInSubGame))) {
+                attractor.add(vertex);
+                iterator.liftWasSuccessful(vertex);
             }
-            // TODO: only remove those which are new
-            otherVertices.removeAll(attractor);
         }
 
         return attractor;

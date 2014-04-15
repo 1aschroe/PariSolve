@@ -31,12 +31,26 @@ public abstract class Liftable implements Iterable<ParityVertex>,
     private final Map<ParityVertex, Set<ParityVertex>> predecessors = new ConcurrentHashMap<>();
 
     /**
+     * if we are to use (lift) a vertex only once, this set keeps track of what
+     * vertices have been used.
+     */
+    protected final Set<ParityVertex> liftedVertices = new HashSet<>();
+    /**
+     * stores whether we are to use (lift) a vertex only once.
+     */
+    private boolean liftOnce;
+
+    /**
      * the given vertices are preprocessed to the map of predecessors.
      * 
      * @param vertices
      *            vertices of the arena to consider
+     * @param useOnce
+     *            whether a vertex should only be iterated through once
      */
-    public Liftable(final Collection<? extends ParityVertex> vertices) {
+    public Liftable(final Collection<? extends ParityVertex> vertices,
+            final boolean useOnce) {
+        this.liftOnce = useOnce;
         for (final ParityVertex vertex : vertices) {
             final Set<ParityVertex> successorsInSubGame = new HashSet<>(
                     vertex.getSuccessors());
@@ -67,9 +81,18 @@ public abstract class Liftable implements Iterable<ParityVertex>,
     }
 
     /**
+     * accessor for the collection of vertices which can be lifted.
+     * 
+     * @return collection of vertices waiting to be lifted
+     */
+    protected abstract Collection<ParityVertex> getVerticesCollection();
+
+    /**
      * @return the number of vertices considered liftable
      */
-    public abstract int verticesSize();
+    public final int verticesSize() {
+        return getVerticesCollection().size();
+    }
 
     /**
      * tells the <code>Liftable</code>, whether the given vertex was lifted
@@ -78,7 +101,22 @@ public abstract class Liftable implements Iterable<ParityVertex>,
      * @param vertex
      *            this vertex was lifted successfully.
      */
-    public abstract void liftWasSuccessful(final ParityVertex vertex);
+    public final void liftWasSuccessful(final ParityVertex vertex) {
+        if (liftOnce) {
+            liftedVertices.add(vertex);
+        }
+        addPredecessors(getPredecessorsOf(vertex));
+    }
+
+    /**
+     * tells the implementation to add these predecessors to the vertices
+     * collection once a lift was successful.
+     * 
+     * @param predecessors
+     *            the predecessors to add
+     */
+    protected abstract void addPredecessors(
+            final Collection<ParityVertex> predecessors);
 
     @Override
     public final Iterator<ParityVertex> iterator() {
@@ -86,7 +124,9 @@ public abstract class Liftable implements Iterable<ParityVertex>,
     }
 
     @Override
-    public abstract boolean hasNext();
+    public final boolean hasNext() {
+        return !getVerticesCollection().isEmpty();
+    }
 
     @Override
     public abstract ParityVertex next();

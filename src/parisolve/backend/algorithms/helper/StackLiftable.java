@@ -25,29 +25,27 @@ public class StackLiftable extends Liftable {
      * 
      * @param vertices
      *            the vertices to consider
+     * @param useOnce
+     *            whether a vertex should only be iterated through once
      */
-    public StackLiftable(final Collection<? extends ParityVertex> vertices) {
-        super(vertices);
+    public StackLiftable(final Collection<? extends ParityVertex> vertices,
+            final boolean useOnce) {
+        super(vertices, useOnce);
         this.verticesStack.addAll(vertices);
     }
 
     @Override
-    public final int verticesSize() {
-        return verticesStack.size();
-    };
-
-    @Override
-    public final void liftWasSuccessful(final ParityVertex vertex) {
-        for (final ParityVertex successor : getPredecessorsOf(vertex)) {
-            if (!verticesStack.contains(successor)) {
-                verticesStack.add(successor);
-            }
-        }
+    public final Collection<ParityVertex> getVerticesCollection() {
+        return verticesStack;
     }
 
     @Override
-    public final boolean hasNext() {
-        return !verticesStack.isEmpty();
+    public final void addPredecessors(final Collection<ParityVertex> predecessors) {
+        for (final ParityVertex predecessor : predecessors) {
+            if (!verticesStack.contains(predecessor) && !liftedVertices.contains(predecessor)) {
+                verticesStack.add(predecessor);
+            }
+        }
     }
 
     @Override

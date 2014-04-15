@@ -48,7 +48,7 @@ public class BetterAlgorithm implements Solver {
             final Collection<? extends ParityVertex> vertices) {
         final ProgressMeasure measure = new ProgressMeasure(vertices, n);
 
-        final Liftable iterator = new SetStackLiftable(vertices);
+        final Liftable iterator = new SetStackLiftable(vertices, false);
         for (final ParityVertex vertex : iterator) {
             final boolean lifted = measure.lift(vertex);
             if (lifted) {

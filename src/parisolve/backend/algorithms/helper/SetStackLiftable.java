@@ -33,33 +33,33 @@ public class SetStackLiftable extends Liftable {
      * 
      * @param vertices
      *            the vertices to consider
+     * @param useOnce
+     *            whether a vertex should only be iterated through once
      */
-    public SetStackLiftable(final Collection<? extends ParityVertex> vertices) {
-        super(vertices);
+    public SetStackLiftable(final Collection<? extends ParityVertex> vertices,
+            final boolean useOnce) {
+        super(vertices, useOnce);
         this.verticesSet = new HashSet<>(vertices);
         this.verticesStack.addAll(vertices);
     }
 
     @Override
-    public final int verticesSize() {
-        return verticesStack.size();
+    public final Collection<ParityVertex> getVerticesCollection() {
+        return verticesStack;
     }
 
     @Override
-    public final void liftWasSuccessful(final ParityVertex vertex) {
-        // TODO: it might even be faster to do verticesStack.addAll(new
-        // HashSet<>(getPredecessorsOf(vertex)).removeAll(verticesSet));
-        for (final ParityVertex successor : getPredecessorsOf(vertex)) {
-            if (!verticesSet.contains(successor)) {
-                verticesStack.add(successor);
+    public final void addPredecessors(
+            final Collection<ParityVertex> predecessors) {
+        for (final ParityVertex predecessor : predecessors) {
+            if (!verticesSet.contains(predecessor)
+                    && !liftedVertices.contains(predecessor)) {
+                verticesStack.add(predecessor);
             }
         }
-        verticesSet.addAll(getPredecessorsOf(vertex));
-    }
-
-    @Override
-    public final boolean hasNext() {
-        return !verticesStack.isEmpty();
+        // we do not need to remove the lifted vertices from verticesSet, as
+        // verticesSet is never used for the retrieval of vertices.
+        verticesSet.addAll(predecessors);
     }
 
     @Override

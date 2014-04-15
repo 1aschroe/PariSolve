@@ -25,25 +25,25 @@ public class SetLiftable extends Liftable {
      * 
      * @param vertices
      *            the vertices to consider
+     * @param useOnce
+     *            whether a vertex should only be iterated through once
      */
-    public SetLiftable(final Collection<? extends ParityVertex> vertices) {
-        super(vertices);
+    public SetLiftable(final Collection<? extends ParityVertex> vertices,
+            final boolean useOnce) {
+        super(vertices, useOnce);
         this.verticesSet = new HashSet<>(vertices);
     }
 
     @Override
-    public final int verticesSize() {
-        return verticesSet.size();
+    public final Collection<ParityVertex> getVerticesCollection() {
+        return verticesSet;
     }
 
     @Override
-    public final void liftWasSuccessful(final ParityVertex vertex) {
-        verticesSet.addAll(getPredecessorsOf(vertex));
-    }
-
-    @Override
-    public final boolean hasNext() {
-        return !verticesSet.isEmpty();
+    protected final void addPredecessors(
+            final Collection<ParityVertex> predecessors) {
+        verticesSet.addAll(predecessors);
+        verticesSet.removeAll(liftedVertices);
     }
 
     @Override
