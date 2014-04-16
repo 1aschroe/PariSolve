@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,6 +43,45 @@ public final class ArenaManager {
         } else {
             fillArenaFromLinesInTxtFormat(lines, arena);
         }
+        return arena;
+    }
+
+    /**
+     * creates an arena, populates it with <code>numberOfVertices</code>
+     * vertices, randomly assigns priorities up to <code>maxPriority</code> and
+     * randomly connects these vertices so that approximately an average of
+     * <code>averageDegree</code> is achieved.
+     * 
+     * @param numberOfVertices
+     *            the number of vertices in the generated arena
+     * @param averageDegree
+     *            the average degree aimed for
+     * @param maxPriority
+     *            the maximal priority to assign to a vertex
+     * @return a newly generated arena
+     */
+    public static Arena generateRandomArena(final int numberOfVertices,
+            final double averageDegree, final int maxPriority) {
+        final LinkedArena arena = new LinkedArena();
+        final Random random = new Random(System.currentTimeMillis());
+        final int[] numberOfEdges = new int[numberOfVertices];
+        for (int i = 0; i < numberOfVertices; i++) {
+            final int priority = random.nextInt(maxPriority) + 1;
+            final Player player = Player
+                    .getPlayerForPriority(random.nextInt(2));
+            arena.addVertex("v" + i, priority, player);
+            numberOfEdges[i] = Math.max(
+                    (int) Math.round(random.nextDouble() * 2.0
+                            * (averageDegree - 1)), 0) + 1;
+        }
+
+        for (int i = 0; i < numberOfVertices; i++) {
+            for (int edge = 0; edge < numberOfEdges[i]; edge++) {
+                final int toVertex = random.nextInt(numberOfVertices);
+                arena.addEdge("v" + i, "v" + toVertex);
+            }
+        }
+
         return arena;
     }
 

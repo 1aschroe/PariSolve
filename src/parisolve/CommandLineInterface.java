@@ -21,7 +21,7 @@ public class CommandLineInterface extends AbstractUI {
     public void displayError(final String message) {
         System.err.println(message);
     }
-    
+
     @Override
     public void populateGraphWithArena(Arena currentArena) {
         displayInfo(currentArena.getStatistics());
@@ -41,7 +41,7 @@ public class CommandLineInterface extends AbstractUI {
                 }
                 // TODO perfect place for a string-switch or a map
                 if ("help".equals(line) || "?".equals(line)) {
-                    displayInfo("You can either open [FILENAME] an arena-file or solve [ALGORITHM] a loaded arena using the given algorithm");
+                    displayInfo("You can either\n - open [FILENAME] an arena-file,\n - generate [NUMBER_VERTICES AVERAGE_DEGREE MAX_PRIORITY] a arena or\n - solve [ALGORITHM] a loaded arena using the given algorithm");
                 } else if (line.startsWith("open")) {
                     String[] parts = line.split(" ");
                     String file;
@@ -52,6 +52,24 @@ public class CommandLineInterface extends AbstractUI {
                         file = parts[1];
                     }
                     loadArenaFromFile(file);
+                } else if (line.startsWith("generate")) {
+                    String[] parts = line.split(" ");
+                    int numberOfVertices;
+                    double averageDegree;
+                    int maxPriority;
+                    if (parts.length == 1) {
+                        System.out.print("generate> ");
+                        parts = br.readLine().split(" ");
+
+                        numberOfVertices = Integer.parseInt(parts[0]);
+                        averageDegree = Double.parseDouble(parts[1]);
+                        maxPriority = Integer.parseInt(parts[2]);
+                    } else {
+                        numberOfVertices = Integer.parseInt(parts[1]);
+                        averageDegree = Double.parseDouble(parts[2]);
+                        maxPriority = Integer.parseInt(parts[3]);
+                    }
+                    generateArena(numberOfVertices, averageDegree, maxPriority);
                 } else if (line.startsWith("solve")) {
                     String[] parts = line.split(" ");
                     String algorithm;

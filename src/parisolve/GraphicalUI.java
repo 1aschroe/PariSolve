@@ -91,8 +91,15 @@ public class GraphicalUI extends AbstractUI {
 
     static AlgorithmCombo algorithmCombo = null;
 
-    static Graph graph = null;
-    static Map<ParityVertex, GraphNode> correspondence = new HashMap<ParityVertex, GraphNode>();
+    /**
+     * the graph-widget to display the arena.
+     */
+    private static Graph graph = null;
+    /**
+     * represents the correspondence between the vertices in the model and the
+     * graph-nodes being displayed
+     */
+    private static Map<ParityVertex, GraphNode> correspondence = new HashMap<ParityVertex, GraphNode>();
 
     public GraphicalUI() {
         SHELL.setText("PariSolve");
@@ -103,8 +110,14 @@ public class GraphicalUI extends AbstractUI {
         createGraph();
     }
 
+    /**
+     * initial height and width of the graph area.
+     */
     private static final int DEFAULT_GRAPH_SIZE = 500;
 
+    /**
+     * adds the graph to the shell.
+     */
     private void createGraph() {
         graph = new Graph(SHELL, SWT.NONE);
 
@@ -140,13 +153,15 @@ public class GraphicalUI extends AbstractUI {
 
         createSolveButton(bar);
 
+        createGenerateButton(bar);
+
         createAboutButton(bar);
 
         algorithmCombo = new AlgorithmCombo(parent);
     }
 
     /**
-     * adds an open-button to the toolbar given
+     * adds a button to the toolbar, to open an arena from file.
      * 
      * @param bar
      *            the toolbar to add the button to
@@ -159,7 +174,26 @@ public class GraphicalUI extends AbstractUI {
     }
 
     /**
-     * adds a solve-button to the toolbar given
+     * adds a button to the toolbar, to generate and load an arena.
+     * 
+     * @param bar
+     *            the toolbar to add the button to
+     */
+    private void createGenerateButton(final ToolBar bar) {
+        // image's source:
+        // http://en.wikipedia.org/wiki/File:2-Dice-Icon.svg
+        createButton(bar, "images/32px-2-Dice-Icon.svg.png", "Generate",
+                new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(final SelectionEvent arg0) {
+                        // TODO: query the user which options they want
+                        generateArena(16, 3.0, 7);
+                    }
+                });
+    }
+
+    /**
+     * adds a button to the toolbar, to solve the current arena.
      * 
      * @param bar
      *            the toolbar to add the button to
@@ -172,7 +206,8 @@ public class GraphicalUI extends AbstractUI {
     }
 
     /**
-     * adds an about-button to the toolbar given
+     * adds a button to the toolbar, to display information about the parity
+     * game being displayed.
      * 
      * @param bar
      *            the toolbar to add the button to
@@ -187,7 +222,8 @@ public class GraphicalUI extends AbstractUI {
                         displayInfo("The parity game played is a max priority parity game.\n"
                                 + "Player 0 has round vertices, player 1 has square vertices.\n"
                                 + "Player 0 wins even priorities and player 1 wins odd priorities.\n"
-                                + "Once solved, the winning region of player 0 is displayed in green.");
+                                + "Once solved, the winning region of player 0 is displayed in green.\n"
+                                + "The winning region of player 1 is displayed in blue.");
                     }
                 });
     }
@@ -263,6 +299,7 @@ public class GraphicalUI extends AbstractUI {
         DISPLAY.dispose();
     }
 
+    private static final Color BLUE = new Color(DISPLAY, 172, 172, 255);
     private static final Color GREEN = new Color(DISPLAY, 0, 255, 0);
     private static final Color BLACK = new Color(DISPLAY, 0, 0, 0);
 
@@ -275,8 +312,13 @@ public class GraphicalUI extends AbstractUI {
      */
     public final void highlightRegion(
             final Collection<? extends ParityVertex> region) {
-        for (final ParityVertex vertex : region) {
-            correspondence.get(vertex).setBackgroundColor(GREEN);
+        // TODO: display the players' optimal strategy
+        for (final ParityVertex vertex : correspondence.keySet()) {
+            if (region.contains(vertex)) {
+                correspondence.get(vertex).setBackgroundColor(GREEN);
+            } else {
+                correspondence.get(vertex).setBackgroundColor(BLUE);
+            }
         }
     }
 

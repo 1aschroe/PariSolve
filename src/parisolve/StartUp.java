@@ -26,6 +26,7 @@ public class StartUp {
      * display-string when an arenas file could not be loaded.
      */
     static final String ARENA_NOT_READ_MSG = "Arena %s could not be read.";
+    static final String SOLVE_MSG = "Solving %s using %s";
     static final String TIME_MSG = "Solving took %d milliseconds";
     static final String NON_UI_OPTION = "non-ui";
     static final String TIME_OPTION = "time";
@@ -65,11 +66,12 @@ public class StartUp {
                 final Solver solver = new BigStepAlgorithm();
                 for (final String arenaFile : arenas) {
                     try {
-                        final Arena arena = ArenaManager.loadArena(arenaFile);
-                        ui.displayInfo(arena.getStatistics());
-                        ui.displayInfo("Solving " + arenaFile + " using " + solver.getClass().getSimpleName());
+                        currentArena = ArenaManager.loadArena(arenaFile);
+                        ui.displayInfo(currentArena.getStatistics());
+                        ui.displayInfo(String.format(SOLVE_MSG, arenaFile,
+                                solver.getClass().getSimpleName()));
                         final long start = System.currentTimeMillis();
-                        solver.getWinningRegionForPlayer(arena, Player.A);
+                        solver.getWinningRegionForPlayer(currentArena, Player.A);
                         final long stop = System.currentTimeMillis();
                         if (line.hasOption("time")) {
                             ui.displayInfo(String
