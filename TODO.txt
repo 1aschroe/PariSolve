@@ -1,8 +1,4 @@
-- Zeitmessung
-- Commandline-Interface
-- Kommentare
-- Tastatur-Shortcuts für Open und Solve
-- Batch-Datei als Alternative für launch_parisolve.sh
-- Generator(en) für Arenen mit variabler Größe
+- Tastatur-Shortcuts fï¿½r Open und Solve
+- Batch-Datei als Alternative fï¿½r launch_parisolve.sh
+- Generator(en) fï¿½r Arenen mit variabler Grï¿½ï¿½e
   -> H4,3 aus LNCS und Arenen aus "... Practice"
- 
