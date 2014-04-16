@@ -100,8 +100,22 @@ public class RecursiveAlgorithm implements Solver {
     }
 
     /**
-     * method for extension by BigStepAlgorithm. currently with a
-     * dummy-implementation
+     * makes it possible to calculate a dominion <code>D</code>of
+     * <code>sigma.getOpponent()</code> and returning a partition (V\D, D). This
+     * method makes it possible for <code>BigStepAlgorithm</code> to extend the
+     * behaviour of <code>RecursiveAlgorithm</code>.
+     * 
+     * In this class a dummy-implementation is given.
+     * 
+     * @param vertices
+     *            vertices to divide in a dominion and the rest
+     * @param maxPriority
+     *            the maximal priority of the game
+     * @param sigma
+     *            the player for which we want to find a set of vertices on
+     *            which (s)he cannot win, so we can ignore it
+     * @return a partition (V\D, D), where <code>sigma</code> cannot win on D.
+     *         But no definite answer can be given to V\D.
      */
     protected WinningRegionPartition removeDominionOfSigmaOpponent(
             final Collection<? extends ParityVertex> vertices,
@@ -125,7 +139,7 @@ public class RecursiveAlgorithm implements Solver {
      *            looses
      * @return dominion of sigma's opponent.
      */
-    protected Collection<ParityVertex> getDominionOfSigmaOpponent(
+    protected final Collection<ParityVertex> getDominionOfSigmaOpponent(
             final Collection<? extends ParityVertex> vertices,
             final int maxPriority, final Player sigma) {
         // in Abbildung 15.5 verticesWithMaxPriority is N
@@ -158,12 +172,21 @@ public class RecursiveAlgorithm implements Solver {
     }
 
     /**
-     * this is for BigStepAlgorithm to insert the d=2-case. The return value is
-     * either <code>null</code> or the correct winning partition.
+     * makes it possible to take a shortcut in the recursive algorithm before
+     * any expensive computation is done.
+     * 
+     * It is used by <code>BigStepAlgorithm</code> to insert the d=2-case.
+     * 
+     * The return value is either <code>null</code> (which will then be ignored)
+     * or the solution, that is the correct winning partition. Therefore, the
+     * implementation in <code>RecursiveAlgorithm</code> is the
+     * dummy-implementation of returning <code>null</code>.
      * 
      * @param vertices
+     *            the vertices to consider
      * @param maxPriority
-     * @return
+     *            the maximal priority of the vertices given
+     * @return either <code>null</code> or the right partition
      */
     protected WinningRegionPartition takeShortcut(
             final Collection<? extends ParityVertex> vertices,

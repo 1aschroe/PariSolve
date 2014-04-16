@@ -50,6 +50,8 @@ public class BetterAlgorithm implements Solver {
             final Player player, final int n,
             final Collection<? extends ParityVertex> vertices,
             final LiftableFactory liftable) {
+        // TODO: progress measures are in respect to a certain player. See
+        // Schewe 2007 for details.
         final ProgressMeasure measure = new ProgressMeasure(vertices, n);
 
         final Liftable iterator = liftable.getLiftableInstance(vertices, false);

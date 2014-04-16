@@ -7,17 +7,37 @@ import java.util.Set;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 
+/**
+ * implementation of the algorithm given in FSTTCS 2007 - Solving Parity Games
+ * in Big Steps by Sven Schewe. The algorithms pseudo code is given in figure 1
+ * of that paper. The idea is to combine the algorithms
+ * <code>RecursiveAlgorithm</code> and <code>BetterAlgorithm</code> in such a
+ * way that the overall algorithm of <code>RecursiveAlgorithm</code> is used but
+ * for <code>maxPriority == 2</code> the original <code>BetterAlgorithm</code>
+ * is used and for <code>maxPriority > 2</code> <code>BetterAlgorithm</code> is
+ * used while restricting its progress measure. This results in
+ * <code>BetterAlgorithm</code> to return much more quickly and calculating
+ * dominions rather than winning regions. Dominions are regions, from which the
+ * opponent cannot escape and which are winning for the player given.
+ * 
+ * The implementation is done by extending <code>RecursiveAlgorithm</code>,
+ * replacing dummy methods with the appropriate code.
+ * 
+ * @author Arne Schröder
+ */
 public class BigStepAlgorithm extends RecursiveAlgorithm {
-
-    protected WinningRegionPartition removeDominionOfSigmaOpponent(
+    @Override
+    protected final WinningRegionPartition removeDominionOfSigmaOpponent(
             final Collection<? extends ParityVertex> vertices,
             final int maxPriority, final Player sigma) {
         return getWinningPartitionFromBetterAlgorithm(sigma.getOponent(),
                 pi(vertices.size(), maxPriority + 1), vertices);
     }
 
-    protected WinningRegionPartition takeShortcut(
-            Collection<? extends ParityVertex> vertices, int maxPriority) {
+    @Override
+    protected final WinningRegionPartition takeShortcut(
+            final Collection<? extends ParityVertex> vertices,
+            final int maxPriority) {
         if (maxPriority == 2) {
             return getWinningPartitionFromBetterAlgorithm(Player.A,
                     vertices.size(), vertices);
@@ -25,16 +45,38 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
         return null;
     }
 
+    /**
+     * helper method to access the <code>BetterAlgorithm</code> to retrieve a
+     * partition of the vertices given. Schewe proved in Theorem 5 that this
+     * always returns a dominion of <code>sigma</code>'s opponent and returns
+     * the correct solution for <code>n = vertices.size()</code>.
+     * 
+     * @param sigma
+     *            player who we want to find a loosing region for
+     * @param n
+     *            restriction on the progress measure
+     * @param vertices
+     *            vertices to consider
+     * @return partition into (V\D, D) with D being a dominion of
+     *         <code>sigma</code>'s opponent
+     */
     private WinningRegionPartition getWinningPartitionFromBetterAlgorithm(
-            Player sigma, int n, Collection<? extends ParityVertex> vertices) {
-        Collection<? extends ParityVertex> winningRegion = BetterAlgorithm
+            final Player sigma, final int n,
+            final Collection<? extends ParityVertex> vertices) {
+        final Collection<? extends ParityVertex> winningRegion = BetterAlgorithm
                 .solveGame(sigma, n, vertices, liftable);
-        Set<ParityVertex> loosingRegion = new HashSet<>(vertices);
+        final Set<ParityVertex> loosingRegion = new HashSet<>(vertices);
         loosingRegion.removeAll(winningRegion);
-        return new WinningRegionPartition(winningRegion, loosingRegion,
-                sigma);
+        return new WinningRegionPartition(winningRegion, loosingRegion, sigma);
     }
 
+    /**
+     * implementation of the formula given in Schewe (2007) p. 457.
+     * 
+     * @param colours
+     *            number of colours
+     * @return
+     */
     private double gamma(final int colours) {
         final double subtrahent;
         if (colours % 2 == 0) {
@@ -46,13 +88,35 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
         return colours / 3.0 + 1.0 / 2 - subtrahent;
     }
 
-    private double beta(int colours) {
-        final int coloursHalve = (colours % 2 == 0) ? colours / 2 : colours / 2 + 1;
+    /**
+     * implementation of the formula given in Schewe (2007) p. 457.
+     * 
+     * @param colours
+     *            number of colours
+     * @return
+     */
+    private double beta(final int colours) {
+        final int coloursHalve = (colours % 2 == 0) ? colours / 2
+                : colours / 2 + 1;
         return gamma(colours - 1) / coloursHalve;
     }
 
-    private int pi(int n, int c) {
+    /**
+     * parameter for restricting the codomain of the progress measure used in
+     * <code>BetterAlgorithm</code>. This implementation is the solution of the
+     * inequation given at the bottom of p. 457:
+     * 
+     * n / (π(n,c)+2) < n^(1−β(c)) / (2 3√ c )− 1
+     * 
+     * @param n
+     *            number of vertices
+     * @param c
+     *            number of priorities (Schewe calls them colours)
+     * @return smallest natural number that satisfies the inequation
+     */
+    private int pi(final int n, final int c) {
         final double rootExpression = 2.0 * Math.cbrt(c) * Math.pow(n, beta(c));
-        return (int) Math.ceil(rootExpression * n + 2 * rootExpression - 2 * n / (n - rootExpression));
+        return (int) Math.ceil(rootExpression * n + 2 * rootExpression - 2 * n
+                / (n - rootExpression));
     }
 }
