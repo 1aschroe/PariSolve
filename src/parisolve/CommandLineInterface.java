@@ -58,6 +58,7 @@ public class CommandLineInterface extends AbstractUI {
                     double averageDegree;
                     int maxPriority;
                     if (parts.length == 1) {
+                        displayInfo("Expected parameters are: [number of vertices] [average degree] [maximal priority]");
                         System.out.print("generate> ");
                         parts = br.readLine().split(" ");
 

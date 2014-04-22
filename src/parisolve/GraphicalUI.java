@@ -36,7 +36,7 @@ import parisolve.backend.algorithms.Solver;
 
 public class GraphicalUI extends AbstractUI {
 
-    private final class SolveSelectionAdapter extends SelectionAdapter {
+    private final class SolveSelectionListener extends SelectionAdapter {
         @Override
         public void widgetSelected(final SelectionEvent arg0) {
             if (algorithmCombo.getSelectedAlgorithm() == null) {
@@ -47,7 +47,7 @@ public class GraphicalUI extends AbstractUI {
         }
     }
 
-    private final class SelectionOpenAdapter extends SelectionAdapter {
+    private final class SelectionOpenListener extends SelectionAdapter {
         @Override
         public void widgetSelected(final SelectionEvent arg0) {
             final FileDialog fileDialog = new FileDialog(SHELL, SWT.OPEN);
@@ -85,7 +85,7 @@ public class GraphicalUI extends AbstractUI {
         }
     }
 
-    private final static Display DISPLAY = new Display();
+    final static Display DISPLAY = new Display();
     final static Shell SHELL = new Shell(DISPLAY, SWT.SHELL_TRIM | SWT.RESIZE
             | SWT.SCROLL_PAGE);
 
@@ -170,7 +170,7 @@ public class GraphicalUI extends AbstractUI {
         // image's source:
         // https://openclipart.org/detail/119905/load-cedric-bosdonnat-01-by-anonymous
         createButton(bar, "images/load_cedric_bosdonnat_01.png", "Open",
-                new SelectionOpenAdapter());
+                new SelectionOpenListener());
     }
 
     /**
@@ -183,13 +183,7 @@ public class GraphicalUI extends AbstractUI {
         // image's source:
         // http://en.wikipedia.org/wiki/File:2-Dice-Icon.svg
         createButton(bar, "images/32px-2-Dice-Icon.svg.png", "Generate",
-                new SelectionAdapter() {
-                    @Override
-                    public void widgetSelected(final SelectionEvent arg0) {
-                        // TODO: query the user which options they want
-                        generateArena(16, 3.0, 7);
-                    }
-                });
+                new GenerateButtonListener(this));
     }
 
     /**
@@ -202,7 +196,7 @@ public class GraphicalUI extends AbstractUI {
         // image's source:
         // https://commons.wikimedia.org/wiki/File:Pocket_cube_twisted.jpg
         createButton(bar, "images/Pocket_cube_twisted.jpg", "Solve",
-                new SolveSelectionAdapter());
+                new SolveSelectionListener());
     }
 
     /**
@@ -248,14 +242,26 @@ public class GraphicalUI extends AbstractUI {
      */
     private void createButton(final ToolBar bar, final String imagePath,
             final String text, final SelectionListener listener) {
-        final Image icon = new Image(DISPLAY, Thread.currentThread()
-                .getContextClassLoader().getResourceAsStream(imagePath));
+        final Image icon = getIcon(imagePath);
 
         final ToolItem toolItem = new ToolItem(bar, SWT.PUSH);
         toolItem.setImage(resize(icon, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE));
         toolItem.setText(text);
 
         toolItem.addSelectionListener(listener);
+    }
+
+    /**
+     * creates an image from the path given. This path has to be relative to the
+     * resources folder.
+     * 
+     * @param imagePath
+     *            image's path, relative to resources folder
+     * @return image
+     */
+    protected static Image getIcon(final String imagePath) {
+        return new Image(DISPLAY, Thread.currentThread()
+                .getContextClassLoader().getResourceAsStream(imagePath));
     }
 
     /**
