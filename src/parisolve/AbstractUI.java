@@ -38,7 +38,7 @@ public abstract class AbstractUI implements UserInterface {
      * @param solver
      *            the algorithm to use for solving the arena
      */
-    protected final void fireSolve(Solver solver) {
+    protected final void fireSolve(final Solver solver) {
         for (final SolveListener listener : solveListeners) {
             listener.solve(solver);
         }

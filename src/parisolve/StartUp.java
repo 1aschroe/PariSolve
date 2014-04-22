@@ -1,6 +1,5 @@
 package parisolve;
 
-import java.io.IOException;
 import java.util.Collection;
 
 import org.apache.commons.cli.BasicParser;
@@ -12,16 +11,21 @@ import org.apache.commons.cli.ParseException;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
-import parisolve.backend.algorithms.BigStepAlgorithm;
 import parisolve.backend.algorithms.Solver;
-import parisolve.io.ArenaManager;
 
 /**
  * Entry point for PariSolve.
+ * 
+ * This class's main-method controls PariSolve's flow. It parses the input
+ * arguments sets up the ui and runs it with listeners attached, which call
+ * backend functionality.
  */
-public class StartUp {
-
-    static Arena currentArena;
+public final class StartUp {
+    /**
+     * the arena, loaded or generated, to be worked with in the next steps
+     * (usually to be solved).
+     */
+    private static Arena currentArena;
     /**
      * display-string when an arenas file could not be loaded.
      */
@@ -31,6 +35,13 @@ public class StartUp {
     static final String NON_UI_OPTION = "non-ui";
     static final String TIME_OPTION = "time";
     static final String HELP_OPTION = "help";
+
+    /**
+     * private constructor to prevent instantiation.
+     */
+    private StartUp() {
+        // private constructor to prevent instantiation.
+    }
 
     /**
      * Entry point for PariSolve.
@@ -47,7 +58,6 @@ public class StartUp {
 
         try {
             final CommandLine line = new BasicParser().parse(options, args);
-            final String[] arenas = line.getArgs();
 
             if (line.hasOption(HELP_OPTION)) {
                 final HelpFormatter formatter = new HelpFormatter();
@@ -62,38 +72,9 @@ public class StartUp {
             if (line.hasOption(NON_UI_OPTION)) {
                 // command line mode
                 ui = new CommandLineInterface();
-
-                final Solver solver = new BigStepAlgorithm();
-                for (final String arenaFile : arenas) {
-                    try {
-                        currentArena = ArenaManager.loadArena(arenaFile);
-                        ui.displayInfo(currentArena.getStatistics());
-                        ui.displayInfo(String.format(SOLVE_MSG, arenaFile,
-                                solver.getClass().getSimpleName()));
-                        final long start = System.currentTimeMillis();
-                        solver.getWinningRegionForPlayer(currentArena, Player.A);
-                        final long stop = System.currentTimeMillis();
-                        if (line.hasOption("time")) {
-                            ui.displayInfo(String
-                                    .format(TIME_MSG, stop - start));
-                        }
-                    } catch (IOException e) {
-                        ui.displayError(String.format(ARENA_NOT_READ_MSG,
-                                arenaFile));
-                    }
-                }
             } else {
                 // GUI mode
                 ui = new GraphicalUI();
-                if (arenas.length > 0) {
-                    try {
-                        currentArena = ArenaManager.loadArena(arenas[0]);
-                        ui.populateGraphWithArena(currentArena);
-                    } catch (IOException e) {
-                        ui.displayError(String.format(ARENA_NOT_READ_MSG,
-                                arenas[0]));
-                    }
-                }
             }
             ui.addOpenListener(new OpenListener() {
                 @Override
@@ -119,6 +100,7 @@ public class StartUp {
                     }
                 }
             });
+            ui.handleArguments(line.getArgs());
             ui.run();
         } catch (ParseException e) {
             e.printStackTrace();

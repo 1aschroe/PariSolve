@@ -7,8 +7,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import parisolve.backend.Arena;
+import parisolve.backend.Player;
 import parisolve.backend.algorithms.AlgorithmManager;
+import parisolve.backend.algorithms.BigStepAlgorithm;
 import parisolve.backend.algorithms.Solver;
+import parisolve.io.ArenaManager;
 
 public class CommandLineInterface extends AbstractUI {
 
@@ -118,6 +121,17 @@ public class CommandLineInterface extends AbstractUI {
                 e.printStackTrace();
                 displayError("Error when reading a line.");
             }
+        }
+    }
+
+    @Override
+    public final void handleArguments(final String[] arenas) {
+        final Solver solver = new BigStepAlgorithm();
+        for (final String arenaFile : arenas) {
+            loadArenaFromFile(arenaFile);
+            displayInfo(String.format(StartUp.SOLVE_MSG, arenaFile, solver
+                    .getClass().getSimpleName()));
+            fireSolve(solver);
         }
     }
 }

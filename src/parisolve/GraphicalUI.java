@@ -1,5 +1,6 @@
 package parisolve;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,7 @@ import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.algorithms.AlgorithmManager;
 import parisolve.backend.algorithms.Solver;
+import parisolve.io.ArenaManager;
 
 public class GraphicalUI extends AbstractUI {
 
@@ -404,5 +406,18 @@ public class GraphicalUI extends AbstractUI {
         errorBox.setText(title);
         errorBox.setMessage(message);
         errorBox.open();
+    }
+
+    @Override
+    public final void handleArguments(final String[] arenas) {
+        if (arenas.length > 0) {
+            try {
+                final Arena arena = ArenaManager.loadArena(arenas[0]);
+                populateGraphWithArena(arena);
+            } catch (IOException e) {
+                displayError(String.format(StartUp.ARENA_NOT_READ_MSG,
+                        arenas[0]));
+            }
+        }
     }
 }
