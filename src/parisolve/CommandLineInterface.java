@@ -44,7 +44,11 @@ public class CommandLineInterface extends AbstractUI {
                 }
                 // TODO perfect place for a string-switch or a map
                 if ("help".equals(line) || "?".equals(line)) {
-                    displayInfo("You can either\n - open [FILENAME] an arena-file,\n - generate [NUMBER_VERTICES AVERAGE_DEGREE MAX_PRIORITY] a arena or\n - solve [ALGORITHM] a loaded arena using the given algorithm");
+                    displayInfo("You can either\n"
+                            + " - open [FILENAME] an arena-file,\n"
+                            + " - generate [NUMBER_VERTICES AVERAGE_DEGREE MAX_PRIORITY] a arena,\n"
+                            + " - save [FILENAME] the current arena or\n"
+                            + " - solve [ALGORITHM] a loaded arena using the given algorithm");
                 } else if (line.startsWith("open")) {
                     String[] parts = line.split(" ");
                     String file;
@@ -74,6 +78,16 @@ public class CommandLineInterface extends AbstractUI {
                         maxPriority = Integer.parseInt(parts[3]);
                     }
                     generateArena(numberOfVertices, averageDegree, maxPriority);
+                } else if (line.startsWith("save")) {
+                    String[] parts = line.split(" ");
+                    String file;
+                    if (parts.length == 1) {
+                        System.out.print("save> ");
+                        file = br.readLine();
+                    } else {
+                        file = parts[1];
+                    }
+                    fireSave(file);
                 } else if (line.startsWith("solve")) {
                     String[] parts = line.split(" ");
                     String algorithm;

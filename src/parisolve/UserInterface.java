@@ -32,20 +32,12 @@ public interface UserInterface {
     void displayError(final String message);
 
     /**
-     * adds a listener to act upon the user requesting to open an arena.
+     * adds a listener to act upon the user's requests.
      * 
      * @param listener
      *            listener to add
      */
-    void addOpenListener(final OpenListener listener);
-
-    /**
-     * adds a listener to act upon the user requesting to solve an arena.
-     * 
-     * @param listener
-     *            listener to add
-     */
-    void addSolveListener(final SolveListener listener);
+    void addUserListener(final UserListener listener);
 
     /**
      * requests the <code>UserInterface</code> to run in dispatch-mode, waiting
@@ -71,6 +63,7 @@ public interface UserInterface {
      * current arena to work upon and it should be displayed.
      * 
      * @param currentArena
+     *            the arena to display
      */
     void populateGraphWithArena(final Arena currentArena);
 

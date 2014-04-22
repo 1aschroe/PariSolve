@@ -13,41 +13,51 @@ import parisolve.io.ArenaManager;
 
 public abstract class AbstractUI implements UserInterface {
     /**
-     * listeners to inform, when the user requests the current arena to be
-     * solved
+     * listeners to inform, once the user has taken an action
      */
-    private final List<SolveListener> solveListeners = new ArrayList<SolveListener>();
-    /**
-     * listeners to inform, once a arena has been loaded.
-     */
-    private final List<OpenListener> openListeners = new ArrayList<OpenListener>();
-
-    @Override
-    public final void addSolveListener(final SolveListener solveListener) {
-        if (!solveListeners.contains(solveListener)) {
-            solveListeners.add(solveListener);
-        }
-    }
+    private final List<UserListener> userListeners = new ArrayList<UserListener>();
 
     /**
      * informs the listeners, that the user requests the current arena to be
      * solved using the algorithm instance given.
      * 
-     * The current arena must be loaded beforehand.
+     * A current arena must have been loaded beforehand.
      * 
      * @param solver
      *            the algorithm to use for solving the arena
      */
     protected final void fireSolve(final Solver solver) {
-        for (final SolveListener listener : solveListeners) {
+        for (final UserListener listener : userListeners) {
             listener.solve(solver);
         }
     }
 
+    /**
+     * informs the listeners, that the user requests the current arena to be
+     * saved under the path specified.
+     * 
+     * This requires an arena to have been loaded beforehand.
+     * 
+     * @param path
+     *            the path to save the arena by
+     */
+    protected final void fireSave(final String path) {
+        try {
+            for (final UserListener listener : userListeners) {
+                listener.save(path);
+            }
+        } catch (IOException e) {
+            displayError("While saving the arena, the following exception occurred:\n"
+                    + e.getMessage()
+                    + "\n"
+                    + Arrays.toString(e.getStackTrace()));
+        }
+    }
+
     @Override
-    public final void addOpenListener(final OpenListener openListener) {
-        if (!openListeners.contains(openListener)) {
-            openListeners.add(openListener);
+    public final void addUserListener(final UserListener openListener) {
+        if (!userListeners.contains(openListener)) {
+            userListeners.add(openListener);
         }
     }
 
@@ -67,7 +77,7 @@ public abstract class AbstractUI implements UserInterface {
             final double averageDegree, final int maxPriority) {
         final Arena arena = ArenaManager.generateRandomArena(numberOfVertices,
                 averageDegree, maxPriority);
-        for (final OpenListener listener : openListeners) {
+        for (final UserListener listener : userListeners) {
             listener.openedArena(arena);
         }
     }
@@ -83,7 +93,7 @@ public abstract class AbstractUI implements UserInterface {
     protected final void loadArenaFromFile(final String filename) {
         try {
             final Arena arena = ArenaManager.loadArena(filename);
-            for (final OpenListener listener : openListeners) {
+            for (final UserListener listener : userListeners) {
                 listener.openedArena(arena);
             }
         } catch (IOException e) {

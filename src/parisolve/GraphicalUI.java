@@ -153,9 +153,11 @@ public class GraphicalUI extends AbstractUI {
 
         createOpenButton(bar);
 
-        createSolveButton(bar);
-
         createGenerateButton(bar);
+
+        createSaveButton(bar);
+
+        createSolveButton(bar);
 
         createAboutButton(bar);
 
@@ -186,6 +188,24 @@ public class GraphicalUI extends AbstractUI {
         // http://en.wikipedia.org/wiki/File:2-Dice-Icon.svg
         createButton(bar, "images/32px-2-Dice-Icon.svg.png", "Generate",
                 new GenerateButtonListener(this));
+    }
+
+    private void createSaveButton(final ToolBar bar) {
+        // image's source:
+        // http://en.wikipedia.org/wiki/File:2-Dice-Icon.svg
+        createButton(bar, "images/1328102005_Save.png", "Save",
+                new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent arg0) {
+                        final FileDialog fileDialog = new FileDialog(SHELL,
+                                SWT.SAVE);
+                        fileDialog.setText("Save Arena");
+                        final String filename = fileDialog.open();
+                        if (filename != null) {
+                            fireSave(filename);
+                        }
+                    }
+                });
     }
 
     /**

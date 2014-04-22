@@ -1,5 +1,6 @@
 package parisolve;
 
+import java.io.IOException;
 import java.util.Collection;
 
 import org.apache.commons.cli.BasicParser;
@@ -12,6 +13,7 @@ import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 import parisolve.backend.algorithms.Solver;
+import parisolve.io.ArenaManager;
 
 /**
  * Entry point for PariSolve.
@@ -76,14 +78,18 @@ public final class StartUp {
                 // GUI mode
                 ui = new GraphicalUI();
             }
-            ui.addOpenListener(new OpenListener() {
+            ui.addUserListener(new UserListener() {
                 @Override
                 public void openedArena(final Arena arena) {
                     currentArena = arena;
                     ui.populateGraphWithArena(currentArena);
                 }
-            });
-            ui.addSolveListener(new SolveListener() {
+
+                @Override
+                public void save(final String path) throws IOException {
+                    ArenaManager.saveArena(currentArena, path);
+                }
+
                 @Override
                 public void solve(final Solver solver) {
                     if (currentArena == null) {

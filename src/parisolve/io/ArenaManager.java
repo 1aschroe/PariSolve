@@ -4,9 +4,14 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,9 +24,23 @@ import parisolve.backend.Player;
  * The <code>ArenaManager</code> loads and stores arenas.
  */
 public final class ArenaManager {
+    /**
+     * private constructor to prevent instantiation of this utility class.
+     */
     private ArenaManager() {
-        // to prevent instantiation of this utility class.
+        // private constructor to prevent instantiation of this utility class.
     };
+
+    /**
+     * tests whether this is a file containing an arena in the arena-format.
+     * 
+     * @param filename
+     *            the filename to test
+     * @return whether this is an arena-file
+     */
+    private static boolean isArenaFile(final String filename) {
+        return filename.endsWith(".arena");
+    }
 
     /**
      * opens file specified by <code>fileName</code> and returns the arena
@@ -38,7 +57,7 @@ public final class ArenaManager {
         final List<String> lines = Files.readAllLines(Paths.get(fileName),
                 Charset.defaultCharset());
         final LinkedArena arena = new LinkedArena();
-        if (fileName.endsWith(".arena")) {
+        if (isArenaFile(fileName)) {
             fillArenaFromLinesInDotFormat(lines, arena);
         } else {
             fillArenaFromLinesInTxtFormat(lines, arena);
@@ -158,34 +177,88 @@ public final class ArenaManager {
     }
 
     /**
-     * utility method for printing GraphViz-representation to inspect strategy.
-     * That is, for every vertex only the outgoing edge, chosen by the strategy,
-     * is shown.
+     * method for printing GraphViz-representation of a given arena. The
+     * returned list of strings represents the lines of the graph-viz-file.
      * 
-     * @param strategy
-     *            the strategy to convert
-     * @return String in dot-format to be understood by GraphViz
+     * @param arena
+     *            the arena to print
+     * @return lines in dot-format to be understood by GraphViz
      */
-    public static String getGraphVizFromStrategy(
-            final Map<ParityVertex, ParityVertex> strategy) {
-        final StringBuilder resultBuilder = new StringBuilder(25);
-        resultBuilder.append("digraph strategy {\n");
+    public static List<String> getGraphVizFromArena(final Arena arena) {
+        List<String> lines = new ArrayList<String>();
+        lines.add("digraph arena {");
 
-        for (final ParityVertex vertex : strategy.keySet()) {
-            resultBuilder
-                    .append(String.format("  %s[shape=%s,label=\"%d\"];\n",
-                            vertex.getName(), vertex.getPlayer()
-                                    .getShapeString(), vertex.getPriority()));
+        // print vertices
+        for (final ParityVertex vertex : arena.getVertices()) {
+            lines.add(String.format("  %s[shape=%s,label=\"%d\"];",
+                    vertex.getName(), vertex.getPlayer().getShapeString(),
+                    vertex.getPriority()));
         }
 
-        resultBuilder.append('\n');
+        lines.add("");
 
         // print edges
-        for (final ParityVertex vertex : strategy.keySet()) {
-            resultBuilder.append(String.format("  %s->%s;\n", vertex.getName(),
-                    strategy.get(vertex).getName()));
+        for (final ParityVertex vertex : arena.getVertices()) {
+            for (final ParityVertex successor : vertex.getSuccessors()) {
+                lines.add(String.format("  %s->%s;", vertex.getName(),
+                        successor.getName()));
+            }
         }
-        resultBuilder.append('}');
-        return resultBuilder.toString();
+        lines.add("}");
+        return lines;
+    }
+
+    /**
+     * returns a line-by-line representation of the specified arena using the
+     * txt-format.
+     * 
+     * @param currentArena
+     *            the arena to print
+     * @return lines of the txt-file
+     */
+    public static List<String> getTxtFromArena(final Arena currentArena) {
+        List<String> lines = new ArrayList<String>();
+        Collection<? extends ParityVertex> vertices = currentArena
+                .getVertices();
+        lines.add("parity " + (vertices.size() - 1) + ";");
+        final Map<ParityVertex, Integer> numbersOfVertices = new ConcurrentHashMap<>();
+        final Iterator<? extends ParityVertex> iterator = vertices.iterator();
+        for (int i = 0; i < vertices.size(); i++) {
+            final ParityVertex vertex = iterator.next();
+            numbersOfVertices.put(vertex, i);
+        }
+        for (final ParityVertex vertex : vertices) {
+            final StringBuilder successors = new StringBuilder();
+            for (final ParityVertex successor : vertex.getSuccessors()) {
+                successors.append("," + numbersOfVertices.get(successor));
+            }
+            lines.add(String.format("%d %d %d %s;", numbersOfVertices
+                    .get(vertex), vertex.getPriority(), vertex.getPlayer()
+                    .getNumber(), successors.substring(1)));
+        }
+        return lines;
+    }
+
+    /**
+     * saves the arena given under the path specified.
+     * 
+     * @param currentArena
+     *            the arena to store
+     * @param path
+     *            the path to store the arena by
+     * @throws IOException
+     *             if an IO error occurs while writing the arena
+     */
+    public static void saveArena(final Arena currentArena, final String path)
+            throws IOException {
+        final List<String> lines;
+        if (isArenaFile(path)) {
+            lines = getGraphVizFromArena(currentArena);
+        } else {
+            lines = getTxtFromArena(currentArena);
+        }
+
+        Files.write(Paths.get(path), lines, Charset.defaultCharset(),
+                StandardOpenOption.CREATE);
     }
 }
