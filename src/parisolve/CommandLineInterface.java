@@ -78,7 +78,7 @@ public class CommandLineInterface extends AbstractUI {
                             + " - open [FILENAME] an arena-file,\n"
                             + " - generate [NUMBER_VERTICES AVERAGE_DEGREE MAX_PRIORITY] a arena,\n"
                             + " - save [FILENAME] the current arena or\n"
-                            + " - solve [ALGORITHM] a loaded arena using the given algorithm");
+                            + " - solve [ALGORITHMS] a loaded arena using the given algorithms (comma-separated)");
                     break;
                 case "open":
                     doOpen(getParts(br, parts, 1, null));
@@ -192,20 +192,22 @@ public class CommandLineInterface extends AbstractUI {
      *            parts of the command line
      */
     protected final void doSolve(final String[] parts) {
-        final String algorithm = parts[1];
-        try {
-            @SuppressWarnings("unchecked")
-            Class<? extends Solver> algorithmClass = (Class<? extends Solver>) Class
-                    .forName("parisolve.backend.algorithms." + algorithm);
-            Constructor<? extends Solver> constructor = algorithmClass
-                    .getConstructor();
-            Solver instance = constructor.newInstance();
-            fireSolve(instance);
-        } catch (ClassNotFoundException | NoSuchMethodException
-                | SecurityException | InstantiationException
-                | IllegalAccessException | IllegalArgumentException
-                | InvocationTargetException e) {
-            e.printStackTrace();
+        final String[] algorithms = parts[1].split(",");
+        for (final String algorithm : algorithms) {
+            try {
+                @SuppressWarnings("unchecked")
+                Class<? extends Solver> algorithmClass = (Class<? extends Solver>) Class
+                        .forName("parisolve.backend.algorithms." + algorithm);
+                Constructor<? extends Solver> constructor = algorithmClass
+                        .getConstructor();
+                Solver instance = constructor.newInstance();
+                fireSolve(instance);
+            } catch (ClassNotFoundException | NoSuchMethodException
+                    | SecurityException | InstantiationException
+                    | IllegalAccessException | IllegalArgumentException
+                    | InvocationTargetException e) {
+                e.printStackTrace();
+            }
         }
     }
 

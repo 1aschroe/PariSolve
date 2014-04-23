@@ -37,7 +37,7 @@ public final class StartUp {
      */
     static final String ARENA_NOT_READ_MSG = "Arena %s could not be read.";
     static final String SOLVE_MSG = "Solving %s using %s";
-    static final String TIME_MSG = "Solving took %d milliseconds";
+    static final String TIME_MSG = "Solving using %s took %d milliseconds";
     static final String NON_UI_OPTION = "non-ui";
     static final String TIME_OPTION = "time";
     static final String HELP_OPTION = "help";
@@ -108,7 +108,8 @@ public final class StartUp {
                     final long stop = System.currentTimeMillis();
                     ui.highlightRegion(winningRegion);
                     if (line.hasOption(TIME_OPTION)) {
-                        ui.displayInfo(String.format(TIME_MSG, stop - start));
+                        ui.displayInfo(String.format(TIME_MSG, solver
+                                .getClass().getSimpleName(), stop - start));
                     }
                 }
             });
