@@ -1,0 +1,37 @@
+generate 100000 3 1
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 1
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 2
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 2
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 3
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 3
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 4
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 4
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 5
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 5
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 6
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 6
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 7
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 7
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 8
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 8
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 9
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+generate 100000 3 9
+solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
+exit
