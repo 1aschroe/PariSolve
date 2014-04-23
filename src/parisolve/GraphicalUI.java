@@ -192,7 +192,9 @@ public class GraphicalUI extends AbstractUI {
 
     private void createSaveButton(final ToolBar bar) {
         // image's source:
-        // http://en.wikipedia.org/wiki/File:2-Dice-Icon.svg
+        // https://commons.wikimedia.org/wiki/File:1328102005_Save.png
+        // from: https://www.iconfinder.com/icons/49256/disk_save_icon
+        // Author: VistaICO.com
         createButton(bar, "images/1328102005_Save.png", "Save",
                 new SelectionAdapter() {
                     @Override
