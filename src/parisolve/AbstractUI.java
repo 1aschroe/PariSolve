@@ -48,9 +48,10 @@ public abstract class AbstractUI implements UserInterface {
             }
         } catch (IOException e) {
             displayError("While saving the arena, the following exception occurred:\n"
+                    + e.getClass().getSimpleName()
+                    + ": "
                     + e.getMessage()
-                    + "\n"
-                    + Arrays.toString(e.getStackTrace()));
+                    + "\n" + Arrays.toString(e.getStackTrace()));
         }
     }
 
