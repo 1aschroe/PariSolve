@@ -52,15 +52,25 @@ public class CommandLineInterface extends AbstractUI {
     public final void run() {
         displayInfo("To get help for the commands possible, type '?' or 'help'");
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String[] parts = new String[1];
-        while (!"exit".equals(parts[0])) {
+        batchReader(br);
+    }
+
+    /**
+     * Successively executes the lines given from br. If the commands should be
+     * incomplete, it is tried to obtain the missing ones.
+     * 
+     * @param br
+     *            reader to get the lines from
+     */
+    protected final void batchReader(final BufferedReader br) {
+        batchLoop: while (true) {
             System.out.print(PROMPT);
             try {
                 final String line = br.readLine();
                 if (line == null) {
                     break;
                 }
-                parts = line.split(COMMAND_SEPARATOR);
+                final String[] parts = line.split(COMMAND_SEPARATOR);
                 switch (parts[0]) {
                 case "help":
                 case "?":
@@ -88,7 +98,7 @@ public class CommandLineInterface extends AbstractUI {
                             + AlgorithmManager.getAlgorithms()));
                     break;
                 case "exit":
-                    break;
+                    break batchLoop;
                 default:
                     displayInfo("Unknown command " + parts[0]);
                 }
@@ -150,7 +160,7 @@ public class CommandLineInterface extends AbstractUI {
      * @param parts
      *            parts of the command line
      */
-    private void doOpen(final String[] parts) {
+    protected final void doOpen(final String[] parts) {
         loadArenaFromFile(parts[1]);
     }
 
@@ -160,7 +170,7 @@ public class CommandLineInterface extends AbstractUI {
      * @param parts
      *            parts of the command line
      */
-    private void doGenerate(final String[] parts) {
+    protected final void doGenerate(final String[] parts) {
         generateArena(Integer.parseInt(parts[1]), Double.parseDouble(parts[2]),
                 Integer.parseInt(parts[3]));
     }
@@ -171,7 +181,7 @@ public class CommandLineInterface extends AbstractUI {
      * @param parts
      *            parts of the command line
      */
-    private void doSave(final String[] parts) {
+    protected final void doSave(final String[] parts) {
         fireSave(parts[1]);
     }
 
@@ -181,7 +191,7 @@ public class CommandLineInterface extends AbstractUI {
      * @param parts
      *            parts of the command line
      */
-    private void doSolve(final String[] parts) {
+    protected final void doSolve(final String[] parts) {
         final String algorithm = parts[1];
         try {
             @SuppressWarnings("unchecked")
