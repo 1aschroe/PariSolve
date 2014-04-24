@@ -2,6 +2,8 @@ package parisolve.backend.algorithms.helper;
 
 import java.util.Arrays;
 
+import parisolve.backend.Player;
+
 /**
  * This is a helper class for the better algorithm, representing the values in
  * M_G^T, their handling and comparison.
@@ -23,7 +25,7 @@ public class MeasureValue implements Comparable<MeasureValue> {
     private static final MeasureValue TOP = new MeasureValue(-1) {
         @Override
         public MeasureValue getProgValue(final int priority,
-                final int[] sizeOfMG, final int n) {
+                final Player player, final int[] sizeOfMG, final int n) {
             return this;
         };
 
@@ -148,9 +150,9 @@ public class MeasureValue implements Comparable<MeasureValue> {
      *            allowed. This is used in the <code>BigStepAlgorithm</code>
      * @return prog(rho, v, w)
      */
-    public MeasureValue getProgValue(final int priority, final int[] sizeOfMG,
-            final int maxSumAllowed) {
-        if (priority % 2 == 1) {
+    public MeasureValue getProgValue(final int priority, final Player player,
+            final int[] sizeOfMG, final int maxSumAllowed) {
+        if (priority % 2 == player.getOponent().getNumber()) {
             if (value[priority] >= sizeOfMG[priority]) {
                 return getTopValue();
             }
@@ -167,7 +169,7 @@ public class MeasureValue implements Comparable<MeasureValue> {
         for (int i = 0; i < priority; i++) {
             prog.value[i] = 0;
         }
-        if (priority % 2 == 1) {
+        if (priority % 2 == player.getOponent().getNumber()) {
             prog.value[priority]++;
         }
         return prog;

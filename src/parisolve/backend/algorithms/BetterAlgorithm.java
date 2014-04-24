@@ -50,9 +50,7 @@ public class BetterAlgorithm implements Solver {
             final Player player, final int n,
             final Collection<? extends ParityVertex> vertices,
             final LiftableFactory liftable) {
-        // TODO: progress measures are in respect to a certain player. See
-        // Schewe 2007 for details.
-        final ProgressMeasure measure = new ProgressMeasure(vertices, n);
+        final ProgressMeasure measure = new ProgressMeasure(vertices, player, n);
 
         final Liftable iterator = liftable.getLiftableInstance(vertices, false);
         for (final ParityVertex vertex : iterator) {
@@ -88,7 +86,7 @@ public class BetterAlgorithm implements Solver {
         // TODO: the measure also knows all vertices. Therefore, the
         // parameter "vertices" is redundant
         for (final ParityVertex vertex : vertices) {
-            if ((player == Player.B) == measure.get(vertex).isTop()) {
+            if (!measure.get(vertex).isTop()) {
                 winningRegion.add(vertex);
             }
         }

@@ -46,6 +46,7 @@ public class ProgressMeasure {
      * It is everywhere 0.
      */
     private final MeasureValue minMeasure;
+    private Player player;
 
     /**
      * create <code>ProgressMeasure</code> on the given vertices which is
@@ -53,14 +54,18 @@ public class ProgressMeasure {
      * 
      * @param vertices
      *            vertices to apply the progress measure on
+     * @param player
+     *            the player from who's perspective this progress measure is to
+     *            be built
      * @param maxSumAllowed
      *            maximal sum of the values in <code>MeasureValue</code>
      *            allowed. This is used in the <code>BigStepAlgorithm</code>
      */
     public ProgressMeasure(final Collection<? extends ParityVertex> vertices,
-            final int maxSumAllowed) {
+            final Player player, final int maxSumAllowed) {
+        this.player = player;
         this.maxPriority = LinkedArena.getMaxPriority(vertices);
-        this.sizeOfMG = getSizeOfMG(vertices, maxPriority);
+        this.sizeOfMG = getSizeOfMG(vertices, player, maxPriority);
         this.maxSumAllowed = maxSumAllowed;
         minMeasure = new MeasureValue(maxPriority);
     }
@@ -91,7 +96,7 @@ public class ProgressMeasure {
     public final boolean lift(final ParityVertex v) {
         final MeasureValue currentValue = get(v);
         if (!currentValue.isTop()) {
-            final boolean searchForMax = v.getPlayer() == Player.B;
+            final boolean searchForMax = v.getPlayer() == player.getOponent();
             final MeasureValue valueToCompareWith = prog(v, searchForMax);
             if (valueToCompareWith.compareTo(currentValue) > 0) {
                 measure.put(v, valueToCompareWith);
@@ -117,7 +122,8 @@ public class ProgressMeasure {
         final int priority = v.getPriority();
         // TODO: check, whether this works with sum-games.
         final Collection<? extends ParityVertex> successors = v.getSuccessors();
-        if (priority % 2 == 1 & successors.size() == 1
+        if (priority % 2 == player.getOponent().getNumber()
+                && (successors.size() == 1 || v.getPlayer() == player.getOponent())
                 && successors.contains(v)) {
             return MeasureValue.getTopValue();
         }
@@ -127,7 +133,7 @@ public class ProgressMeasure {
         } else {
             bestSuccessorValue = getMinValueOf(successors);
         }
-        return bestSuccessorValue.getProgValue(priority, sizeOfMG,
+        return bestSuccessorValue.getProgValue(priority, player, sizeOfMG,
                 maxSumAllowed);
     }
 
@@ -188,6 +194,7 @@ public class ProgressMeasure {
      * 
      * @param vertices
      *            the vertices of G to consider
+     * @param player
      * @param maxPriority
      *            the maximal priority in G. This could be determined from
      *            vertices. However, handing this as a parameter is saving one
@@ -196,11 +203,11 @@ public class ProgressMeasure {
      */
     protected static final int[] getSizeOfMG(
             final Collection<? extends ParityVertex> vertices,
-            final int maxPriority) {
+            Player player, final int maxPriority) {
         final int[] counts = new int[maxPriority + 1];
         for (final ParityVertex vertex : vertices) {
             final int priority = vertex.getPriority();
-            if (priority % 2 == 1) {
+            if (priority % 2 == player.getOponent().getNumber()) {
                 counts[priority]++;
             }
         }
