@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
+import com.google.common.collect.Sets.SetView;
+
 import parisolve.backend.ParityVertex;
 
 /**
@@ -60,7 +63,7 @@ public abstract class Liftable implements Iterable<ParityVertex>,
      * from <code>predecessorProvider.getPredecessors()</code> which do not
      * belong to the subgame considered.
      */
-    private Collection<? extends ParityVertex> verticesOfSubgame;
+    private Set<? extends ParityVertex> verticesOfSubgame;
 
     /**
      * @param vertices
@@ -71,7 +74,7 @@ public abstract class Liftable implements Iterable<ParityVertex>,
      * @param useOnce
      *            whether a vertex should only be iterated through once
      */
-    public Liftable(final Collection<? extends ParityVertex> vertices,
+    public Liftable(final Set<? extends ParityVertex> vertices,
             final LiftableFactory liftableFactory, final boolean useOnce) {
         verticesOfSubgame = vertices;
         predecessorProvider = liftableFactory;
@@ -103,9 +106,8 @@ public abstract class Liftable implements Iterable<ParityVertex>,
         if (liftOnce) {
             liftedVertices.add(vertex);
         }
-        HashSet<ParityVertex> predecessors = new HashSet<>(
-                predecessorProvider.getPredecessorsOf(vertex));
-        predecessors.retainAll(verticesOfSubgame);
+        
+        SetView<? extends ParityVertex> predecessors = Sets.intersection(predecessorProvider.getPredecessorsOf(vertex), verticesOfSubgame);
         addPredecessors(predecessors);
     }
 
@@ -117,7 +119,7 @@ public abstract class Liftable implements Iterable<ParityVertex>,
      *            the predecessors to add
      */
     protected abstract void addPredecessors(
-            final Collection<ParityVertex> predecessors);
+            final Collection<? extends ParityVertex> predecessors);
 
     @Override
     public final Iterator<ParityVertex> iterator() {

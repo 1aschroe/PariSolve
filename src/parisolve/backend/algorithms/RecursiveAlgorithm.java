@@ -25,7 +25,7 @@ public class RecursiveAlgorithm implements Solver {
     @Override
     public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
             final Arena arena, final Player player) {
-        final Collection<? extends ParityVertex> vertices = arena.getVertices();
+        final Set<? extends ParityVertex> vertices = arena.getVertices();
         liftable = new LiftableFactory(vertices);
         final WinningRegionPartition partition = solveGame(vertices);
         return partition.getWinningRegionFor(player);
@@ -55,7 +55,7 @@ public class RecursiveAlgorithm implements Solver {
      * @return a partition with a set of vertices for each player to win upon.
      */
     protected final WinningRegionPartition solveGame(
-            final Collection<? extends ParityVertex> vertices) {
+            final Set<? extends ParityVertex> vertices) {
         // in Abbildung 15.5 this is n
         final int maxPriority = LinkedArena.getMaxPriority(vertices);
         if (maxPriority <= 0) {
@@ -118,7 +118,7 @@ public class RecursiveAlgorithm implements Solver {
      *         But no definite answer can be given to V\D.
      */
     protected WinningRegionPartition removeDominionOfSigmaOpponent(
-            final Collection<? extends ParityVertex> vertices,
+            final Set<? extends ParityVertex> vertices,
             final int maxPriority, final Player sigma) {
         return new WinningRegionPartition(vertices, EMPTY_SET, sigma);
     }
@@ -189,7 +189,7 @@ public class RecursiveAlgorithm implements Solver {
      * @return either <code>null</code> or the right partition
      */
     protected WinningRegionPartition takeShortcut(
-            final Collection<? extends ParityVertex> vertices,
+            final Set<? extends ParityVertex> vertices,
             final int maxPriority) {
         return null;
     }

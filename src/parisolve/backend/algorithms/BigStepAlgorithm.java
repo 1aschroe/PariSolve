@@ -28,7 +28,7 @@ import parisolve.backend.Player;
 public class BigStepAlgorithm extends RecursiveAlgorithm {
     @Override
     protected final WinningRegionPartition removeDominionOfSigmaOpponent(
-            final Collection<? extends ParityVertex> vertices,
+            final Set<? extends ParityVertex> vertices,
             final int maxPriority, final Player sigma) {
         return getWinningPartitionFromBetterAlgorithm(sigma.getOponent(),
                 pi(vertices.size(), maxPriority + 1), vertices);
@@ -36,7 +36,7 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
 
     @Override
     protected final WinningRegionPartition takeShortcut(
-            final Collection<? extends ParityVertex> vertices,
+            final Set<? extends ParityVertex> vertices,
             final int maxPriority) {
         if (maxPriority == 2) {
             return getWinningPartitionFromBetterAlgorithm(Player.A,
@@ -62,7 +62,7 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
      */
     private WinningRegionPartition getWinningPartitionFromBetterAlgorithm(
             final Player sigma, final int n,
-            final Collection<? extends ParityVertex> vertices) {
+            final Set<? extends ParityVertex> vertices) {
         final Collection<? extends ParityVertex> winningRegion = BetterAlgorithm
                 .solveGame(sigma, n, vertices, liftable);
         final Set<ParityVertex> loosingRegion = new HashSet<>(vertices);

@@ -372,14 +372,14 @@ public class GraphicalUI extends AbstractUI {
                             Integer.toString(vertex.getPriority())));
         }
         for (final ParityVertex fromVertex : vertices) {
-            for (final ParityVertex toVertex : arena.getSuccessors(fromVertex)) {
+            for (final ParityVertex toVertex : fromVertex.getSuccessors()) {
                 final GraphConnection connection = new GraphConnection(graph,
                         ZestStyles.CONNECTIONS_DIRECTED,
                         correspondence.get(fromVertex),
                         correspondence.get(toVertex));
                 if (fromVertex.equals(toVertex)) {
                     connection.setCurveDepth(20);
-                } else if (arena.getSuccessors(toVertex).contains(fromVertex)) {
+                } else if (toVertex.getSuccessors().contains(fromVertex)) {
                     connection.setCurveDepth(10);
                 }
                 connection.setLineColor(BLACK);

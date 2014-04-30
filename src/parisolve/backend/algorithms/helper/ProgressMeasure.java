@@ -3,11 +3,15 @@ package parisolve.backend.algorithms.helper;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
+
+import com.google.common.collect.Sets;
+import com.google.common.collect.Sets.SetView;
 
 /**
  * helper class for better algorithm, representing a progress measure, which
@@ -47,6 +51,7 @@ public class ProgressMeasure {
      */
     private final MeasureValue minMeasure;
     private Player player;
+    private Set<? extends ParityVertex> vertices;
 
     /**
      * create <code>ProgressMeasure</code> on the given vertices which is
@@ -61,8 +66,9 @@ public class ProgressMeasure {
      *            maximal sum of the values in <code>MeasureValue</code>
      *            allowed. This is used in the <code>BigStepAlgorithm</code>
      */
-    public ProgressMeasure(final Collection<? extends ParityVertex> vertices,
+    public ProgressMeasure(final Set<? extends ParityVertex> vertices,
             final Player player, final int maxSumAllowed) {
+        this.vertices = vertices;
         this.player = player;
         this.maxPriority = LinkedArena.getMaxPriority(vertices);
         this.sizeOfMG = getSizeOfMG(vertices, player, maxPriority);
@@ -120,11 +126,11 @@ public class ProgressMeasure {
      */
     private MeasureValue prog(final ParityVertex v, final boolean searchForMax) {
         final int priority = v.getPriority();
-        // TODO: check, whether this works with sum-games.
-        final Collection<? extends ParityVertex> successors = v.getSuccessors();
+        final SetView<? extends ParityVertex> successors = Sets.intersection(
+                v.getSuccessors(), vertices);
         if (priority % 2 == player.getOponent().getNumber()
-                && (successors.size() == 1 || v.getPlayer() == player.getOponent())
-                && successors.contains(v)) {
+                && (successors.size() == 1 || v.getPlayer() == player
+                        .getOponent()) && successors.contains(v)) {
             return MeasureValue.getTopValue();
         }
         final MeasureValue bestSuccessorValue;
@@ -141,14 +147,14 @@ public class ProgressMeasure {
      * find the maximal <code>MeasureValue</code> of the <code>vertices</code>
      * given.
      * 
-     * @param vertices
+     * @param successors
      *            vertices to consider
      * @return the maximal value of the vertices given
      */
     private MeasureValue getMaxValueOf(
-            final Collection<? extends ParityVertex> vertices) {
+            final Iterable<? extends ParityVertex> successors) {
         MeasureValue maxValue = minMeasure;
-        for (final ParityVertex vertex : vertices) {
+        for (final ParityVertex vertex : successors) {
             final MeasureValue value = get(vertex);
             if (maxValue.compareTo(value) < 0) {
                 maxValue = value;
@@ -161,14 +167,14 @@ public class ProgressMeasure {
      * find the minimal <code>MeasureValue</code> of the <code>vertices</code>
      * given.
      * 
-     * @param vertices
+     * @param successors
      *            vertices to consider
      * @return the minimal value of the vertices given
      */
     private MeasureValue getMinValueOf(
-            final Collection<? extends ParityVertex> vertices) {
+            final Iterable<? extends ParityVertex> successors) {
         MeasureValue minValue = MeasureValue.getTopValue();
-        for (final ParityVertex vertex : vertices) {
+        for (final ParityVertex vertex : successors) {
             final MeasureValue value = get(vertex);
             if (minValue.compareTo(value) > 0) {
                 minValue = value;
@@ -202,8 +208,8 @@ public class ProgressMeasure {
      * @return an array of the sizes of the components in M_G
      */
     protected static final int[] getSizeOfMG(
-            final Collection<? extends ParityVertex> vertices,
-            Player player, final int maxPriority) {
+            final Collection<? extends ParityVertex> vertices, Player player,
+            final int maxPriority) {
         final int[] counts = new int[maxPriority + 1];
         for (final ParityVertex vertex : vertices) {
             final int priority = vertex.getPriority();

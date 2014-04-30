@@ -127,8 +127,8 @@ public class PrimitiveAlgorithm implements Solver {
         }
         final ParityVertex vertex = zeroVertices.iterator().next();
         zeroVertices.remove(vertex);
-        final Collection<? extends ParityVertex> successors = arena
-                .getSuccessors(vertex);
+        final Collection<? extends ParityVertex> successors = vertex
+                .getSuccessors();
         StrategyValuePair bestStrategy = bestStrategySoFar;
         for (final ParityVertex successor : successors) {
             strategy.put(vertex, successor);
@@ -169,8 +169,8 @@ public class PrimitiveAlgorithm implements Solver {
         } else {
             final ParityVertex vertex = oneVertices.iterator().next();
             oneVertices.remove(vertex);
-            final Collection<? extends ParityVertex> successors = arena
-                    .getSuccessors(vertex);
+            final Collection<? extends ParityVertex> successors = vertex
+                    .getSuccessors();
             for (final ParityVertex successor : successors) {
                 strategy.put(vertex, successor);
                 bestStrategy = tryAllStrategiesForOneRecursively(oneVertices,

@@ -7,6 +7,7 @@
 	<classpathentry kind="lib" path="lib/swt.jar"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.draw2d_3.9.0.201308190730.jar"/>
 	<classpathentry kind="lib" path="lib/commons-cli-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/guava-17.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.eclipse.zest.core"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.eclipse.zest.layouts"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>

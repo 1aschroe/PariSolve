@@ -31,7 +31,7 @@ public class SetLiftable extends Liftable {
      * @param useOnce
      *            whether a vertex should only be iterated through once
      */
-    public SetLiftable(final Collection<? extends ParityVertex> vertices,
+    public SetLiftable(final Set<? extends ParityVertex> vertices,
             final LiftableFactory liftableFactory, final boolean useOnce) {
         super(vertices, liftableFactory, useOnce);
         this.verticesSet = new HashSet<>(vertices);
@@ -44,7 +44,7 @@ public class SetLiftable extends Liftable {
 
     @Override
     protected final void addPredecessors(
-            final Collection<ParityVertex> predecessors) {
+            final Collection<? extends ParityVertex> predecessors) {
         verticesSet.addAll(predecessors);
         verticesSet.removeAll(liftedVertices);
     }

@@ -1,12 +1,14 @@
 package parisolve.backend.algorithms.helper;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.ParityVertex;
+
+import com.google.common.collect.Sets;
+import com.google.common.collect.Sets.SetView;
 
 /**
  * factory which returns instances of <code>Liftable</code> objects which can be
@@ -54,11 +56,9 @@ public class LiftableFactory {
      * @param vertices
      *            vertices of the arena to consider
      */
-    public LiftableFactory(final Collection<? extends ParityVertex> vertices) {
+    public LiftableFactory(final Set<? extends ParityVertex> vertices) {
         for (final ParityVertex vertex : vertices) {
-            final Set<ParityVertex> successorsInSubGame = new HashSet<>(
-                    vertex.getSuccessors());
-            successorsInSubGame.retainAll(vertices);
+            final SetView<? extends ParityVertex> successorsInSubGame = Sets.intersection(vertex.getSuccessors(), vertices);
             for (final ParityVertex successor : successorsInSubGame) {
                 if (!predecessors.containsKey(successor)) {
                     predecessors.put(successor, new HashSet<ParityVertex>());
@@ -76,7 +76,7 @@ public class LiftableFactory {
      *            the vertex to return the predecessors for
      * @return the predecessors of <code>vertex</code>
      */
-    protected final Collection<ParityVertex> getPredecessorsOf(
+    protected final Set<ParityVertex> getPredecessorsOf(
             final ParityVertex vertex) {
         if (!predecessors.containsKey(vertex)) {
             return new HashSet<>();
@@ -95,7 +95,7 @@ public class LiftableFactory {
      * @return a liftable instance
      */
     public final Liftable getLiftableInstance(
-            final Collection<? extends ParityVertex> vertices,
+            final Set<? extends ParityVertex> vertices,
             final boolean useOnce) {
         return getLiftableInstance(vertices,
                 LiftableImplementationType.SET_STACK, useOnce);
@@ -115,7 +115,7 @@ public class LiftableFactory {
      * @return a liftable instance
      */
     public final Liftable getLiftableInstance(
-            final Collection<? extends ParityVertex> vertices,
+            final Set<? extends ParityVertex> vertices,
             final LiftableImplementationType type, final boolean useOnce) {
         switch (type) {
         case SET:

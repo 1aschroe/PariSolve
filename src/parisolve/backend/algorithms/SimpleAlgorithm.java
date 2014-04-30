@@ -101,8 +101,7 @@ public class SimpleAlgorithm implements Solver {
     private long getBestSuccessorsValue(final Arena arena,
             final Map<ParityVertex, Long> nuForLastK,
             final int numberOfVerticesInArena, final ParityVertex v) {
-        final Collection<? extends ParityVertex> successors = arena
-                .getSuccessors(v);
+        final Collection<? extends ParityVertex> successors = v.getSuccessors();
         final Player playerOfV = v.getPlayer();
         long bestValue = 0;
         for (final ParityVertex successor : successors) {

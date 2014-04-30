@@ -23,7 +23,7 @@ public class BetterAlgorithm implements Solver {
     @Override
     public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
             final Arena arena, final Player player) {
-        final Collection<? extends ParityVertex> vertices = arena.getVertices();
+        final Set<? extends ParityVertex> vertices = arena.getVertices();
         final LiftableFactory liftable = new LiftableFactory(vertices);
         return solveGame(player, vertices.size(), vertices, liftable);
     }
@@ -48,7 +48,7 @@ public class BetterAlgorithm implements Solver {
      */
     public static Collection<? extends ParityVertex> solveGame(
             final Player player, final int n,
-            final Collection<? extends ParityVertex> vertices,
+            final Set<? extends ParityVertex> vertices,
             final LiftableFactory liftable) {
         final ProgressMeasure measure = new ProgressMeasure(vertices, player, n);
 

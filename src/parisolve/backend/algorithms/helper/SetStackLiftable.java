@@ -40,7 +40,7 @@ public class SetStackLiftable extends Liftable {
      *            whether a vertex should only be iterated through once
      */
     protected SetStackLiftable(
-            final Collection<? extends ParityVertex> vertices,
+            final Set<? extends ParityVertex> vertices,
             final LiftableFactory liftableFactory, final boolean useOnce) {
         super(vertices, liftableFactory, useOnce);
         this.verticesSet = new HashSet<>(vertices);
@@ -54,7 +54,7 @@ public class SetStackLiftable extends Liftable {
 
     @Override
     public final void addPredecessors(
-            final Collection<ParityVertex> predecessors) {
+            final Collection<? extends ParityVertex> predecessors) {
         for (final ParityVertex predecessor : predecessors) {
             if (!verticesSet.contains(predecessor)
                     && !liftedVertices.contains(predecessor)) {

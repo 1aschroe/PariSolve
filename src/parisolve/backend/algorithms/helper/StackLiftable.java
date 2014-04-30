@@ -1,6 +1,7 @@
 package parisolve.backend.algorithms.helper;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.Stack;
 
 import parisolve.backend.ParityVertex;
@@ -31,7 +32,7 @@ public class StackLiftable extends Liftable {
      * @param useOnce
      *            whether a vertex should only be iterated through once
      */
-    public StackLiftable(final Collection<? extends ParityVertex> vertices,
+    public StackLiftable(final Set<? extends ParityVertex> vertices,
             final LiftableFactory liftableFactory, final boolean useOnce) {
         super(vertices, liftableFactory, useOnce);
         this.verticesStack.addAll(vertices);
@@ -43,7 +44,7 @@ public class StackLiftable extends Liftable {
     }
     
     @Override
-    protected final void addPredecessors(final Collection<ParityVertex> predecessors) {
+    protected final void addPredecessors(final Collection<? extends ParityVertex> predecessors) {
         for (final ParityVertex predecessor : predecessors) {
             if (!verticesStack.contains(predecessor) && !liftedVertices.contains(predecessor)) {
                 verticesStack.add(predecessor);
