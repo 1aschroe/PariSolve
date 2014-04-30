@@ -32,6 +32,8 @@ public final class StartUp {
      * (usually to be solved).
      */
     private static Arena currentArena;
+    
+    private static Collection<? extends ParityVertex> currentWinningRegion;
     /**
      * display-string when an arenas file could not be loaded.
      */
@@ -88,6 +90,7 @@ public final class StartUp {
                 @Override
                 public void openedArena(final Arena arena) {
                     currentArena = arena;
+                    currentWinningRegion = null;
                     ui.populateGraphWithArena(currentArena);
                 }
 
@@ -106,6 +109,18 @@ public final class StartUp {
                     final Collection<? extends ParityVertex> winningRegion = solver
                             .getWinningRegionForPlayer(currentArena, Player.A);
                     final long stop = System.currentTimeMillis();
+                    if (currentWinningRegion == null) {
+                        currentWinningRegion = winningRegion;
+                    } else {
+                        if (!currentWinningRegion.equals(winningRegion)) {
+                            ui.displayError("Different algorithms did not solve the arena the same.");
+                            try {
+                                ArenaManager.saveArena(currentArena, "error.txt");
+                            } catch (IOException e) {
+                                // ignore
+                            }
+                        }
+                    }
                     ui.highlightRegion(winningRegion);
                     if (line.hasOption(TIME_OPTION)) {
                         ui.displayInfo(String.format(TIME_MSG, solver
