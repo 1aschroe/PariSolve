@@ -141,7 +141,7 @@ public class MeasureValue implements Comparable<MeasureValue> {
      * <code>MeasureValue</code> before it can be treated as Top.
      * 
      * @param priority
-     *            the priority of v, the successor of w, which's value
+     *            the priority of v, the predecessor of w, which's value
      *            <code>this</code> is
      * @param sizeOfMG
      *            maximal value of <code>MeasureValue</code>
@@ -152,26 +152,57 @@ public class MeasureValue implements Comparable<MeasureValue> {
      */
     public MeasureValue getProgValue(final int priority, final Player player,
             final int[] sizeOfMG, final int maxSumAllowed) {
-        if (priority % 2 == player.getOponent().getNumber()) {
-            if (value[priority] >= sizeOfMG[priority]) {
+        if (valueMustBeGreater(priority, player)) {
+            // prioToRaise points to the smallest priority which one can
+            // increase to become greater than this without becoming TOP
+            int prioToRaise = priority;
+            do {
+                if (value[prioToRaise] < sizeOfMG[prioToRaise]) {
+                    break;
+                }
+                prioToRaise += 2;
+            } while (prioToRaise <= maxPriority);
+            if (prioToRaise > maxPriority
+                    || value[prioToRaise] >= sizeOfMG[prioToRaise]) {
                 return getTopValue();
             }
             int sum = 0;
-            for (int prio = priority; prio <= maxPriority; prio++) {
+            for (int prio = prioToRaise; prio <= maxPriority; prio++) {
                 sum += value[prio];
             }
             if (sum >= maxSumAllowed) {
                 return getTopValue();
             }
+            MeasureValue prog = getMinimalValueEqualToPriority(prioToRaise);
+            prog.value[prioToRaise]++;
+            return prog;
+        } else {
+            return getMinimalValueEqualToPriority(priority);
         }
+    }
+
+    /**
+     * @param priority
+     *            priority from which to compare to <code>this</code>
+     * @return minimal value which is equal to <code>this</code> from
+     *         <code>priority</code> on.
+     */
+    protected MeasureValue getMinimalValueEqualToPriority(final int priority) {
         // FIXME: this is probably where it becomes slow
         MeasureValue prog = new MeasureValue(value);
         for (int i = 0; i < priority; i++) {
             prog.value[i] = 0;
         }
-        if (priority % 2 == player.getOponent().getNumber()) {
-            prog.value[priority]++;
-        }
         return prog;
+    }
+
+    /**
+     * @return whether or not m has to be greater or only greater or equal to
+     *         rho(w) as in Definition 7.19. The idea behind this condition is
+     *         that this vertex is good in terms of priority for player's
+     *         opponent.
+     */
+    private boolean valueMustBeGreater(final int priority, final Player player) {
+        return priority % 2 == player.getOponent().getNumber();
     }
 }
