@@ -1,10 +1,10 @@
 package parisolve.backend.algorithms;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 import parisolve.backend.Arena;
+import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 import parisolve.backend.algorithms.helper.Liftable;
@@ -50,7 +50,9 @@ public class BetterAlgorithm implements Solver {
             final Player player, final int n,
             final Set<? extends ParityVertex> vertices,
             final LiftableFactory liftable) {
-        final ProgressMeasure measure = new ProgressMeasure(vertices, player, n);
+        final int maxPriority = LinkedArena.getMaxPriority(vertices);
+        final Player sigma = Player.getPlayerForPriority(maxPriority);
+        final ProgressMeasure measure = new ProgressMeasure(vertices, sigma, n);
 
         final Liftable iterator = liftable.getLiftableInstance(vertices, false);
         for (final ParityVertex vertex : iterator) {
@@ -60,36 +62,6 @@ public class BetterAlgorithm implements Solver {
             }
         }
 
-        return getWinningRegion(player, vertices, measure);
-    }
-
-    /**
-     * determines the winning region from the measure given with respect to the
-     * player specified. Iff <code>player</code> is player B, then these are all
-     * the vertices with measure top. Iff <code>player</code> is player A, then
-     * these are all the vertices with a measure not being top. This corresponds
-     * to ||rho|| from Definition 7.19 and its complement.
-     * 
-     * @param player
-     *            whose winning region to determine
-     * @param vertices
-     *            the vertices to consider for the winning region
-     * @param measure
-     *            the measure from which to derive the winning region
-     * @return <code>player</code>'s winning region on <code>vertices</code>
-     *         according to <code>measure</code>
-     */
-    protected static Set<ParityVertex> getWinningRegion(final Player player,
-            final Collection<? extends ParityVertex> vertices,
-            final ProgressMeasure measure) {
-        final Set<ParityVertex> winningRegion = new HashSet<>();
-        // TODO: the measure also knows all vertices. Therefore, the
-        // parameter "vertices" is redundant
-        for (final ParityVertex vertex : vertices) {
-            if (!measure.get(vertex).isTop()) {
-                winningRegion.add(vertex);
-            }
-        }
-        return winningRegion;
+        return measure.getWinningRegion(player);
     }
 }

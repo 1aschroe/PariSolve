@@ -1,6 +1,7 @@
 package parisolve.backend.algorithms.helper;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -50,6 +51,10 @@ public class ProgressMeasure {
      * It is everywhere 0.
      */
     private final MeasureValue minMeasure;
+    /**
+     * the player from who's perspective this progress measure is to be built,
+     * that is Top are winning for player.getOponnent().
+     */
     private Player player;
     private Set<? extends ParityVertex> vertices;
 
@@ -61,7 +66,7 @@ public class ProgressMeasure {
      *            vertices to apply the progress measure on
      * @param player
      *            the player from who's perspective this progress measure is to
-     *            be built
+     *            be built, that is Top are winning for player.getOponnent()
      * @param maxSumAllowed
      *            maximal sum of the values in <code>MeasureValue</code>
      *            allowed. This is used in the <code>BigStepAlgorithm</code>
@@ -191,6 +196,27 @@ public class ProgressMeasure {
                     + "\n");
         }
         return resultBuilder.toString();
+    }
+
+    /**
+     * determines the winning region from this measure with respect to the
+     * player specified. Iff <code>sigma</code> is player B, then these are all
+     * the vertices with measure top. Iff <code>sigma</code> is player A, then
+     * these are all the vertices with a measure not being top. This corresponds
+     * to ||rho|| from Definition 7.19 and its complement.
+     * 
+     * @param sigma
+     *            player whose winning region to determine
+     * @return <code>sigma</code>'s winning region
+     */
+    public final Set<ParityVertex> getWinningRegion(final Player sigma) {
+        final Set<ParityVertex> winningRegion = new HashSet<>();
+        for (final ParityVertex vertex : measure.keySet()) {
+            if (sigma == player.getOponent() == get(vertex).isTop()) {
+                winningRegion.add(vertex);
+            }
+        }
+        return winningRegion;
     }
 
     /**
