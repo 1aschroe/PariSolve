@@ -78,6 +78,9 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
      * @return
      */
     private double gamma(final int colours) {
+        if (colours <= 1) {
+            return 0;
+        }
         final double subtrahent;
         if (colours % 2 == 0) {
             subtrahent = 1.0 / (3 * colours) + 4.0 / (colours * colours);
