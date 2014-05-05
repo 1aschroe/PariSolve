@@ -1,33 +1,49 @@
 generate 100000 3 2
+save benchmark_2_1.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 2
+save benchmark_2_2.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 3
+save benchmark_3_1.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 3
+save benchmark_3_2.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 4
+save benchmark_4_1.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 4
+save benchmark_4_2.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 5
+save benchmark_5_1.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 5
+save benchmark_5_2.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 6
+save benchmark_6_1.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 6
+save benchmark_6_2.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 7
+save benchmark_7_1.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 7
+save benchmark_7_2.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 8
+save benchmark_8_1.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 8
+save benchmark_8_2.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 9
+save benchmark_9_1.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 generate 100000 3 9
+save benchmark_9_2.txt
 solve RecursiveAlgorithm,BetterAlgorithm,BigStepAlgorithm
 exit
