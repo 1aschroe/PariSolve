@@ -90,13 +90,13 @@ public class RecursiveAlgorithm implements Solver {
         // in Schewe (2008) partition2 is W
         final WinningRegionPartition partition2 = solveGameForOtherVertices(
                 verticesWinnableForSigma, dominionOfSigmaOpponent);
-        final Set<ParityVertex> winningRegion2 = new HashSet<>(
-                partition2.getWinningRegionFor(sigma.getOponent()));
-        winningRegion2.addAll(dominionOfSigmaOpponent);
-        winningRegion2.addAll(dominionPartition.getWinningRegionFor(sigma
-                .getOponent()));
-        return new WinningRegionPartition(
-                partition2.getWinningRegionFor(sigma), winningRegion2, sigma);
+		// TODO: obviously the following assignment is not necessary. However,
+		// the winning region of sigma's opponent consists of its dominion as
+		// well as its winning region in the other vertices.
+        final Collection<ParityVertex> winningRegionOfSigmaOpponent = dominionOfSigmaOpponent;
+		winningRegionOfSigmaOpponent.addAll(partition2.getWinningRegionFor(sigma.getOponent()));
+		return new WinningRegionPartition(partition2.getWinningRegionFor(sigma),
+				winningRegionOfSigmaOpponent, sigma);
     }
 
     /**
@@ -165,10 +165,8 @@ public class RecursiveAlgorithm implements Solver {
         }
 
         // in Abbildung 15.5 dominionOfSigmaOpponent is N''
-        final Collection<ParityVertex> dominionOfSigmaOpponent = getAttractor(
-                partition.getWinningRegionFor(sigma.getOponent()),
+        return getAttractor(partition.getWinningRegionFor(sigma.getOponent()),
                 sigma.getOponent(), vertices);
-        return dominionOfSigmaOpponent;
     }
 
     /**
