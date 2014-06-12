@@ -83,13 +83,16 @@ public class PrimitiveAlgorithm implements Solver {
                 oneVertices, zeroVertices, strategy, arena,
                 new StrategyValuePair());
 
-        final Set<ParityVertex> winningRegion = new HashSet<>();
-        for (final ParityVertex vertex : arena.getVertices()) {
-            if (findWinner(vertex, strategyValuePair.getStrategy()) == player) {
-                winningRegion.add(vertex);
-            }
+        Collection<ParityVertex> winningRegionOfZero = getWinningRegionOfZeroUsingStrategy(strategyValuePair
+                .getStrategy());
+        if (player == Player.A) {
+            return winningRegionOfZero;
+        } else {
+            Set<? extends ParityVertex> winningRegionOfOne = arena
+                    .getVertices();
+            winningRegionOfOne.removeAll(winningRegionOfOne);
+            return winningRegionOfOne;
         }
-        return winningRegion;
     }
 
     /**
@@ -161,7 +164,8 @@ public class PrimitiveAlgorithm implements Solver {
             final StrategyValuePair bestStrategySoFar) {
         StrategyValuePair bestStrategy = bestStrategySoFar;
         if (oneVertices.isEmpty()) {
-            final int valueOfStrategy = getValueOfStrategy(strategy);
+            final int valueOfStrategy = getWinningRegionOfZeroUsingStrategy(
+                    strategy).size();
             if (valueOfStrategy < bestStrategySoFar.getStrategiesValue()) {
                 bestStrategy = new StrategyValuePair(new ConcurrentHashMap<>(
                         strategy), valueOfStrategy);
@@ -188,26 +192,29 @@ public class PrimitiveAlgorithm implements Solver {
      *            the strategy to test
      * @return strategy's value
      */
-    private int getValueOfStrategy(
+    private Collection<ParityVertex> getWinningRegionOfZeroUsingStrategy(
             final Map<ParityVertex, ParityVertex> strategy) {
-        int numberOfVerticesToZero = 0;
-        Map<ParityVertex, Player> winner = new ConcurrentHashMap<>(
-                strategy.size());
+        final Set<ParityVertex> winningForZero = new HashSet<>();
+        final Set<ParityVertex> winningForOne = new HashSet<>();
         // the strategy contains all vertices as keys
         for (final ParityVertex vertex : strategy.keySet()) {
-            if (winner.containsKey(vertex)) {
+            if (winningForZero.contains(vertex)
+                    || winningForOne.contains(vertex)) {
                 continue;
             }
             ParityVertex currentVertex = vertex;
             final List<ParityVertex> path = new ArrayList<ParityVertex>();
             while (!path.contains(currentVertex)
-                    && !winner.containsKey(currentVertex)) {
+                    && !(winningForZero.contains(vertex) || winningForOne
+                            .contains(vertex))) {
                 path.add(currentVertex);
                 currentVertex = strategy.get(currentVertex);
             }
             final Player player;
-            if (winner.containsKey(currentVertex)) {
-                player = winner.get(currentVertex);
+            if (winningForZero.contains(vertex)) {
+                player = Player.A;
+            } else if (winningForOne.contains(vertex)) {
+                player = Player.B;
             } else {
                 // path.contains(currentVertex)
                 final int loopStartIndex = path.lastIndexOf(currentVertex);
@@ -216,39 +223,12 @@ public class PrimitiveAlgorithm implements Solver {
                 final int maxPriority = LinkedArena.getMaxPriority(loop);
                 player = Player.getPlayerForPriority(maxPriority);
             }
-            for (ParityVertex pathElement : path) {
-                if (player == Player.A) {
-                    numberOfVerticesToZero++;
-                }
-                winner.put(pathElement, player);
+            if (player == Player.A) {
+                winningForZero.addAll(path);
+            } else {
+                winningForOne.addAll(path);
             }
         }
-        return numberOfVerticesToZero;
-    }
-
-    /**
-     * given a fixed strategy and a starting point, determines, which player
-     * would win. Follows strategy until a cycle is found and then determines
-     * the highest value in cycle.
-     * 
-     * @param vertex
-     *            the starting point
-     * @param strategy
-     *            the strategy fixed
-     * @return number of player to win (either 0 or 1)
-     */
-    private static Player findWinner(final ParityVertex vertex,
-            final Map<ParityVertex, ParityVertex> strategy) {
-        ParityVertex currentVertex = vertex;
-        final List<ParityVertex> path = new ArrayList<ParityVertex>();
-        while (!path.contains(currentVertex)) {
-            path.add(currentVertex);
-            currentVertex = strategy.get(currentVertex);
-        }
-        final int loopStartIndex = path.lastIndexOf(currentVertex);
-        final List<ParityVertex> loop = path.subList(loopStartIndex,
-                path.size());
-        final int maxPriority = LinkedArena.getMaxPriority(loop);
-        return Player.getPlayerForPriority(maxPriority);
+        return winningForZero;
     }
 }
