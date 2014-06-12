@@ -1,4 +1,7 @@
-- Tastatur-Shortcuts f�r Open und Solve
-- Batch-Datei als Alternative f�r launch_parisolve.sh
-- Generator(en) f�r Arenen mit variabler Gr��e
+- Batch-Datei als Alternative für launch_parisolve.sh
+- Generator(en) für Arenen mit variabler Größe
   -> H4,3 aus LNCS und Arenen aus "... Practice"
+- Angabe, wie groß die Gewinnbereiche sind bei CLI
+- Ausgabe, ob geöffnete Arena dull, weak oder solitaire
+- Rückgabe und Markierung von Gewinnstrategien
+- Grafisches Erstellen von Arenen
