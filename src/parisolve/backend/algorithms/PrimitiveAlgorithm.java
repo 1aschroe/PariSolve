@@ -191,10 +191,36 @@ public class PrimitiveAlgorithm implements Solver {
     private int getValueOfStrategy(
             final Map<ParityVertex, ParityVertex> strategy) {
         int numberOfVerticesToZero = 0;
+        Map<ParityVertex, Player> winner = new ConcurrentHashMap<>(
+                strategy.size());
         // the strategy contains all vertices as keys
         for (final ParityVertex vertex : strategy.keySet()) {
-            if (findWinner(vertex, strategy) == Player.A) {
-                numberOfVerticesToZero++;
+            if (winner.containsKey(vertex)) {
+                continue;
+            }
+            ParityVertex currentVertex = vertex;
+            final List<ParityVertex> path = new ArrayList<ParityVertex>();
+            while (!path.contains(currentVertex)
+                    && !winner.containsKey(currentVertex)) {
+                path.add(currentVertex);
+                currentVertex = strategy.get(currentVertex);
+            }
+            final Player player;
+            if (winner.containsKey(currentVertex)) {
+                player = winner.get(currentVertex);
+            } else {
+                // path.contains(currentVertex)
+                final int loopStartIndex = path.lastIndexOf(currentVertex);
+                final List<ParityVertex> loop = path.subList(loopStartIndex,
+                        path.size());
+                final int maxPriority = LinkedArena.getMaxPriority(loop);
+                player = Player.getPlayerForPriority(maxPriority);
+            }
+            for (ParityVertex pathElement : path) {
+                if (player == Player.A) {
+                    numberOfVerticesToZero++;
+                }
+                winner.put(pathElement, player);
             }
         }
         return numberOfVerticesToZero;
