@@ -1,6 +1,7 @@
 package parisolve;
 
 import java.util.Collection;
+import java.util.Map;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
@@ -50,13 +51,17 @@ public interface UserInterface {
     void run();
 
     /**
-     * tells the <code>UserInterface</code> to highlight the region specified,
-     * usually a player's winning region.
+     * tells the <code>UserInterface</code> to highlight the winning regions of
+     * player A and B and their respective strategies.
      * 
-     * @param winningRegion
-     *            the region to highlight
+     * @param winningRegionForA
+     *            winning region of player A
+     * @param strategy
+     *            strategies of both players which lead to this partition
      */
-    void highlightRegion(final Collection<? extends ParityVertex> winningRegion);
+    void highlightSolution(
+            final Collection<? extends ParityVertex> winningRegionForA,
+            final Map<ParityVertex, ParityVertex> strategy);
 
     /**
      * tells the <code>UserInterface</code> that the arena specified is now the

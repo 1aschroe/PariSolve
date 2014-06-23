@@ -16,6 +16,7 @@ import org.apache.commons.cli.ParseException;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
+import parisolve.backend.algorithms.Solution;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
 
@@ -32,7 +33,7 @@ public final class StartUp {
      * (usually to be solved).
      */
     private static Arena currentArena;
-    
+
     private static Collection<? extends ParityVertex> currentWinningRegion;
     /**
      * display-string when an arenas file could not be loaded.
@@ -106,22 +107,24 @@ public final class StartUp {
                         return;
                     }
                     final long start = System.currentTimeMillis();
-                    final Collection<? extends ParityVertex> winningRegion = solver
-                            .getWinningRegionForPlayer(currentArena, Player.A);
+                    Solution solution = solver.getSolution(currentArena);
                     final long stop = System.currentTimeMillis();
+                    Collection<ParityVertex> winningRegion = solution
+                            .getWinningRegionFor(Player.A);
                     if (currentWinningRegion == null) {
                         currentWinningRegion = winningRegion;
                     } else {
                         if (!currentWinningRegion.equals(winningRegion)) {
                             ui.displayError("Different algorithms did not solve the arena the same.");
                             try {
-                                ArenaManager.saveArena(currentArena, "error.txt");
+                                ArenaManager.saveArena(currentArena,
+                                        "error.txt");
                             } catch (IOException e) {
                                 // ignore
                             }
                         }
                     }
-                    ui.highlightRegion(winningRegion);
+                    ui.highlightSolution(winningRegion, solution.getStrategy());
                     if (line.hasOption(TIME_OPTION)) {
                         ui.displayInfo(String.format(TIME_MSG, solver
                                 .getClass().getSimpleName(), stop - start));

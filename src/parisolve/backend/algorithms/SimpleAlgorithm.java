@@ -32,8 +32,7 @@ import parisolve.backend.Player;
 public class SimpleAlgorithm implements Solver {
 
     @Override
-    public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
-            final Arena arena, final Player player) {
+    public final Solution getSolution(final Arena arena) {
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
         final int n = vertices.size();
         final long maxK = calculateMaxK(vertices);
@@ -41,7 +40,7 @@ public class SimpleAlgorithm implements Solver {
         final Map<ParityVertex, Long> nuForLastK = runAlgorithm(arena,
                 vertices, n, maxK);
 
-        return determineWinningRegion(player, nuForLastK);
+        return determineSolution(nuForLastK);
     }
 
     /**
@@ -83,15 +82,37 @@ public class SimpleAlgorithm implements Solver {
      *            the last nu_k calculated
      * @return
      */
-    private Set<ParityVertex> determineWinningRegion(final Player player,
-            final Map<ParityVertex, Long> nuForLastK) {
-        final Set<ParityVertex> winningRegion = new HashSet<>();
+    private Solution determineSolution(final Map<ParityVertex, Long> nuForLastK) {
+        final Set<ParityVertex> winningRegionForA = new HashSet<>();
+        final Set<ParityVertex> winningRegionForB = new HashSet<>();
+        final Map<ParityVertex, ParityVertex> strategy = new ConcurrentHashMap<>();
         for (final ParityVertex vertex : nuForLastK.keySet()) {
-            if (Math.pow(-1, player.getNumber()) * nuForLastK.get(vertex) > 0) {
-                winningRegion.add(vertex);
+            if (nuForLastK.get(vertex) > 0) {
+                winningRegionForA.add(vertex);
+                ParityVertex maxSuccessor = null;
+                long maxValue = -1;
+                for (final ParityVertex successor : vertex.getSuccessors()) {
+                    if (nuForLastK.get(successor) > maxValue) {
+                        maxValue = nuForLastK.get(successor);
+                        maxSuccessor = successor;
+                    }
+                }
+                strategy.put(vertex, maxSuccessor);
+            } else {
+                winningRegionForB.add(vertex);
+                ParityVertex minSuccessor = null;
+                long minValue = 1;
+                for (final ParityVertex successor : vertex.getSuccessors()) {
+                    if (nuForLastK.get(successor) < minValue) {
+                        minValue = nuForLastK.get(successor);
+                        minSuccessor = successor;
+                    }
+                }
+                strategy.put(vertex, minSuccessor);
             }
         }
-        return winningRegion;
+        return new Solution(winningRegionForA, winningRegionForB, Player.A,
+                strategy);
     }
 
     /**

@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
+import parisolve.backend.algorithms.Solution;
 
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
@@ -209,14 +210,20 @@ public class ProgressMeasure {
      *            player whose winning region to determine
      * @return <code>sigma</code>'s winning region
      */
-    public final Set<ParityVertex> getWinningRegion(final Player sigma) {
-        final Set<ParityVertex> winningRegion = new HashSet<>();
+    public final Solution getSolution() {
+        final Set<ParityVertex> winningRegionForA = new HashSet<>();
+        final Set<ParityVertex> winningRegionForB = new HashSet<>();
+        // TODO: extract strategy
+        final Map<ParityVertex, ParityVertex> strategy = new ConcurrentHashMap<>();
         for (final ParityVertex vertex : measure.keySet()) {
-            if (sigma == player.getOponent() == get(vertex).isTop()) {
-                winningRegion.add(vertex);
+            if ((Player.B == player) == get(vertex).isTop()) {
+                winningRegionForA.add(vertex);
+            } else {
+                winningRegionForB.add(vertex);
             }
         }
-        return winningRegion;
+        return new Solution(winningRegionForA, winningRegionForB, Player.A,
+                strategy);
     }
 
     /**

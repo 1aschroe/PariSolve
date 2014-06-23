@@ -2,9 +2,9 @@ package parisolve;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -31,7 +31,9 @@ import org.eclipse.zest.layouts.LayoutStyles;
 import org.eclipse.zest.layouts.algorithms.SpringLayoutAlgorithm;
 
 import parisolve.backend.Arena;
+import parisolve.backend.ParityEdge;
 import parisolve.backend.ParityVertex;
+import parisolve.backend.Player;
 import parisolve.backend.algorithms.AlgorithmManager;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
@@ -101,7 +103,8 @@ public class GraphicalUI extends AbstractUI {
      * represents the correspondence between the vertices in the model and the
      * graph-nodes being displayed
      */
-    private static Map<ParityVertex, GraphNode> correspondence = new HashMap<ParityVertex, GraphNode>();
+    private static Map<ParityVertex, GraphNode> vertexCorrespondence = new ConcurrentHashMap<ParityVertex, GraphNode>();
+    private static Map<ParityEdge, GraphConnection> edgeCorrespondence = new ConcurrentHashMap<>();
 
     public GraphicalUI() {
         SHELL.setText("PariSolve");
@@ -334,20 +337,46 @@ public class GraphicalUI extends AbstractUI {
     private static final Color BLACK = new Color(DISPLAY, 0, 0, 0);
 
     /**
-     * highlights a region of an arena by painting the vertices green. Used to
-     * display the winning region of an arena.
+     * displays the winning regions of player A and B and their respective
+     * strategies.
      * 
      * @param region
-     *            region to highlight
+     *            winning region of player A
+     * @param strategy
+     *            strategies of both players which lead to this partition
      */
-    public final void highlightRegion(
-            final Collection<? extends ParityVertex> region) {
-        // TODO: display the players' optimal strategy
-        for (final ParityVertex vertex : correspondence.keySet()) {
+    @Override
+    public final void highlightSolution(
+            final Collection<? extends ParityVertex> region,
+            final Map<ParityVertex, ParityVertex> strategy) {
+        for (final ParityVertex vertex : vertexCorrespondence.keySet()) {
             if (region.contains(vertex)) {
-                correspondence.get(vertex).setBackgroundColor(GREEN);
+                vertexCorrespondence.get(vertex).setBackgroundColor(GREEN);
             } else {
-                correspondence.get(vertex).setBackgroundColor(BLUE);
+                vertexCorrespondence.get(vertex).setBackgroundColor(BLUE);
+            }
+        }
+
+        for (final ParityEdge edge : edgeCorrespondence.keySet()) {
+            GraphConnection connection = edgeCorrespondence.get(edge);
+            final ParityVertex from = edge.getFrom();
+            // TODO ugly
+            if (strategy.containsKey(from)
+                    && strategy.get(from).equals(edge.getTo())) {
+                if (from.getPlayer() == Player.A && region.contains(from)) {
+                    connection.setLineColor(GREEN);
+                    connection.setLineWidth(2);
+                } else if (from.getPlayer() == Player.B
+                        && !region.contains(from)) {
+                    connection.setLineColor(BLUE);
+                    connection.setLineWidth(2);
+                } else {
+                    connection.setLineColor(BLACK);
+                    connection.setLineWidth(1);
+                }
+            } else {
+                connection.setLineColor(BLACK);
+                connection.setLineWidth(1);
             }
         }
     }
@@ -360,14 +389,18 @@ public class GraphicalUI extends AbstractUI {
      *            the arena to display
      */
     public final void populateGraphWithArena(final Arena arena) {
-        for (final GraphNode node : correspondence.values()) {
+        for (final GraphNode node : vertexCorrespondence.values()) {
             node.dispose();
+        }
+        for (final GraphConnection connection : edgeCorrespondence.values()) {
+            connection.dispose();
         }
 
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
-        correspondence.clear();
+        vertexCorrespondence.clear();
+        edgeCorrespondence.clear();
         for (final ParityVertex vertex : vertices) {
-            correspondence.put(vertex,
+            vertexCorrespondence.put(vertex,
                     new GraphNode(graph, vertex.getPlayer().getZestStyleFlag(),
                             Integer.toString(vertex.getPriority())));
         }
@@ -375,14 +408,16 @@ public class GraphicalUI extends AbstractUI {
             for (final ParityVertex toVertex : fromVertex.getSuccessors()) {
                 final GraphConnection connection = new GraphConnection(graph,
                         ZestStyles.CONNECTIONS_DIRECTED,
-                        correspondence.get(fromVertex),
-                        correspondence.get(toVertex));
+                        vertexCorrespondence.get(fromVertex),
+                        vertexCorrespondence.get(toVertex));
                 if (fromVertex.equals(toVertex)) {
                     connection.setCurveDepth(20);
                 } else if (toVertex.getSuccessors().contains(fromVertex)) {
                     connection.setCurveDepth(10);
                 }
                 connection.setLineColor(BLACK);
+                edgeCorrespondence.put(new ParityEdge(fromVertex, toVertex),
+                        connection);
             }
         }
 

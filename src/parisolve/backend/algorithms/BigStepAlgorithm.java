@@ -26,18 +26,22 @@ import parisolve.backend.Player;
  * @author Arne Schröder
  */
 public class BigStepAlgorithm extends RecursiveAlgorithm {
+    /**
+     * this is done in Schewe (2007) Fig. 1. line 7. (a)
+     */
     @Override
-    protected final WinningRegionPartition removeDominionOfSigmaOpponent(
-            final Set<? extends ParityVertex> vertices,
-            final int maxPriority, final Player sigma) {
-        return getWinningPartitionFromBetterAlgorithm(sigma.getOponent(),
+    protected final AttractorStrategyPair getDominionOfSigmaOpponentQuickly(
+            final Set<ParityVertex> vertices, final int maxPriority,
+            final Player sigma) {
+        //TODO: not sure whether we do this correctly as some runs are much slower for BetterAlgorithm than others.
+        final Solution approximation = getWinningPartitionFromBetterAlgorithm(sigma.getOponent(),
                 pi(vertices.size(), maxPriority + 1), vertices);
+        return new AttractorStrategyPair(approximation.getWinningRegionFor(sigma.getOponent()), approximation.getStrategy());
     }
 
     @Override
-    protected final WinningRegionPartition takeShortcut(
-            final Set<? extends ParityVertex> vertices,
-            final int maxPriority) {
+    protected final Solution takeShortcut(
+            final Set<? extends ParityVertex> vertices, final int maxPriority) {
         if (maxPriority == 2) {
             return getWinningPartitionFromBetterAlgorithm(Player.A,
                     vertices.size(), vertices);
@@ -60,14 +64,9 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
      * @return partition into (V\D, D) with D being a dominion of
      *         <code>sigma</code>'s opponent
      */
-    private WinningRegionPartition getWinningPartitionFromBetterAlgorithm(
-            final Player sigma, final int n,
-            final Set<? extends ParityVertex> vertices) {
-        final Collection<? extends ParityVertex> winningRegion = BetterAlgorithm
-                .solveGame(sigma, n, vertices, liftable);
-        final Set<ParityVertex> loosingRegion = new HashSet<>(vertices);
-        loosingRegion.removeAll(winningRegion);
-        return new WinningRegionPartition(winningRegion, loosingRegion, sigma);
+    private Solution getWinningPartitionFromBetterAlgorithm(final Player sigma,
+            final int n, final Set<? extends ParityVertex> vertices) {
+        return BetterAlgorithm.solveGame(n, vertices, liftable);
     }
 
     /**

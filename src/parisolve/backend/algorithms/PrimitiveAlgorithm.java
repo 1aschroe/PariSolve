@@ -65,8 +65,7 @@ public class PrimitiveAlgorithm implements Solver {
     }
 
     @Override
-    public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
-            final Arena arena, final Player player) {
+    public final Solution getSolution(final Arena arena) {
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
         final Map<ParityVertex, ParityVertex> strategy = new ConcurrentHashMap<>();
         // TODO: simplify this with streams and lambda-expressions
@@ -83,16 +82,7 @@ public class PrimitiveAlgorithm implements Solver {
                 oneVertices, zeroVertices, strategy, arena,
                 new StrategyValuePair());
 
-        Collection<ParityVertex> winningRegionOfZero = getWinningRegionOfZeroUsingStrategy(strategyValuePair
-                .getStrategy());
-        if (player == Player.A) {
-            return winningRegionOfZero;
-        } else {
-            Set<? extends ParityVertex> winningRegionOfOne = arena
-                    .getVertices();
-            winningRegionOfOne.removeAll(winningRegionOfOne);
-            return winningRegionOfOne;
-        }
+        return getSolutionUsingStrategy(strategyValuePair.getStrategy());
     }
 
     /**
@@ -164,8 +154,8 @@ public class PrimitiveAlgorithm implements Solver {
             final StrategyValuePair bestStrategySoFar) {
         StrategyValuePair bestStrategy = bestStrategySoFar;
         if (oneVertices.isEmpty()) {
-            final int valueOfStrategy = getWinningRegionOfZeroUsingStrategy(
-                    strategy).size();
+            final int valueOfStrategy = getSolutionUsingStrategy(strategy)
+                    .getWinningRegionFor(Player.A).size();
             if (valueOfStrategy < bestStrategySoFar.getStrategiesValue()) {
                 bestStrategy = new StrategyValuePair(new ConcurrentHashMap<>(
                         strategy), valueOfStrategy);
@@ -192,7 +182,7 @@ public class PrimitiveAlgorithm implements Solver {
      *            the strategy to test
      * @return strategy's value
      */
-    private Collection<ParityVertex> getWinningRegionOfZeroUsingStrategy(
+    private Solution getSolutionUsingStrategy(
             final Map<ParityVertex, ParityVertex> strategy) {
         final Set<ParityVertex> winningForZero = new HashSet<>();
         final Set<ParityVertex> winningForOne = new HashSet<>();
@@ -229,6 +219,6 @@ public class PrimitiveAlgorithm implements Solver {
                 winningForOne.addAll(path);
             }
         }
-        return winningForZero;
+        return new Solution(winningForZero, winningForOne, Player.A, strategy);
     }
 }

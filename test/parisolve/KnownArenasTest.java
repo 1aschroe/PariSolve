@@ -64,13 +64,15 @@ public class KnownArenasTest {
         // TODO come up with a solution which is implementation independent
         final PrimitiveAlgorithm primitiveAlgorithm = new PrimitiveAlgorithm();
         final Collection<? extends ParityVertex> referenceWinningRegion = primitiveAlgorithm
-                .getWinningRegionForPlayer(aulArena, Player.A);
+                .getSolution(aulArena).getWinningRegionFor(Player.A);
 
         for (final Solver algorithm : AlgorithmManager.getAlgorithms()) {
             final Collection<? extends ParityVertex> winningRegion = algorithm
-                    .getWinningRegionForPlayer(aulArena, Player.A);
-            Assert.assertEquals("Algorithm " + algorithm.getClass().getSimpleName() + " did not solve correctly.",
-                    referenceWinningRegion, winningRegion);
+                    .getSolution(aulArena).getWinningRegionFor(Player.A);
+            Assert.assertEquals("Algorithm "
+                    + algorithm.getClass().getSimpleName()
+                    + " did not solve correctly.", referenceWinningRegion,
+                    winningRegion);
         }
     }
 
@@ -85,9 +87,9 @@ public class KnownArenasTest {
      * @throws URISyntaxException
      *             ignore this...
      */
-    private Arena loadArenaFromResources(final String filename)
+    public static Arena loadArenaFromResources(final String filename)
             throws IOException, URISyntaxException {
-        // TODO i cannot even describe how ugly this is...
+        // TODO I cannot even describe how ugly this is...
         // but it works and awaits a better solution
         return ArenaManager.loadArena(Thread.currentThread()
                 .getContextClassLoader().getResource(filename).toURI()

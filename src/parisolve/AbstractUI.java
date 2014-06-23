@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
@@ -108,8 +109,8 @@ public abstract class AbstractUI implements UserInterface {
     }
 
     @Override
-    public void highlightRegion(
-            final Collection<? extends ParityVertex> winningRegion) {
+    public void highlightSolution(
+            final Collection<? extends ParityVertex> winningRegion, final Map<ParityVertex, ParityVertex> strategy) {
         // left empty to not have to implement this
     }
 
@@ -117,5 +118,4 @@ public abstract class AbstractUI implements UserInterface {
     public void populateGraphWithArena(final Arena currentArena) {
         // left empty to not have to implement this
     }
-
 }

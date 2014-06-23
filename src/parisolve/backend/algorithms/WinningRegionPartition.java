@@ -1,7 +1,9 @@
 package parisolve.backend.algorithms;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.ParityVertex;
@@ -14,7 +16,7 @@ import parisolve.backend.Player;
  * as used in
  */
 class WinningRegionPartition {
-    private final transient Map<Player, Collection<? extends ParityVertex>> partition = new ConcurrentHashMap<>();
+    private final transient Map<Player, Collection<ParityVertex>> partitionMap = new ConcurrentHashMap<>();
 
     /**
      * create a partition of a set of vertices, which represent the winning
@@ -28,12 +30,16 @@ class WinningRegionPartition {
      *            the player of the first winning region
      */
     public WinningRegionPartition(
-            final Collection<? extends ParityVertex> winningRegionForSigma,
-            final Collection<? extends ParityVertex> winningRegionForOponent,
+            final Collection<ParityVertex> winningRegionForSigma,
+            final Collection<ParityVertex> winningRegionForOponent,
             final Player sigma) {
         // TODO: test, whether the two sets are disjoint
-        partition.put(sigma, winningRegionForSigma);
-        partition.put(sigma.getOponent(), winningRegionForOponent);
+        partitionMap.put(sigma, winningRegionForSigma);
+        partitionMap.put(sigma.getOponent(), winningRegionForOponent);
+    }
+
+    public WinningRegionPartition(WinningRegionPartition partition) {
+        this.partitionMap.putAll(partition.partitionMap);
     }
 
     /**
@@ -43,8 +49,15 @@ class WinningRegionPartition {
      *            the player to return the winning region for
      * @return <code>player</code>'s winning region
      */
-    public Collection<? extends ParityVertex> getWinningRegionFor(
+    public Collection<ParityVertex> getWinningRegionFor(
             final Player player) {
-        return partition.get(player);
+        return partitionMap.get(player);
+    }
+
+    protected Set<ParityVertex> getVertices() {
+        Set<ParityVertex> vertices = new HashSet<>(
+                getWinningRegionFor(Player.A));
+        vertices.addAll(getWinningRegionFor(Player.B));
+        return vertices;
     }
 }

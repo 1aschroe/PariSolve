@@ -13,7 +13,7 @@ public interface Arena {
      * 
      * @return the vertices in this arena
      */
-    Set<? extends ParityVertex> getVertices();
+    Set<ParityVertex> getVertices();
 
     /**
      * the maximal priority of the vertices in this arena. Convenience method,

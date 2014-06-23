@@ -1,6 +1,5 @@
 package parisolve.backend.algorithms;
 
-import java.util.Collection;
 import java.util.Set;
 
 import parisolve.backend.Arena;
@@ -21,11 +20,10 @@ import parisolve.backend.algorithms.helper.ProgressMeasure;
  */
 public class BetterAlgorithm implements Solver {
     @Override
-    public final Collection<? extends ParityVertex> getWinningRegionForPlayer(
-            final Arena arena, final Player player) {
+    public final Solution getSolution(final Arena arena) {
         final Set<? extends ParityVertex> vertices = arena.getVertices();
         final LiftableFactory liftable = new LiftableFactory(vertices);
-        return solveGame(player, vertices.size(), vertices, liftable);
+        return solveGame(vertices.size(), vertices, liftable);
     }
 
     /**
@@ -46,8 +44,7 @@ public class BetterAlgorithm implements Solver {
      *            can be queried for a liftable instance
      * @return the winning region
      */
-    public static Collection<? extends ParityVertex> solveGame(
-            final Player player, final int n,
+    public static Solution solveGame(final int n,
             final Set<? extends ParityVertex> vertices,
             final LiftableFactory liftable) {
         final int maxPriority = LinkedArena.getMaxPriority(vertices);
@@ -62,6 +59,6 @@ public class BetterAlgorithm implements Solver {
             }
         }
 
-        return measure.getWinningRegion(player);
+        return measure.getSolution();
     }
 }

@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class LinkedArena implements Arena {
-    class LinkedParityVertex implements ParityVertex {
+    public static class LinkedParityVertex implements ParityVertex {
         final private int priority;
         final private Player player;
         final private Set<LinkedParityVertex> successors = new HashSet<>();
@@ -47,6 +47,16 @@ public class LinkedArena implements Arena {
             successors.remove(v);
         }
 
+        public ParityVertex getSuccessorFromSet(
+                final Set<ParityVertex> verticesToConsider) {
+            for (final ParityVertex successor : getSuccessors()) {
+                if (verticesToConsider.contains(successor)) {
+                    return successor;
+                }
+            }
+            return null;
+        }
+
         @Override
         public String toString() {
             return getName() + ": [player=" + getPlayer() + ",label=\""
@@ -65,8 +75,8 @@ public class LinkedArena implements Arena {
     }
 
     @Override
-    public final Set<? extends ParityVertex> getVertices() {
-        return new HashSet<>(vertices.values());
+    public final Set<ParityVertex> getVertices() {
+        return new HashSet<ParityVertex>(vertices.values());
     }
 
     @Override
@@ -115,5 +125,10 @@ public class LinkedArena implements Arena {
                 + "\t"
                 + maxDegree
                 + "\t" + getMaxPriority() + "\t" + numberOfSelfloops;
+    }
+
+    public ParityVertex getVertex(String string) {
+        // for testing purpose
+        return vertices.get(string);
     }
 }

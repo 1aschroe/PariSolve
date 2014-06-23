@@ -1,10 +1,6 @@
 package parisolve.backend.algorithms;
 
-import java.util.Collection;
-
 import parisolve.backend.Arena;
-import parisolve.backend.ParityVertex;
-import parisolve.backend.Player;
 
 /**
  * interface implemented by every algorithm for solving parity games.
@@ -22,6 +18,6 @@ public interface Solver {
      * @return the winning region of the player given. That is, the vertices, on
      *         which they win.
      */
-    Collection<? extends ParityVertex> getWinningRegionForPlayer(
-            final Arena arena, final Player player);
+    Solution getSolution(
+            final Arena arena);
 }
