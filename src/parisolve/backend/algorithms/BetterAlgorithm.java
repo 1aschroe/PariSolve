@@ -1,6 +1,7 @@
 package parisolve.backend.algorithms;
 
 import java.util.Set;
+import java.util.stream.StreamSupport;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
@@ -44,19 +45,19 @@ public class BetterAlgorithm implements Solver {
      * @return the winning region
      */
     public static Solution solveGame(final int n,
-            final Set<ParityVertex> vertices,
-            final LiftableFactory liftable) {
+            final Set<ParityVertex> vertices, final LiftableFactory liftable) {
         final int maxPriority = Arena.getMaxPriority(vertices);
         final Player sigma = Player.getPlayerForPriority(maxPriority);
         final ProgressMeasure measure = new ProgressMeasure(vertices, sigma, n);
 
         final Liftable iterator = liftable.getLiftableInstance(vertices, false);
-        for (final ParityVertex vertex : iterator) {
+        // for the schewe-example parallelism does not work
+        StreamSupport.stream(iterator.spliterator(), false).forEach(vertex -> {
             final boolean lifted = measure.lift(vertex);
             if (lifted) {
                 iterator.liftWasSuccessful(vertex);
             }
-        }
+        });
 
         return measure.getSolution();
     }
