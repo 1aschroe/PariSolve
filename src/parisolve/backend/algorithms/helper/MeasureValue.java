@@ -1,6 +1,7 @@
 package parisolve.backend.algorithms.helper;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 import parisolve.backend.Player;
 
@@ -11,6 +12,23 @@ import parisolve.backend.Player;
  * @author Arne Schröder
  */
 public class MeasureValue implements Comparable<MeasureValue> {
+    public static class MeasureValueComparator implements Comparator<MeasureValue>{
+        final static MeasureValueComparator SINGLETON = new MeasureValueComparator();
+        
+        private MeasureValueComparator() {
+            
+        }
+        
+        public static MeasureValueComparator getInstance() {
+            return SINGLETON;
+        }
+        
+        @Override
+        public int compare(MeasureValue o1, MeasureValue o2) {
+            return o1.compareTo(o2);
+        }
+    }
+    
     // TODO: make MeasureValue immutable
     /**
      * the measure value wrapped in this class.
@@ -202,7 +220,7 @@ public class MeasureValue implements Comparable<MeasureValue> {
      *         that this vertex is good in terms of priority for player's
      *         opponent.
      */
-    private boolean valueMustBeGreater(final int priority, final Player player) {
+    public static boolean valueMustBeGreater(final int priority, final Player player) {
         return priority % 2 == player.getOponent().getNumber();
     }
 }

@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import parisolve.backend.Arena;
 import parisolve.backend.LinkedArena;
@@ -55,7 +56,7 @@ public class RecursiveAlgorithm implements Solver {
      */
     protected final Solution solveGame(final Set<ParityVertex> vertices) {
         // in Abbildung 15.5 this is n
-        final int maxPriority = LinkedArena.getMaxPriority(vertices);
+        final int maxPriority = Arena.getMaxPriority(vertices);
         if (maxPriority <= 0) {
             return new Solution(vertices, Player.A);
         }
@@ -173,12 +174,10 @@ public class RecursiveAlgorithm implements Solver {
             final Collection<? extends ParityVertex> vertices,
             final int maxPriority, final Player sigma) {
         // in Abbildung 15.5 verticesWithMaxPriority is N
-        final Set<ParityVertex> verticesWithMaxPriority = new HashSet<>();
-        for (final ParityVertex vertex : vertices) {
-            if (vertex.getPriority() == maxPriority) {
-                verticesWithMaxPriority.add(vertex);
-            }
-        }
+        final Set<ParityVertex> verticesWithMaxPriority = vertices
+                .parallelStream()
+                .filter(vertex -> vertex.getPriority() == maxPriority)
+                .collect(Collectors.toSet());
 
         // in Abbildung 15.5 attractorOfMaxPrio is N'
         final AttractorStrategyPair attractorOfMaxPrio = getAttractor(
@@ -230,7 +229,7 @@ public class RecursiveAlgorithm implements Solver {
      *            the maximal priority of the vertices given
      * @return either <code>null</code> or the right partition
      */
-    protected Solution takeShortcut(final Set<? extends ParityVertex> vertices,
+    protected Solution takeShortcut(final Set<ParityVertex> vertices,
             final int maxPriority) {
         return null;
     }

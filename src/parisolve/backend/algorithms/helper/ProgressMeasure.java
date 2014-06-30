@@ -7,10 +7,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import parisolve.backend.LinkedArena;
+import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 import parisolve.backend.algorithms.Solution;
+import parisolve.backend.algorithms.helper.MeasureValue.MeasureValueComparator;
 
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
@@ -72,11 +73,11 @@ public class ProgressMeasure {
      *            maximal sum of the values in <code>MeasureValue</code>
      *            allowed. This is used in the <code>BigStepAlgorithm</code>
      */
-    public ProgressMeasure(final Set<? extends ParityVertex> vertices,
+    public ProgressMeasure(final Set<ParityVertex> vertices,
             final Player player, final int maxSumAllowed) {
         this.vertices = vertices;
         this.player = player;
-        this.maxPriority = LinkedArena.getMaxPriority(vertices);
+        this.maxPriority = Arena.getMaxPriority(vertices);
         this.sizeOfMG = getSizeOfMG(vertices, player, maxPriority);
         this.maxSumAllowed = maxSumAllowed;
         minMeasure = new MeasureValue(maxPriority);
@@ -158,15 +159,9 @@ public class ProgressMeasure {
      * @return the maximal value of the vertices given
      */
     private MeasureValue getMaxValueOf(
-            final Iterable<? extends ParityVertex> successors) {
-        MeasureValue maxValue = minMeasure;
-        for (final ParityVertex vertex : successors) {
-            final MeasureValue value = get(vertex);
-            if (maxValue.compareTo(value) < 0) {
-                maxValue = value;
-            }
-        }
-        return maxValue;
+            final Collection<? extends ParityVertex> successors) {
+        return successors.stream().map(this::get)
+                .max(MeasureValueComparator.getInstance()).orElse(minMeasure);
     }
 
     /**
@@ -178,15 +173,10 @@ public class ProgressMeasure {
      * @return the minimal value of the vertices given
      */
     private MeasureValue getMinValueOf(
-            final Iterable<? extends ParityVertex> successors) {
-        MeasureValue minValue = MeasureValue.getTopValue();
-        for (final ParityVertex vertex : successors) {
-            final MeasureValue value = get(vertex);
-            if (minValue.compareTo(value) > 0) {
-                minValue = value;
-            }
-        }
-        return minValue;
+            final Collection<? extends ParityVertex> successors) {
+        return successors.stream().map(this::get)
+                .min(MeasureValueComparator.getInstance())
+                .orElse(MeasureValue.getTopValue());
     }
 
     @Override
@@ -246,7 +236,7 @@ public class ProgressMeasure {
         final int[] counts = new int[maxPriority + 1];
         for (final ParityVertex vertex : vertices) {
             final int priority = vertex.getPriority();
-            if (priority % 2 == player.getOponent().getNumber()) {
+            if (MeasureValue.valueMustBeGreater(priority, player)) {
                 counts[priority]++;
             }
         }

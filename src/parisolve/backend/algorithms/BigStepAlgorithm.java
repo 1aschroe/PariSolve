@@ -41,7 +41,7 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
 
     @Override
     protected final Solution takeShortcut(
-            final Set<? extends ParityVertex> vertices, final int maxPriority) {
+            final Set<ParityVertex> vertices, final int maxPriority) {
         if (maxPriority == 2) {
             return getWinningPartitionFromBetterAlgorithm(Player.A,
                     vertices.size(), vertices);
@@ -65,7 +65,7 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
      *         <code>sigma</code>'s opponent
      */
     private Solution getWinningPartitionFromBetterAlgorithm(final Player sigma,
-            final int n, final Set<? extends ParityVertex> vertices) {
+            final int n, final Set<ParityVertex> vertices) {
         return BetterAlgorithm.solveGame(n, vertices, liftable);
     }
 

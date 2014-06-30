@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import parisolve.backend.Arena;
-import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 
@@ -146,7 +145,7 @@ public class SimpleAlgorithm implements Solver {
      */
     private long calculateMaxK(final Collection<? extends ParityVertex> vertices) {
         final int n = vertices.size();
-        int maxPriority = LinkedArena.getMaxPriority(vertices);
+        int maxPriority = Arena.getMaxPriority(vertices);
         // it is important to have 4 as long to not have an overflow when
         // calculating 4*n^2 as int.
         return (long) (4L * n * n * Math.pow(n, maxPriority));

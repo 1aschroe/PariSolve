@@ -1,5 +1,6 @@
 package parisolve.backend;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -22,7 +23,15 @@ public interface Arena {
      * 
      * @return the maximal priority
      */
-    int getMaxPriority();
+    default public int getMaxPriority() {
+        return getMaxPriority(getVertices());
+    }
 
     String getStatistics();
+
+    public static int getMaxPriority(
+            final Collection<? extends ParityVertex> vertices) {
+        return vertices.parallelStream().mapToInt(ParityVertex::getPriority)
+                .max().orElse(Integer.MIN_VALUE);
+    }
 }

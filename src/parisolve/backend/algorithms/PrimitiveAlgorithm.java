@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import parisolve.backend.Arena;
-import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 
@@ -68,14 +68,10 @@ public class PrimitiveAlgorithm implements Solver {
     public final Solution getSolution(final Arena arena) {
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
         final Map<ParityVertex, ParityVertex> strategy = new ConcurrentHashMap<>();
-        // TODO: simplify this with streams and lambda-expressions
-        final Set<ParityVertex> zeroVertices = new HashSet<>();
-        for (final ParityVertex vertex : vertices) {
-            if (vertex.getPlayer() == Player.A) {
-                zeroVertices.add(vertex);
-            }
-        }
-        final HashSet<ParityVertex> oneVertices = new HashSet<>(vertices);
+        final Set<ParityVertex> zeroVertices = vertices.parallelStream()
+                .filter(vertex -> vertex.getPlayer() == Player.A)
+                .collect(Collectors.toSet());
+        final Set<ParityVertex> oneVertices = new HashSet<>(vertices);
         oneVertices.removeAll(zeroVertices);
 
         final StrategyValuePair strategyValuePair = tryAllStrategiesForZeroRecursively(
@@ -210,7 +206,7 @@ public class PrimitiveAlgorithm implements Solver {
                 final int loopStartIndex = path.lastIndexOf(currentVertex);
                 final List<ParityVertex> loop = path.subList(loopStartIndex,
                         path.size());
-                final int maxPriority = LinkedArena.getMaxPriority(loop);
+                final int maxPriority = Arena.getMaxPriority(loop);
                 player = Player.getPlayerForPriority(maxPriority);
             }
             if (player == Player.A) {

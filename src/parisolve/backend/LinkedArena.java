@@ -80,25 +80,6 @@ public class LinkedArena implements Arena {
     }
 
     @Override
-    public final int getMaxPriority() {
-        return getMaxPriority(getVertices());
-    }
-
-    public final static int getMaxPriority(
-            final Collection<? extends ParityVertex> vertices) {
-        // TODO introduce AbstractArena in case there should be more than one
-        // implementation of the arena interface as this can be implemented upon
-        // the original arena interface
-        int maxPriority = Integer.MIN_VALUE;
-        for (final ParityVertex vertex : vertices) {
-            if (vertex.getPriority() > maxPriority) {
-                maxPriority = vertex.getPriority();
-            }
-        }
-        return maxPriority;
-    }
-
-    @Override
     public final String getStatistics() {
         int maxDegree = 0;
         int numberEdges = 0;
