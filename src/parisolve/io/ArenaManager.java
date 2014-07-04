@@ -83,19 +83,18 @@ public final class ArenaManager {
             final double averageDegree, final int maxPriority) {
         final LinkedArena arena = new LinkedArena();
         final Random random = new Random(System.currentTimeMillis());
-        final int[] numberOfEdges = new int[numberOfVertices];
         for (int i = 0; i < numberOfVertices; i++) {
             final int priority = random.nextInt(maxPriority) + 1;
             final Player player = Player
                     .getPlayerForPriority(random.nextInt(2));
             arena.addVertex("v" + i, priority, player);
-            numberOfEdges[i] = Math.max(
-                    (int) Math.round(random.nextDouble() * 2.0
-                            * (averageDegree - 1)), 0) + 1;
         }
 
         for (int i = 0; i < numberOfVertices; i++) {
-            for (int edge = 0; edge < numberOfEdges[i]; edge++) {
+            final int numberOfEdges = Math.max(
+                    (int) Math.round(random.nextDouble() * 2.0
+                            * (averageDegree - 1)), 0) + 1;
+            for (int edge = 0; edge < numberOfEdges; edge++) {
                 final int toVertex = random.nextInt(numberOfVertices);
                 arena.addEdge("v" + i, "v" + toVertex);
             }
@@ -142,7 +141,7 @@ public final class ArenaManager {
      * grouping the relevant elements.
      */
     public static final Pattern LINE_PATTERN = Pattern
-            .compile("(\\d+) (\\d+) (\\d+) (\\d+(,\\d+)*)( \"([^\"]+)\")?;");
+            .compile("(\\w+) +(\\d+) +(\\d+) +(\\w+(,\\w+)*)( +\"([^\"]+)\")?;");
 
     /**
      * fills <code>arena</code> with vertices and edges defined in

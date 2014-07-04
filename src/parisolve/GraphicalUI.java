@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.eclipse.draw2d.Label;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -390,17 +391,18 @@ public class GraphicalUI extends AbstractUI {
         for (final GraphNode node : vertexCorrespondence.values()) {
             node.dispose();
         }
+        vertexCorrespondence.clear();
         for (final GraphConnection connection : edgeCorrespondence.values()) {
             connection.dispose();
         }
+        edgeCorrespondence.clear();
 
         final Collection<? extends ParityVertex> vertices = arena.getVertices();
-        vertexCorrespondence.clear();
-        edgeCorrespondence.clear();
         for (final ParityVertex vertex : vertices) {
-            vertexCorrespondence.put(vertex,
-                    new GraphNode(graph, vertex.getPlayer().getZestStyleFlag(),
-                            Integer.toString(vertex.getPriority())));
+            GraphNode node = new GraphNode(graph, vertex.getPlayer()
+                    .getZestStyleFlag(), Integer.toString(vertex.getPriority()));
+            node.setTooltip(new Label(vertex.getName()));
+            vertexCorrespondence.put(vertex, node);
         }
         for (final ParityVertex fromVertex : vertices) {
             for (final ParityVertex toVertex : fromVertex.getSuccessors()) {
