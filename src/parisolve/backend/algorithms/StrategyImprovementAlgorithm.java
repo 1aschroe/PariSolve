@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 import parisolve.backend.Arena;
@@ -14,7 +15,9 @@ import parisolve.backend.Player;
 import parisolve.backend.algorithms.helper.Liftable;
 import parisolve.backend.algorithms.helper.LiftableFactory;
 
+import com.google.common.base.Functions;
 import com.google.common.base.Objects;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
@@ -89,17 +92,23 @@ public class StrategyImprovementAlgorithm implements Solver {
             return 0;
         }
 
-        static Evaluation plus(final Evaluation eva1, final Evaluation eva2) {
+        static Evaluation combine(final Evaluation eva1, final Evaluation eva2,
+                final BinaryOperator<Integer> combinator) {
+            // TODO: subtraction with eva2 as infinityEvaluation?
             if (eva1 == infinityEvaluation || eva2 == infinityEvaluation) {
                 return infinityEvaluation;
             }
-            final Map<Integer, Integer> sumMap = new ConcurrentHashMap<>();
-            // TODO: NPE for example.arena and AUL.arena
+            final Map<Integer, Integer> combinedMap = new ConcurrentHashMap<>();
             int maxColour = Math.max(eva1.maxColour, eva2.maxColour);
             for (int colour = 0; colour <= maxColour; colour++) {
-                sumMap.put(colour, eva1.get(colour) + eva2.get(colour));
+                combinedMap.put(colour,
+                        combinator.apply(eva1.get(colour), eva2.get(colour)));
             }
-            return new Evaluation(sumMap);
+            return new Evaluation(combinedMap);
+        }
+
+        static Evaluation plus(final Evaluation eva1, final Evaluation eva2) {
+            return combine(eva1, eva2, (a, b) -> a + b);
         }
 
         Evaluation plus(final Evaluation summand) {
@@ -107,15 +116,7 @@ public class StrategyImprovementAlgorithm implements Solver {
         }
 
         static Evaluation minus(final Evaluation eva1, final Evaluation eva2) {
-            if (eva1 == infinityEvaluation) {
-                return infinityEvaluation;
-            }
-            final Map<Integer, Integer> subMap = new ConcurrentHashMap<>();
-            int maxColour = Math.max(eva1.maxColour, eva2.maxColour);
-            for (int colour = 0; colour <= maxColour; colour++) {
-                subMap.put(colour, eva1.get(colour) - eva2.get(colour));
-            }
-            return new Evaluation(subMap);
+            return combine(eva1, eva2, (a, b) -> a - b);
         }
 
         Evaluation minus(final Evaluation subtrahent) {
@@ -136,8 +137,8 @@ public class StrategyImprovementAlgorithm implements Solver {
             if (eva == infinityEvaluation || colour == 0) {
                 return eva;
             }
-            final Map<Integer, Integer> nextMap = new ConcurrentHashMap<>();
-            nextMap.putAll(eva.map);
+            final Map<Integer, Integer> nextMap = new ConcurrentHashMap<>(
+                    eva.map);
             nextMap.put(colour, eva.get(colour) + 1);
             return new Evaluation(nextMap);
         }
@@ -215,7 +216,7 @@ public class StrategyImprovementAlgorithm implements Solver {
             }
             String returnString = "";
             for (int i = maxColour; i > 0; i--) {
-                returnString += ", " + map.get(i);
+                returnString += ", " + get(i);
             }
             return "(" + returnString.substring(2) + ")";
         }
@@ -309,7 +310,7 @@ public class StrategyImprovementAlgorithm implements Solver {
         public Set<ParityVertex> getNonInfiniteVertices() {
             return estimation.entrySet().stream()
                     .filter(entry -> entry.getValue() != infinityEvaluation)
-                    .map(entry -> entry.getKey()).collect(Collectors.toSet());
+                    .map(entry -> entry.getKey()).filter(vertex -> vertex != BOTTOM).collect(Collectors.toSet());
         }
 
         public Set<ParityVertex> getInfiniteVertices() {
@@ -318,10 +319,18 @@ public class StrategyImprovementAlgorithm implements Solver {
                     .map(entry -> entry.getKey()).collect(Collectors.toSet());
         }
 
-        public Solution getSolution() {
-            return new Solution(getInfiniteVertices(),
-                    getNonInfiniteVertices(), Player.A,
-                    new ConcurrentHashMap<>());
+        public static Set<ParityVertex> getOriginalRegion(
+                Set<ParityVertex> artificialVertices,
+                Map<ParityVertex, ParityVertex> mapping) {
+            return new HashSet<>(Collections2.transform(artificialVertices,
+                    Functions.forMap(mapping)));
+        }
+
+        public Solution getSolution(
+                final Map<ParityVertex, ParityVertex> mapping) {
+            return new Solution(getOriginalRegion(getInfiniteVertices(),
+                    mapping), getOriginalRegion(getNonInfiniteVertices(),
+                    mapping), Player.A, new ConcurrentHashMap<>());
         }
 
         public boolean isLarger(Estimation other) {
@@ -353,7 +362,9 @@ public class StrategyImprovementAlgorithm implements Solver {
 
     @Override
     public final Solution getSolution(final Arena arena) {
-        final Set<ParityVertex> vertices = arena.getVertices();
+        // TODO: this might cost time. Maybe it is possible to not do this?
+        Map<ParityVertex, ParityVertex> mapping = getBipartiteArena(arena);
+        final Set<ParityVertex> vertices = mapping.keySet();
         Estimation estimation = getDefaultEstimation(vertices);
         Table<ParityVertex, ParityVertex, Evaluation> improvementPotential = getImprovementPotential(
                 vertices, estimation);
@@ -369,7 +380,84 @@ public class StrategyImprovementAlgorithm implements Solver {
             estimation = newEstimation;
             improvementPotential = getImprovementPotential(vertices, estimation);
         }
-        return estimation.getSolution();
+        return estimation.getSolution(mapping);
+    }
+
+    private Map<ParityVertex, ParityVertex> getBipartiteArena(Arena arena) {
+        Set<ParityVertex> originalVertices = arena.getVertices();
+        Map<String, LinkedParityVertex> newVertices = new ConcurrentHashMap<>();
+        Map<ParityVertex, ParityVertex> mapping = new ConcurrentHashMap<>();
+        for (final ParityVertex vertex : originalVertices) {
+            LinkedParityVertex newVertex = new LinkedParityVertex(
+                    vertex.getName(), vertex.getPriority(), vertex.getPlayer());
+            newVertices.put(newVertex.getName(), newVertex);
+            mapping.put(newVertex, vertex);
+        }
+        for (final ParityVertex vertex : originalVertices) {
+            for (final ParityVertex successor : vertex.getSuccessors()) {
+                if (vertex.getPlayer() != successor.getPlayer()) {
+                    newVertices.get(vertex.getName()).addSuccessor(
+                            newVertices.get(successor.getName()));
+                } else {
+                    LinkedParityVertex newSuccessor = new LinkedParityVertex(
+                            vertex.getName() + "->" + successor.getName(),
+                            vertex.getPriority(), vertex.getPlayer()
+                                    .getOponent());
+                    newSuccessor.addSuccessor(newVertices.get(successor
+                            .getName()));
+                    newVertices.get(vertex.getName())
+                            .addSuccessor(newSuccessor);
+                    newVertices.put(newSuccessor.getName(), newSuccessor);
+                    // FIXME: should newSuccessor be mapped to successor or
+                    // vertex?
+                    mapping.put(newSuccessor, successor);
+                }
+            }
+        }
+        return mapping;
+    }
+
+    private Table<ParityVertex, ParityVertex, Evaluation> getImprovementPotential(
+            final Set<? extends ParityVertex> vertices,
+            final Estimation estimation) {
+        // improvementPotential = P
+        // only includes edges in the improvement arena
+        final Table<ParityVertex, ParityVertex, Evaluation> improvementPotential = HashBasedTable
+                .create();
+        for (final ParityVertex vertex : vertices) {
+            for (final ParityVertex successor : vertex.getSuccessors()) {
+                if (estimation.get(vertex)
+                        .compareTo(
+                                estimation.get(successor).plus(
+                                        successor.getPriority())) <= 0) {
+                    final Evaluation potential = estimation.get(successor)
+                            .plus(successor.getPriority())
+                            .minus(estimation.get(vertex));
+                    improvementPotential.put(vertex, successor, potential);
+                }
+            }
+        }
+        return improvementPotential;
+    }
+
+    protected Estimation getDefaultEstimation(
+            final Set<? extends ParityVertex> vertices) {
+        final Map<ParityVertex, Evaluation> estimationMap = new ConcurrentHashMap<>();
+        for (final ParityVertex vertex : vertices) {
+            if (vertex.getPlayer() == Player.A) {
+                estimationMap.put(vertex, zeroEvaluation);
+            } else {
+                final Evaluation minEvaluation = vertex
+                        .getSuccessors()
+                        .stream()
+                        .map(successor -> zeroEvaluation.plus(successor
+                                .getPriority())).min((a, b) -> a.compareTo(b))
+                        .orElse(zeroEvaluation);
+                estimationMap.put(vertex, minEvaluation);
+            }
+        }
+        final Estimation estimation = new Estimation(estimationMap);
+        return estimation;
     }
 
     private void loopBasicUpdateStep(
@@ -422,14 +510,16 @@ public class StrategyImprovementAlgorithm implements Solver {
                         minForCase4 = vertex;
                         final Set<ParityVertex> evaluatedSuccessors = optimalUpdate
                                 .getEvaluatedVertices();
-                        evaluatedSuccessors.retainAll(vertex.getSuccessors());
+                        evaluatedSuccessors.retainAll(improvementPotential.row(
+                                vertex).keySet());
                         minIntermediateImprovement = getMinEvaluation(
                                 improvementPotential, optimalUpdate, vertex,
                                 evaluatedSuccessors);
                     } else {
                         final Set<ParityVertex> evaluatedSuccessors = optimalUpdate
                                 .getEvaluatedVertices();
-                        evaluatedSuccessors.retainAll(vertex.getSuccessors());
+                        evaluatedSuccessors.retainAll(improvementPotential.row(
+                                vertex).keySet());
                         Evaluation evaToCompare = getMinEvaluation(
                                 improvementPotential, optimalUpdate, vertex,
                                 evaluatedSuccessors);
@@ -470,53 +560,11 @@ public class StrategyImprovementAlgorithm implements Solver {
         return optimalUpdate;
     }
 
-    private Table<ParityVertex, ParityVertex, Evaluation> getImprovementPotential(
-            final Set<? extends ParityVertex> vertices,
-            final Estimation estimation) {
-        // improvementPotential = P
-        // only includes edges in the improvement arena
-        final Table<ParityVertex, ParityVertex, Evaluation> improvementPotential = HashBasedTable
-                .create();
-        for (final ParityVertex vertex : vertices) {
-            for (final ParityVertex successor : vertex.getSuccessors()) {
-                if (estimation.get(vertex)
-                        .compareTo(
-                                estimation.get(successor).plus(
-                                        successor.getPriority())) <= 0) {
-                    final Evaluation potential = estimation.get(successor)
-                            .plus(successor.getPriority())
-                            .minus(estimation.get(vertex));
-                    improvementPotential.put(vertex, successor, potential);
-                }
-            }
-        }
-        return improvementPotential;
-    }
-
-    protected Estimation getDefaultEstimation(
-            final Set<? extends ParityVertex> vertices) {
-        final Map<ParityVertex, Evaluation> estimationMap = new ConcurrentHashMap<>();
-        for (final ParityVertex vertex : vertices) {
-            if (vertex.getPlayer() == Player.A) {
-                estimationMap.put(vertex, zeroEvaluation);
-            } else {
-                final Evaluation minEvaluation = vertex
-                        .getSuccessors()
-                        .stream()
-                        .map(successor -> zeroEvaluation.plus(successor
-                                .getPriority())).min((a, b) -> a.compareTo(b))
-                        .orElse(zeroEvaluation);
-                estimationMap.put(vertex, minEvaluation);
-            }
-        }
-        final Estimation estimation = new Estimation(estimationMap);
-        return estimation;
-    }
-
     protected boolean doUpdateCase1(
             final Table<ParityVertex, ParityVertex, Evaluation> improvementPotential,
             final ModifyableEstimation optimalUpdate, final ParityVertex vertex) {
-        final Set<? extends ParityVertex> successors = vertex.getSuccessors();
+        final Set<? extends ParityVertex> successors = improvementPotential
+                .row(vertex).keySet();
         final Evaluation minEvaluation = getMinEvaluation(improvementPotential,
                 optimalUpdate, vertex, successors);
         if (optimalUpdate.hasEvaluatedVertex(vertex)
@@ -527,19 +575,17 @@ public class StrategyImprovementAlgorithm implements Solver {
         return true;
     }
 
+    // TODO: duplicate code in getMinEvaluation and doUpdateCase1 and
+    // doUpdateCase3
     protected Evaluation getMinEvaluation(
             final Table<ParityVertex, ParityVertex, Evaluation> improvementPotential,
             final Estimation optimalUpdate, final ParityVertex vertex,
             Set<? extends ParityVertex> successors) {
-        Evaluation minEvaluation = infinityEvaluation;
-        for (final ParityVertex successor : successors) {
-            final Evaluation evaToCompareWith = optimalUpdate.get(successor)
-                    .plus(improvementPotential.get(vertex, successor));
-            if (evaToCompareWith.compareTo(minEvaluation) < 0) {
-                minEvaluation = evaToCompareWith;
-            }
-        }
-        return minEvaluation;
+        return successors
+                .stream()
+                .map(successor -> optimalUpdate.get(successor).plus(
+                        improvementPotential.get(vertex, successor)))
+                .min((a, b) -> a.compareTo(b)).orElse(infinityEvaluation);
     }
 
     protected boolean doUpdateCase3(

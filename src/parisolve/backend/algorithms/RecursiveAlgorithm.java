@@ -8,7 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import parisolve.backend.Arena;
-import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 import parisolve.backend.algorithms.helper.Liftable;
@@ -104,7 +103,7 @@ public class RecursiveAlgorithm implements Solver {
         // TODO: obviously the following assignment is not necessary. However,
         // the winning region of sigma's opponent consists of its dominion as
         // well as its winning region in the other vertices.
-        final Collection<ParityVertex> winningRegionOfSigmaOpponent = dominionOfSigmaOpponent
+        final Set<ParityVertex> winningRegionOfSigmaOpponent = dominionOfSigmaOpponent
                 .getAttractor();
         winningRegionOfSigmaOpponent.addAll(partition2
                 .getWinningRegionFor(sigma.getOponent()));
@@ -259,16 +258,16 @@ public class RecursiveAlgorithm implements Solver {
      * @author Arne Schröder
      */
     public static class AttractorStrategyPair {
-        private final Collection<ParityVertex> attractor;
+        private final Set<ParityVertex> attractor;
         private final Map<ParityVertex, ParityVertex> strategy;
 
-        public AttractorStrategyPair(final Collection<ParityVertex> attractor,
+        public AttractorStrategyPair(final Set<ParityVertex> attractor,
                 final Map<ParityVertex, ParityVertex> strategy) {
             this.attractor = attractor;
             this.strategy = strategy;
         }
 
-        public Collection<ParityVertex> getAttractor() {
+        public Set<ParityVertex> getAttractor() {
             return attractor;
         }
 

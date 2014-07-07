@@ -1,6 +1,5 @@
 package parisolve.backend.algorithms;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +15,7 @@ import parisolve.backend.Player;
  * as used in
  */
 class WinningRegionPartition {
-    private final transient Map<Player, Collection<ParityVertex>> partitionMap = new ConcurrentHashMap<>();
+    private final transient Map<Player, Set<ParityVertex>> partitionMap = new ConcurrentHashMap<>();
 
     /**
      * create a partition of a set of vertices, which represent the winning
@@ -30,8 +29,8 @@ class WinningRegionPartition {
      *            the player of the first winning region
      */
     public WinningRegionPartition(
-            final Collection<ParityVertex> winningRegionForSigma,
-            final Collection<ParityVertex> winningRegionForOponent,
+            final Set<ParityVertex> winningRegionForSigma,
+            final Set<ParityVertex> winningRegionForOponent,
             final Player sigma) {
         // TODO: test, whether the two sets are disjoint
         partitionMap.put(sigma, winningRegionForSigma);
@@ -49,7 +48,7 @@ class WinningRegionPartition {
      *            the player to return the winning region for
      * @return <code>player</code>'s winning region
      */
-    public Collection<ParityVertex> getWinningRegionFor(
+    public Set<ParityVertex> getWinningRegionFor(
             final Player player) {
         return partitionMap.get(player);
     }
