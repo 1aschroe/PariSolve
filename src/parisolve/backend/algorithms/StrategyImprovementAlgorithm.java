@@ -17,6 +17,7 @@ import parisolve.backend.algorithms.helper.LiftableFactory;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Sets.SetView;
 import com.google.common.collect.Table;
 
 /**
@@ -93,6 +94,7 @@ public class StrategyImprovementAlgorithm implements Solver {
                 return infinityEvaluation;
             }
             final Map<Integer, Integer> sumMap = new ConcurrentHashMap<>();
+            // TODO: NPE for example.arena and AUL.arena
             int maxColour = Math.max(eva1.maxColour, eva2.maxColour);
             for (int colour = 0; colour <= maxColour; colour++) {
                 sumMap.put(colour, eva1.get(colour) + eva2.get(colour));
@@ -105,6 +107,9 @@ public class StrategyImprovementAlgorithm implements Solver {
         }
 
         static Evaluation minus(final Evaluation eva1, final Evaluation eva2) {
+            if (eva1 == infinityEvaluation) {
+                return infinityEvaluation;
+            }
             final Map<Integer, Integer> subMap = new ConcurrentHashMap<>();
             int maxColour = Math.max(eva1.maxColour, eva2.maxColour);
             for (int colour = 0; colour <= maxColour; colour++) {
@@ -318,6 +323,22 @@ public class StrategyImprovementAlgorithm implements Solver {
                     getNonInfiniteVertices(), Player.A,
                     new ConcurrentHashMap<>());
         }
+
+        public boolean isLarger(Estimation other) {
+            boolean hasLarger = false;
+            SetView<ParityVertex> allKeys = Sets.union(estimation.keySet(),
+                    other.estimation.keySet());
+            for (final ParityVertex vertex : allKeys) {
+                final Evaluation ourEvaluation = get(vertex);
+                final Evaluation theirEvaluation = other.get(vertex);
+                if (ourEvaluation.compareTo(theirEvaluation) > 0) {
+                    hasLarger = true;
+                } else if (ourEvaluation.compareTo(theirEvaluation) < 0) {
+                    return false;
+                }
+            }
+            return hasLarger;
+        }
     }
 
     class ModifyableEstimation extends Estimation {
@@ -337,27 +358,18 @@ public class StrategyImprovementAlgorithm implements Solver {
         Table<ParityVertex, ParityVertex, Evaluation> improvementPotential = getImprovementPotential(
                 vertices, estimation);
 
-        // this cryptic condition ensures that there are non-zero
-        // improvement-potentials
-        while (containsNonNull(improvementPotential)) {
+        boolean reachedFixPoint = false;
+        while (!reachedFixPoint) {
             final ModifyableEstimation optimalUpdate = getInitialUpdate();
 
             loopBasicUpdateStep(vertices, improvementPotential, optimalUpdate);
 
-            estimation = estimation.plus(optimalUpdate);
+            final Estimation newEstimation = estimation.plus(optimalUpdate);
+            reachedFixPoint = !newEstimation.isLarger(estimation);
+            estimation = newEstimation;
             improvementPotential = getImprovementPotential(vertices, estimation);
         }
         return estimation.getSolution();
-    }
-
-    private boolean containsNonNull(
-            Table<ParityVertex, ParityVertex, Evaluation> improvementPotential) {
-        for (final Evaluation eva : improvementPotential.values()) {
-            if (eva.compareTo(zeroEvaluation) != 0) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void loopBasicUpdateStep(
