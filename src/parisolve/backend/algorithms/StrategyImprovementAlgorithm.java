@@ -310,7 +310,9 @@ public class StrategyImprovementAlgorithm implements Solver {
         public Set<ParityVertex> getNonInfiniteVertices() {
             return estimation.entrySet().stream()
                     .filter(entry -> entry.getValue() != infinityEvaluation)
-                    .map(entry -> entry.getKey()).filter(vertex -> vertex != BOTTOM).collect(Collectors.toSet());
+                    .map(entry -> entry.getKey())
+                    .filter(vertex -> vertex != BOTTOM)
+                    .collect(Collectors.toSet());
         }
 
         public Set<ParityVertex> getInfiniteVertices() {
@@ -369,21 +371,32 @@ public class StrategyImprovementAlgorithm implements Solver {
         Table<ParityVertex, ParityVertex, Evaluation> improvementPotential = getImprovementPotential(
                 vertices, estimation);
 
+        long otherTime = 0;
+
         boolean reachedFixPoint = false;
         while (!reachedFixPoint) {
             final ModifyableEstimation optimalUpdate = getInitialUpdate();
 
             loopBasicUpdateStep(vertices, improvementPotential, optimalUpdate);
 
+            long otherStart = System.currentTimeMillis();
             final Estimation newEstimation = estimation.plus(optimalUpdate);
             reachedFixPoint = !newEstimation.isLarger(estimation);
             estimation = newEstimation;
+            long otherEnd = System.currentTimeMillis();
+            otherTime += otherEnd - otherStart;
+
+            System.out.println("Calculating improvement took "
+                    + timeImprovementPotential + " ms.");
+            System.out.println("Other took " + otherTime + " ms.");
+
             improvementPotential = getImprovementPotential(vertices, estimation);
         }
         return estimation.getSolution(mapping);
     }
 
     private Map<ParityVertex, ParityVertex> getBipartiteArena(Arena arena) {
+        final long startConvert = System.currentTimeMillis();
         Set<ParityVertex> originalVertices = arena.getVertices();
         Map<String, LinkedParityVertex> newVertices = new ConcurrentHashMap<>();
         Map<ParityVertex, ParityVertex> mapping = new ConcurrentHashMap<>();
@@ -414,12 +427,20 @@ public class StrategyImprovementAlgorithm implements Solver {
                 }
             }
         }
+        final long endConvert = System.currentTimeMillis();
+        System.out.println("Converting to bipartite took "
+                + (endConvert - startConvert) + " ms.");
+        System.out.println("Resulted in " + newVertices.size() + " instead of "
+                + originalVertices.size() + " vertices.");
         return mapping;
     }
+
+    static long timeImprovementPotential = 0;
 
     private Table<ParityVertex, ParityVertex, Evaluation> getImprovementPotential(
             final Set<? extends ParityVertex> vertices,
             final Estimation estimation) {
+        long potentialStart = System.currentTimeMillis();
         // improvementPotential = P
         // only includes edges in the improvement arena
         final Table<ParityVertex, ParityVertex, Evaluation> improvementPotential = HashBasedTable
@@ -437,6 +458,8 @@ public class StrategyImprovementAlgorithm implements Solver {
                 }
             }
         }
+        long potentialEnd = System.currentTimeMillis();
+        timeImprovementPotential += potentialEnd - potentialStart;
         return improvementPotential;
     }
 
@@ -460,12 +483,18 @@ public class StrategyImprovementAlgorithm implements Solver {
         return estimation;
     }
 
+    static long timeUpdate = 0;
+
     private void loopBasicUpdateStep(
             final Set<? extends ParityVertex> vertices,
             final Table<ParityVertex, ParityVertex, Evaluation> improvementPotential,
             final ModifyableEstimation optimalUpdate) {
+        final long updateStart = System.currentTimeMillis();
         LiftableFactory liftableFactory = new LiftableFactory(vertices);
+        int whileLoopCount = 0;
+        int forLoopCount = 0;
         while (!optimalUpdate.hasEvaluatedAllVertices(vertices)) {
+            whileLoopCount++;
             boolean changed = false;
             ParityVertex minForCase4 = null;
             Evaluation minIntermediateImprovement = null;
@@ -542,6 +571,7 @@ public class StrategyImprovementAlgorithm implements Solver {
                 }
             }
             if (!changed) {
+                forLoopCount++;
                 if (minForCase4 == null
                         || (optimalUpdate.hasEvaluatedVertex(minForCase4) && optimalUpdate
                                 .get(minForCase4).compareTo(
@@ -552,6 +582,10 @@ public class StrategyImprovementAlgorithm implements Solver {
                 }
             }
         }
+        final long updateEnd = System.currentTimeMillis();
+        timeUpdate += updateEnd - updateStart;
+
+        System.out.println(whileLoopCount + "\t" + forLoopCount);
     }
 
     private ModifyableEstimation getInitialUpdate() {
