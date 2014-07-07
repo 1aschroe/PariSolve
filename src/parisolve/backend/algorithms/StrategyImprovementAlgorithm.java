@@ -281,18 +281,18 @@ public class StrategyImprovementAlgorithm implements Solver {
         }
 
         public Set<ParityVertex> getEvaluatedVertices() {
-            return new HashSet<>(estimation.keySet());
+            return estimation.keySet();
         }
 
-        public static Estimation plus(final Estimation a, final Estimation b) {
+        public static Estimation plus(final Estimation estimate1, final Estimation estimate2) {
             final Map<ParityVertex, Evaluation> sumEstimation = new ConcurrentHashMap<>(
-                    a.estimation);
-            for (final ParityVertex key : b.estimation.keySet()) {
+                    estimate1.estimation);
+            for (final ParityVertex key : estimate2.estimation.keySet()) {
                 if (sumEstimation.containsKey(key)) {
                     sumEstimation.put(key,
-                            sumEstimation.get(key).plus(b.estimation.get(key)));
+                            sumEstimation.get(key).plus(estimate2.estimation.get(key)));
                 } else {
-                    sumEstimation.put(key, b.estimation.get(key));
+                    sumEstimation.put(key, estimate2.estimation.get(key));
                 }
             }
             return new Estimation(sumEstimation);
@@ -516,12 +516,9 @@ public class StrategyImprovementAlgorithm implements Solver {
                         continue;
                     } else {
                         // case 2:
-                        for (final ParityVertex successor : vertex
-                                .getSuccessors()) {
-                            if (improvementPotential
-                                    .contains(vertex, successor)
-                                    && optimalUpdate
-                                            .hasEvaluatedVertex(successor)
+                        for (final ParityVertex successor : improvementPotential
+                                .row(vertex).keySet()) {
+                            if (optimalUpdate.hasEvaluatedVertex(successor)
                                     && improvementPotential.get(vertex,
                                             successor)
                                             .compareTo(zeroEvaluation) == 0
@@ -534,21 +531,16 @@ public class StrategyImprovementAlgorithm implements Solver {
                             }
                         }
                     }
+                    final Set<ParityVertex> evaluatedSuccessors = Sets
+                            .intersection(optimalUpdate.getEvaluatedVertices(),
+                                    improvementPotential.row(vertex).keySet());
                     if (minForCase4 == null
                             && optimalUpdate.get(vertex) != infinityEvaluation) {
                         minForCase4 = vertex;
-                        final Set<ParityVertex> evaluatedSuccessors = optimalUpdate
-                                .getEvaluatedVertices();
-                        evaluatedSuccessors.retainAll(improvementPotential.row(
-                                vertex).keySet());
                         minIntermediateImprovement = getMinEvaluation(
                                 improvementPotential, optimalUpdate, vertex,
                                 evaluatedSuccessors);
                     } else {
-                        final Set<ParityVertex> evaluatedSuccessors = optimalUpdate
-                                .getEvaluatedVertices();
-                        evaluatedSuccessors.retainAll(improvementPotential.row(
-                                vertex).keySet());
                         Evaluation evaToCompare = getMinEvaluation(
                                 improvementPotential, optimalUpdate, vertex,
                                 evaluatedSuccessors);
@@ -579,6 +571,14 @@ public class StrategyImprovementAlgorithm implements Solver {
                     System.out.println("Now we would have broken.");
                 } else {
                     optimalUpdate.put(minForCase4, minIntermediateImprovement);
+                    iterator.liftWasSuccessful(minForCase4);
+                    for (final ParityVertex vertex : iterator) {
+                        if (!optimalUpdate.hasEvaluatedVertex(vertex)) {
+                            optimalUpdate.put(vertex,
+                                    minIntermediateImprovement);
+                            iterator.liftWasSuccessful(vertex);
+                        }
+                    }
                 }
             }
         }
