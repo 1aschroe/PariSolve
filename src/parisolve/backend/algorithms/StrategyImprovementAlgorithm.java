@@ -3,6 +3,7 @@ package parisolve.backend.algorithms;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -105,7 +106,10 @@ public class StrategyImprovementAlgorithm implements Solver {
         static Table<Evaluation, Evaluation, Evaluation> plusMemo = HashBasedTable
                 .create();
 
+        static long timePlus = 0;
+
         static Evaluation plus(final Evaluation eva1, final Evaluation eva2) {
+            long plusStart = System.currentTimeMillis();
             Evaluation sum;
             if (!plusMemo.contains(eva1, eva2)) {
                 sum = combine(eva1, eva2, (a, b) -> a + b);
@@ -113,6 +117,7 @@ public class StrategyImprovementAlgorithm implements Solver {
             } else {
                 sum = plusMemo.get(eva1, eva2);
             }
+            timePlus += System.currentTimeMillis() - plusStart;
             return sum;
         }
 
@@ -162,14 +167,20 @@ public class StrategyImprovementAlgorithm implements Solver {
             return plus(this, colourToAdd);
         }
 
+        static long timeCompare = 0;
+
         static int compare(final Evaluation eva1, final Evaluation eva2) {
+            final long compareStart = System.currentTimeMillis();
             if (eva1 == eva2) {
+                timeCompare += System.currentTimeMillis() - compareStart;
                 return 0;
             }
             if (eva1 == infinityEvaluation) {
+                timeCompare += System.currentTimeMillis() - compareStart;
                 return 1;
             }
             if (eva2 == infinityEvaluation) {
+                timeCompare += System.currentTimeMillis() - compareStart;
                 return -1;
             }
             int maxColour = Math.max(eva1.maxColour, eva2.maxColour);
@@ -177,18 +188,27 @@ public class StrategyImprovementAlgorithm implements Solver {
                 // maybe this can be sped up by testing equality first
                 if (eva1.get(colour) > eva2.get(colour)) {
                     if (colour % 2 == 0) {
+                        timeCompare += System.currentTimeMillis()
+                                - compareStart;
                         return 1;
                     } else {
+                        timeCompare += System.currentTimeMillis()
+                                - compareStart;
                         return -1;
                     }
                 } else if (eva1.get(colour) < eva2.get(colour)) {
                     if (colour % 2 == 0) {
+                        timeCompare += System.currentTimeMillis()
+                                - compareStart;
                         return -1;
                     } else {
+                        timeCompare += System.currentTimeMillis()
+                                - compareStart;
                         return 1;
                     }
                 }
             }
+            timeCompare += System.currentTimeMillis() - compareStart;
             return 0;
         }
 
@@ -376,11 +396,18 @@ public class StrategyImprovementAlgorithm implements Solver {
             System.out.println("Update time:\t" + timeUpdate1 + "\t"
                     + timeUpdate2 + "\t" + timeUpdate3 + "\t" + timeUpdate3a
                     + "\t" + timeUpdate3b + "\t" + timeUpdate3c + "\t"
-                    + timeUpdate4 + "\t" + timeUpdate5 + "\t" + minTime);
+                    + timeUpdate4 + "\t" + timeUpdate5);
             System.out.println("Update times:\t" + timesUpdate1 + "\t"
                     + timesUpdate2 + "\t" + timesUpdate3 + "\t" + timesUpdate3
                     + "\t" + timesUpdate3b + "\t" + timesUpdate3c + "\t"
                     + timesUpdate4 + "\t" + timesUpdate5);
+            System.out.println("Plus took " + Evaluation.timePlus);
+            System.out.println("Min\t" + minTime + "\tminIter\t" + minIterTime
+                    + "\tminHasNext\t" + minHasNextTime + "\tminNext\t"
+                    + minNextTime + "\tminMap\t" + minMapTime + "\tminMin\t"
+                    + minMinTime);
+            System.out.println("Compare\t" + Evaluation.timeCompare + "\t"
+                    + Evaluation.timeCompare);
             System.out.println("Other took " + otherTime + " ms.");
 
             improvementPotential = getImprovementPotential(vertices, estimation);
@@ -645,6 +672,11 @@ public class StrategyImprovementAlgorithm implements Solver {
     }
 
     long minTime = 0;
+    long minIterTime = 0;
+    long minHasNextTime = 0;
+    long minNextTime = 0;
+    long minMapTime = 0;
+    long minMinTime = 0;
 
     // TODO: duplicate code in getMinEvaluation and doUpdateCase1 and
     // doUpdateCase3
@@ -652,12 +684,30 @@ public class StrategyImprovementAlgorithm implements Solver {
             final Table<ParityVertex, ParityVertex, Evaluation> improvementPotential,
             final Estimation optimalUpdate, final ParityVertex vertex,
             Set<? extends ParityVertex> successors) {
+        Evaluation minEvaluation = infinityEvaluation;
         final long minStartTime = System.currentTimeMillis();
-        final Evaluation minEvaluation = successors
-                .stream()
-                .map(successor -> optimalUpdate.get(successor).plus(
-                        improvementPotential.get(vertex, successor)))
-                .min((a, b) -> a.compareTo(b)).orElse(infinityEvaluation);
+        final long minIterStartTime = System.currentTimeMillis();
+        Iterator<? extends ParityVertex> iterator = successors.iterator();
+        minIterTime += System.currentTimeMillis() - minIterStartTime;
+        long minHasNextStartTime = System.currentTimeMillis();
+        boolean hasNext = iterator.hasNext();
+        minHasNextTime += System.currentTimeMillis() - minHasNextStartTime;
+        while (hasNext) {
+            final long minNextStartTime = System.currentTimeMillis();
+            final ParityVertex successor = iterator.next();
+            minNextTime += System.currentTimeMillis() - minNextStartTime;
+            final long minMapTimeStart = System.currentTimeMillis();
+            Evaluation evaluation = optimalUpdate.get(successor).plus(
+                    improvementPotential.get(vertex, successor));
+            minMapTime += System.currentTimeMillis() - minMapTimeStart;
+            final long minMinTimeStart = System.currentTimeMillis();
+            minEvaluation = minEvaluation.compareTo(evaluation) > 0 ? evaluation
+                    : minEvaluation;
+            minMinTime += System.currentTimeMillis() - minMinTimeStart;
+            minHasNextStartTime = System.currentTimeMillis();
+            hasNext = iterator.hasNext();
+            minHasNextTime += System.currentTimeMillis() - minHasNextStartTime;
+        }
         minTime += System.currentTimeMillis() - minStartTime;
         return minEvaluation;
     }
