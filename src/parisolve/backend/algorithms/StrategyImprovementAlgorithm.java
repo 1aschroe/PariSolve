@@ -1,5 +1,6 @@
 package parisolve.backend.algorithms;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -71,23 +72,17 @@ public class StrategyImprovementAlgorithm implements Solver {
      * @author Arne Schröder
      */
     static class Evaluation {
-        final Map<Integer, Integer> map;
+        final int[] map;
         final int maxColour;
 
-        Evaluation(final Map<Integer, Integer> map) {
-            this.map = map;
-            int maxColour = 0;
-            for (int colour : map.keySet()) {
-                if (colour > maxColour) {
-                    maxColour = colour;
-                }
-            }
-            this.maxColour = maxColour;
+        Evaluation(final int[] map) {
+            maxColour = map.length;
+            this.map = map.clone();
         }
 
-        int get(final int colour) {
-            if (map.containsKey(colour)) {
-                return map.get(colour);
+        private int get(final int colour) {
+            if (colour > 0 && colour <= maxColour) {
+                return map[colour - 1];
             }
             return 0;
         }
@@ -98,17 +93,27 @@ public class StrategyImprovementAlgorithm implements Solver {
             if (eva1 == infinityEvaluation || eva2 == infinityEvaluation) {
                 return infinityEvaluation;
             }
-            final Map<Integer, Integer> combinedMap = new ConcurrentHashMap<>();
             int maxColour = Math.max(eva1.maxColour, eva2.maxColour);
-            for (int colour = 0; colour <= maxColour; colour++) {
-                combinedMap.put(colour,
-                        combinator.apply(eva1.get(colour), eva2.get(colour)));
+            int[] combinedMap = new int[maxColour];
+            for (int colour = 1; colour <= maxColour; colour++) {
+                combinedMap[colour - 1] = combinator.apply(eva1.get(colour),
+                        eva2.get(colour));
             }
             return new Evaluation(combinedMap);
         }
 
+        static Table<Evaluation, Evaluation, Evaluation> plusMemo = HashBasedTable
+                .create();
+
         static Evaluation plus(final Evaluation eva1, final Evaluation eva2) {
-            return combine(eva1, eva2, (a, b) -> a + b);
+            Evaluation sum;
+            if (!plusMemo.contains(eva1, eva2)) {
+                sum = combine(eva1, eva2, (a, b) -> a + b);
+                plusMemo.put(eva1, eva2, sum);
+            } else {
+                sum = plusMemo.get(eva1, eva2);
+            }
+            return sum;
         }
 
         Evaluation plus(final Evaluation summand) {
@@ -137,9 +142,13 @@ public class StrategyImprovementAlgorithm implements Solver {
             if (eva == infinityEvaluation || colour == 0) {
                 return eva;
             }
-            final Map<Integer, Integer> nextMap = new ConcurrentHashMap<>(
-                    eva.map);
-            nextMap.put(colour, eva.get(colour) + 1);
+            final int[] nextMap;
+            if (colour <= eva.maxColour) {
+                nextMap = eva.map.clone();
+            } else {
+                nextMap = Arrays.copyOf(eva.map, colour);
+            }
+            nextMap[colour - 1]++;
             return new Evaluation(nextMap);
         }
 
@@ -187,28 +196,6 @@ public class StrategyImprovementAlgorithm implements Solver {
             return compare(this, eva);
         }
 
-        static Evaluation getEvaluationForPath(
-                final Iterable<? extends ParityVertex> path) {
-            final Map<Integer, Integer> evaluationMap = new ConcurrentHashMap<>();
-            boolean first = true;
-            for (final ParityVertex vertex : path) {
-                if (first) {
-                    first = false;
-                } else {
-                    int priority = vertex.getPriority();
-                    if (priority > 0) {
-                        if (evaluationMap.containsKey(priority)) {
-                            evaluationMap.put(priority,
-                                    evaluationMap.get(priority) + 1);
-                        } else {
-                            evaluationMap.put(priority, 1);
-                        }
-                    }
-                }
-            }
-            return new Evaluation(evaluationMap);
-        }
-
         @Override
         public String toString() {
             if (maxColour <= 0) {
@@ -222,15 +209,9 @@ public class StrategyImprovementAlgorithm implements Solver {
         }
     }
 
-    final static Evaluation zeroEvaluation = new Evaluation(
-            new ConcurrentHashMap<Integer, Integer>());
+    final static Evaluation zeroEvaluation = new Evaluation(new int[0]);
 
-    final static Evaluation infinityEvaluation = new Evaluation(
-            new ConcurrentHashMap<Integer, Integer>()) {
-        int get(int colour) {
-            return Integer.MAX_VALUE;
-        };
-
+    final static Evaluation infinityEvaluation = new Evaluation(new int[0]) {
         public String toString() {
             return "∞";
         };
@@ -284,13 +265,16 @@ public class StrategyImprovementAlgorithm implements Solver {
             return estimation.keySet();
         }
 
-        public static Estimation plus(final Estimation estimate1, final Estimation estimate2) {
+        public static Estimation plus(final Estimation estimate1,
+                final Estimation estimate2) {
             final Map<ParityVertex, Evaluation> sumEstimation = new ConcurrentHashMap<>(
                     estimate1.estimation);
             for (final ParityVertex key : estimate2.estimation.keySet()) {
                 if (sumEstimation.containsKey(key)) {
-                    sumEstimation.put(key,
-                            sumEstimation.get(key).plus(estimate2.estimation.get(key)));
+                    sumEstimation.put(
+                            key,
+                            sumEstimation.get(key).plus(
+                                    estimate2.estimation.get(key)));
                 } else {
                     sumEstimation.put(key, estimate2.estimation.get(key));
                 }
