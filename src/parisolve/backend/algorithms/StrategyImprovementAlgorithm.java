@@ -1,9 +1,11 @@
 package parisolve.backend.algorithms;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -368,24 +370,37 @@ public class StrategyImprovementAlgorithm implements Solver {
 
     static class ImprovementPotential {
         private Map<ParityVertex, Map<ParityVertex, Evaluation>> potentialMap = new ConcurrentHashMap<>();
+        private Map<ParityVertex, List<ParityVertex>> successorMap = new ConcurrentHashMap<>();
 
-        public void put(ParityVertex vertex, ParityVertex successor,
-                Evaluation potential) {
+        public void put(final ParityVertex vertex,
+                final ParityVertex successor, Evaluation potential) {
             row(vertex).put(successor, potential);
+            List<ParityVertex> successorList = getSuccessorsOf(vertex);
+            if (!successorList.contains(successor)) {
+                successorList.add(successor);
+            }
         }
 
-        public Map<ParityVertex, Evaluation> row(ParityVertex vertex) {
+        private Map<ParityVertex, Evaluation> row(final ParityVertex vertex) {
             if (!potentialMap.containsKey(vertex)) {
                 potentialMap.put(vertex, new ConcurrentHashMap<>());
             }
             return potentialMap.get(vertex);
         }
 
-        public Evaluation get(ParityVertex vertex, ParityVertex successor) {
+        public Evaluation get(final ParityVertex vertex,
+                final ParityVertex successor) {
             return row(vertex).get(successor);
         }
+
+        public List<ParityVertex> getSuccessorsOf(final ParityVertex vertex) {
+            if (!successorMap.containsKey(vertex)) {
+                successorMap.put(vertex, new ArrayList<>());
+            }
+            return successorMap.get(vertex);
+        }
     }
-    
+
     @Override
     public final Solution getSolution(final Arena arena) {
         // TODO: this might cost time. Maybe it is possible to not do this?
@@ -568,8 +583,8 @@ public class StrategyImprovementAlgorithm implements Solver {
                     timesUpdate2++;
                     final long update2Start = System.currentTimeMillis();
                     if (optimalUpdate
-                            .hasEvaluatedAllVertices(improvementPotential.row(
-                                    vertex).keySet())
+                            .hasEvaluatedAllVertices(improvementPotential
+                                    .getSuccessorsOf(vertex))
                             && doUpdateCase1(improvementPotential,
                                     optimalUpdate, vertex)) {
                         changed = true;
@@ -578,7 +593,7 @@ public class StrategyImprovementAlgorithm implements Solver {
                     } else {
                         // case 2:
                         for (final ParityVertex successor : improvementPotential
-                                .row(vertex).keySet()) {
+                                .getSuccessorsOf(vertex)) {
                             if (optimalUpdate.hasEvaluatedVertex(successor)
                                     && improvementPotential.get(vertex,
                                             successor)
@@ -596,9 +611,10 @@ public class StrategyImprovementAlgorithm implements Solver {
                     timesUpdate3++;
                     final long update3Start = System.currentTimeMillis();
                     final long update3aStart = System.currentTimeMillis();
-                    final Set<ParityVertex> evaluatedSuccessors = Sets
-                            .intersection(optimalUpdate.getEvaluatedVertices(),
-                                    improvementPotential.row(vertex).keySet());
+                    final List<ParityVertex> evaluatedSuccessors = new ArrayList<>(
+                            improvementPotential.getSuccessorsOf(vertex));
+                    evaluatedSuccessors.retainAll(optimalUpdate
+                            .getEvaluatedVertices());
                     timeUpdate3a += System.currentTimeMillis() - update3aStart;
                     if (minForCase4 == null
                             && optimalUpdate.get(vertex) != infinityEvaluation) {
@@ -629,8 +645,8 @@ public class StrategyImprovementAlgorithm implements Solver {
                     timesUpdate4++;
                     final long update4Start = System.currentTimeMillis();
                     if (optimalUpdate
-                            .hasEvaluatedAllVertices(improvementPotential.row(
-                                    vertex).keySet())) {
+                            .hasEvaluatedAllVertices(improvementPotential
+                                    .getSuccessorsOf(vertex))) {
                         if (doUpdateCase3(improvementPotential, optimalUpdate,
                                 vertex)) {
                             changed = true;
@@ -678,8 +694,8 @@ public class StrategyImprovementAlgorithm implements Solver {
     protected boolean doUpdateCase1(
             final ImprovementPotential improvementPotential,
             final ModifyableEstimation optimalUpdate, final ParityVertex vertex) {
-        final Set<? extends ParityVertex> successors = improvementPotential
-                .row(vertex).keySet();
+        final List<? extends ParityVertex> successors = improvementPotential
+                .getSuccessorsOf(vertex);
         final Evaluation minEvaluation = getMinEvaluation(improvementPotential,
                 optimalUpdate, vertex, successors);
         if (optimalUpdate.hasEvaluatedVertex(vertex)
@@ -702,7 +718,7 @@ public class StrategyImprovementAlgorithm implements Solver {
     protected Evaluation getMinEvaluation(
             final ImprovementPotential improvementPotential,
             final Estimation optimalUpdate, final ParityVertex vertex,
-            Set<? extends ParityVertex> successors) {
+            Collection<? extends ParityVertex> successors) {
         Evaluation minEvaluation = infinityEvaluation;
         final long minStartTime = System.currentTimeMillis();
         final long minIterStartTime = System.currentTimeMillis();
@@ -735,8 +751,7 @@ public class StrategyImprovementAlgorithm implements Solver {
             final ImprovementPotential improvementPotential,
             final ModifyableEstimation optimalUpdate, final ParityVertex vertex) {
         Evaluation maxEvaluation = improvementPotential
-                .row(vertex)
-                .keySet()
+                .getSuccessorsOf(vertex)
                 .stream()
                 .map(successor -> optimalUpdate.get(successor).plus(
                         improvementPotential.get(vertex, successor)))
