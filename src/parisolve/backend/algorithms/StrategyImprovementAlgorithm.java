@@ -366,13 +366,33 @@ public class StrategyImprovementAlgorithm implements Solver {
         }
     }
 
+    static class ImprovementPotential {
+        private Map<ParityVertex, Map<ParityVertex, Evaluation>> potentialMap = new ConcurrentHashMap<>();
+
+        public void put(ParityVertex vertex, ParityVertex successor,
+                Evaluation potential) {
+            row(vertex).put(successor, potential);
+        }
+
+        public Map<ParityVertex, Evaluation> row(ParityVertex vertex) {
+            if (!potentialMap.containsKey(vertex)) {
+                potentialMap.put(vertex, new ConcurrentHashMap<>());
+            }
+            return potentialMap.get(vertex);
+        }
+
+        public Evaluation get(ParityVertex vertex, ParityVertex successor) {
+            return row(vertex).get(successor);
+        }
+    }
+    
     @Override
     public final Solution getSolution(final Arena arena) {
         // TODO: this might cost time. Maybe it is possible to not do this?
         Map<ParityVertex, ParityVertex> mapping = getBipartiteArena(arena);
         final Set<ParityVertex> vertices = mapping.keySet();
         Estimation estimation = getDefaultEstimation(vertices);
-        Table<ParityVertex, ParityVertex, Evaluation> improvementPotential = getImprovementPotential(
+        ImprovementPotential improvementPotential = getImprovementPotential(
                 vertices, estimation);
 
         long otherTime = 0;
@@ -457,14 +477,13 @@ public class StrategyImprovementAlgorithm implements Solver {
 
     static long timeImprovementPotential = 0;
 
-    private Table<ParityVertex, ParityVertex, Evaluation> getImprovementPotential(
+    private ImprovementPotential getImprovementPotential(
             final Set<? extends ParityVertex> vertices,
             final Estimation estimation) {
         long potentialStart = System.currentTimeMillis();
         // improvementPotential = P
         // only includes edges in the improvement arena
-        final Table<ParityVertex, ParityVertex, Evaluation> improvementPotential = HashBasedTable
-                .create();
+        final ImprovementPotential improvementPotential = new ImprovementPotential();
         for (final ParityVertex vertex : vertices) {
             for (final ParityVertex successor : vertex.getSuccessors()) {
                 if (estimation.get(vertex)
@@ -522,7 +541,7 @@ public class StrategyImprovementAlgorithm implements Solver {
 
     private void loopBasicUpdateStep(
             final Set<? extends ParityVertex> vertices,
-            final Table<ParityVertex, ParityVertex, Evaluation> improvementPotential,
+            final ImprovementPotential improvementPotential,
             final ModifyableEstimation optimalUpdate) {
         final long updateStart = System.currentTimeMillis();
         LiftableFactory liftableFactory = new LiftableFactory(vertices);
@@ -657,7 +676,7 @@ public class StrategyImprovementAlgorithm implements Solver {
     }
 
     protected boolean doUpdateCase1(
-            final Table<ParityVertex, ParityVertex, Evaluation> improvementPotential,
+            final ImprovementPotential improvementPotential,
             final ModifyableEstimation optimalUpdate, final ParityVertex vertex) {
         final Set<? extends ParityVertex> successors = improvementPotential
                 .row(vertex).keySet();
@@ -681,7 +700,7 @@ public class StrategyImprovementAlgorithm implements Solver {
     // TODO: duplicate code in getMinEvaluation and doUpdateCase1 and
     // doUpdateCase3
     protected Evaluation getMinEvaluation(
-            final Table<ParityVertex, ParityVertex, Evaluation> improvementPotential,
+            final ImprovementPotential improvementPotential,
             final Estimation optimalUpdate, final ParityVertex vertex,
             Set<? extends ParityVertex> successors) {
         Evaluation minEvaluation = infinityEvaluation;
@@ -713,7 +732,7 @@ public class StrategyImprovementAlgorithm implements Solver {
     }
 
     protected boolean doUpdateCase3(
-            final Table<ParityVertex, ParityVertex, Evaluation> improvementPotential,
+            final ImprovementPotential improvementPotential,
             final ModifyableEstimation optimalUpdate, final ParityVertex vertex) {
         Evaluation maxEvaluation = improvementPotential
                 .row(vertex)
