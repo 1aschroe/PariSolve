@@ -76,20 +76,24 @@ public class CommandLineInterface extends AbstractUI {
                 case "?":
                     displayInfo("You can either\n"
                             + " - open [FILENAME] an arena-file,\n"
-                            + " - generate [NUMBER_VERTICES AVERAGE_DEGREE MAX_PRIORITY] a arena,\n"
+                            + " - generate-random [NUMBER_VERTICES AVERAGE_DEGREE MAX_PRIORITY] an arena,\n"
+                            + " - generate-hlb [NUMBER_LEVELS NUMBER_BLOCKS] an arena,\n"
                             + " - save [FILENAME] the current arena or\n"
                             + " - solve [ALGORITHMS] a loaded arena using the given algorithms (comma-separated)");
                     break;
                 case "open":
                     doOpen(getParts(br, parts, 1, null));
                     break;
-                case "generate":
-                    doGenerate(getParts(
+                case "generate-random":
+                    doGenerateRandom(getParts(
                             br,
                             parts,
                             3,
                             "Expected parameters are: [number of vertices] [average degree] [maximal priority]"));
                     break;
+                case "generate-hlb":
+                    doGenerateHlb(getParts(br, parts, 2,
+                            "Expected parameters are: [number of levels] [number of blocks]"));
                 case "save":
                     doSave(getParts(br, parts, 1, null));
                     break;
@@ -170,9 +174,13 @@ public class CommandLineInterface extends AbstractUI {
      * @param parts
      *            parts of the command line
      */
-    protected final void doGenerate(final String[] parts) {
-        generateArena(Integer.parseInt(parts[1]), Double.parseDouble(parts[2]),
-                Integer.parseInt(parts[3]));
+    protected final void doGenerateRandom(final String[] parts) {
+        generateRandomArena(Integer.parseInt(parts[1]),
+                Double.parseDouble(parts[2]), Integer.parseInt(parts[3]));
+    }
+
+    protected final void doGenerateHlb(final String[] parts) {
+        generateHlbArena(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
     }
 
     /**

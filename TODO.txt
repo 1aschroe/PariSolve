@@ -1,9 +1,9 @@
-- Implementation von StrategyImprovement
 - Parallelisierung von BetterAlgorithm
 - Batch-Datei als Alternative für launch_parisolve.sh
 - Generator(en) für Arenen mit variabler Größe
-  -> H4,3 aus LNCS und Arenen aus "... Practice"
+  -> Klassen aus "... Practice"
 - Angabe, wie groß die Gewinnbereiche sind bei CLI
 - Ausgabe, ob geöffnete Arena dull, weak oder solitaire
 - Rückgabe und Markierung von Gewinnstrategien
+  -> möglich mit BetterAlgorithm?
 - Grafisches Erstellen von Arenen

@@ -74,7 +74,7 @@ final class GenerateButtonListener extends SelectionAdapter {
                 lastSize = noVertices.getSelection();
                 lastAverage = degree.getSelection();
                 lastMaxPrio = maxPrio.getSelection();
-                ui.generateArena(lastSize, lastAverage / 10.0, lastMaxPrio);
+                ui.generateRandomArena(lastSize, lastAverage / 10.0, lastMaxPrio);
                 generateShell.dispose();
             }
         });

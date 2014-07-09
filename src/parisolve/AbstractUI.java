@@ -11,6 +11,7 @@ import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
+import parisolve.io.HlbArenaGenerator;
 
 public abstract class AbstractUI implements UserInterface {
     /**
@@ -56,6 +57,12 @@ public abstract class AbstractUI implements UserInterface {
         }
     }
 
+    protected final void fireOpened(final Arena arena) {
+        for (final UserListener listener : userListeners) {
+            listener.openedArena(arena);
+        }
+    }
+
     @Override
     public final void addUserListener(final UserListener openListener) {
         if (!userListeners.contains(openListener)) {
@@ -75,13 +82,22 @@ public abstract class AbstractUI implements UserInterface {
      * @param maxPriority
      *            the maximal priority in the graph
      */
-    protected final void generateArena(final int numberOfVertices,
+    protected final void generateRandomArena(final int numberOfVertices,
             final double averageDegree, final int maxPriority) {
         final Arena arena = ArenaManager.generateRandomArena(numberOfVertices,
                 averageDegree, maxPriority);
-        for (final UserListener listener : userListeners) {
-            listener.openedArena(arena);
-        }
+        fireOpened(arena);
+    }
+
+    /**
+     * generates an arena as specified by Jurdzinski (2000) Theorem 12.
+     * 
+     * @param l
+     * @param b
+     */
+    protected final void generateHlbArena(final int l, final int b) {
+        final Arena arena = HlbArenaGenerator.generateHlbArena(l, b);
+        fireOpened(arena);
     }
 
     /**
@@ -95,9 +111,7 @@ public abstract class AbstractUI implements UserInterface {
     protected final void loadArenaFromFile(final String filename) {
         try {
             final Arena arena = ArenaManager.loadArena(filename);
-            for (final UserListener listener : userListeners) {
-                listener.openedArena(arena);
-            }
+            fireOpened(arena);
         } catch (IOException e) {
             displayError("While loading the arena, the following exception occurred:\n"
                     + e.getMessage()
@@ -110,7 +124,8 @@ public abstract class AbstractUI implements UserInterface {
 
     @Override
     public void highlightSolution(
-            final Collection<? extends ParityVertex> winningRegion, final Map<ParityVertex, ParityVertex> strategy) {
+            final Collection<? extends ParityVertex> winningRegion,
+            final Map<ParityVertex, ParityVertex> strategy) {
         // left empty to not have to implement this
     }
 
