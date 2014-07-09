@@ -26,6 +26,7 @@ public class StackLiftable extends Liftable {
      * 
      * @param vertices
      *            vertices of the arena to consider
+     * @param verticesToStartWith 
      * @param liftableFactory
      *            the factory this liftable came from, which can provide it with
      *            the predecessor-relation
@@ -33,9 +34,9 @@ public class StackLiftable extends Liftable {
      *            whether a vertex should only be iterated through once
      */
     public StackLiftable(final Set<? extends ParityVertex> vertices,
-            final LiftableFactory liftableFactory, final boolean useOnce) {
+            Set<ParityVertex> verticesToStartWith, final LiftableFactory liftableFactory, final boolean useOnce) {
         super(vertices, liftableFactory, useOnce);
-        this.verticesStack.addAll(vertices);
+        this.verticesStack.addAll(verticesToStartWith);
     }
 
     @Override

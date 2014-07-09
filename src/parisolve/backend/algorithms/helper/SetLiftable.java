@@ -25,6 +25,7 @@ public class SetLiftable extends Liftable {
      * 
      * @param vertices
      *            vertices of the arena to consider
+     * @param verticesToStartWith 
      * @param liftableFactory
      *            the factory this liftable came from, which can provide it with
      *            the predecessor-relation
@@ -32,9 +33,9 @@ public class SetLiftable extends Liftable {
      *            whether a vertex should only be iterated through once
      */
     public SetLiftable(final Set<? extends ParityVertex> vertices,
-            final LiftableFactory liftableFactory, final boolean useOnce) {
+            Set<ParityVertex> verticesToStartWith, final LiftableFactory liftableFactory, final boolean useOnce) {
         super(vertices, liftableFactory, useOnce);
-        this.verticesSet = new HashSet<>(vertices);
+        this.verticesSet = new HashSet<>(verticesToStartWith);
     }
 
     @Override

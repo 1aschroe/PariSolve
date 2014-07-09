@@ -95,9 +95,15 @@ public class LiftableFactory {
      * @return a liftable instance
      */
     public final Liftable getLiftableInstance(
-            final Set<? extends ParityVertex> vertices,
+            final Set<ParityVertex> vertices,
             final boolean useOnce) {
-        return getLiftableInstance(vertices,
+        return getLiftableInstance(vertices, vertices, useOnce);
+    }
+
+    public Liftable getLiftableInstance(
+            Set<? extends ParityVertex> subGame,
+            Set<ParityVertex> verticesToStartWith, boolean useOnce) {
+        return getLiftableInstance(subGame, verticesToStartWith,
                 LiftableImplementationType.SET_STACK, useOnce);
     }
 
@@ -106,8 +112,9 @@ public class LiftableFactory {
      * to iterate over the vertices specified, allowing to specify the
      * implementation.
      * 
-     * @param vertices
+     * @param subGame
      *            the vertices to iterate
+     * @param verticesToStartWith 
      * @param type
      *            the type of implementation of the returned liftable instance
      * @param useOnce
@@ -115,15 +122,15 @@ public class LiftableFactory {
      * @return a liftable instance
      */
     public final Liftable getLiftableInstance(
-            final Set<? extends ParityVertex> vertices,
-            final LiftableImplementationType type, final boolean useOnce) {
+            final Set<? extends ParityVertex> subGame,
+            Set<ParityVertex> verticesToStartWith, final LiftableImplementationType type, final boolean useOnce) {
         switch (type) {
         case SET:
-            return new SetLiftable(vertices, this, useOnce);
+            return new SetLiftable(subGame, verticesToStartWith, this, useOnce);
         case STACK:
-            return new StackLiftable(vertices, this, useOnce);
+            return new StackLiftable(subGame, verticesToStartWith, this, useOnce);
         case SET_STACK:
-            return new SetStackLiftable(vertices, this, useOnce);
+            return new SetStackLiftable(subGame, verticesToStartWith, this, useOnce);
         default:
             throw new IllegalArgumentException("Type " + type
                     + " is not supported for liftables.");

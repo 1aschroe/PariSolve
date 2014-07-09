@@ -33,6 +33,7 @@ public class SetStackLiftable extends Liftable {
      * 
      * @param vertices
      *            vertices of the arena to consider
+     * @param verticesToStartWith 
      * @param liftableFactory
      *            the factory this liftable came from, which can provide it with
      *            the predecessor-relation
@@ -41,10 +42,10 @@ public class SetStackLiftable extends Liftable {
      */
     protected SetStackLiftable(
             final Set<? extends ParityVertex> vertices,
-            final LiftableFactory liftableFactory, final boolean useOnce) {
+            Set<ParityVertex> verticesToStartWith, final LiftableFactory liftableFactory, final boolean useOnce) {
         super(vertices, liftableFactory, useOnce);
-        this.verticesSet = new HashSet<>(vertices);
-        this.verticesStack.addAll(vertices);
+        this.verticesSet = new HashSet<>(verticesToStartWith);
+        this.verticesStack.addAll(verticesToStartWith);
     }
 
     @Override
