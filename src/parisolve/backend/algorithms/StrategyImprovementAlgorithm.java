@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BinaryOperator;
@@ -20,7 +20,6 @@ import parisolve.backend.algorithms.helper.Liftable;
 import parisolve.backend.algorithms.helper.LiftableFactory;
 
 import com.google.common.base.Functions;
-import com.google.common.base.Objects;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
@@ -33,39 +32,6 @@ import com.google.common.collect.Sets.SetView;
  * 
  */
 public class StrategyImprovementAlgorithm implements Solver {
-    class ParityEdge {
-        public final ParityVertex from;
-        public final ParityVertex to;
-
-        public ParityEdge(final ParityVertex from, final ParityVertex to) {
-            if (from.getSuccessors().contains(to)) {
-                this.from = from;
-                this.to = to;
-            } else {
-                throw new IllegalArgumentException();
-            }
-        }
-
-        @Override
-        public final boolean equals(final Object obj) {
-            if (!(obj instanceof ParityEdge)) {
-                return false;
-            }
-            final ParityEdge edge = (ParityEdge) obj;
-            return Objects.equal(from, edge.from) && Objects.equal(to, edge.to);
-        }
-
-        @Override
-        public final int hashCode() {
-            return Objects.hashCode(from, to);
-        }
-
-        @Override
-        public String toString() {
-            return "(" + from.toString() + "->" + to.toString() + ")";
-        }
-    }
-
     /**
      * class representing the type R = (C_0 → Z) ∪ ∞ which is defined in Schewe
      * (2008) p. 374 "Escape Games".
@@ -90,10 +56,6 @@ public class StrategyImprovementAlgorithm implements Solver {
 
         static Evaluation combine(final Evaluation eva1, final Evaluation eva2,
                 final BinaryOperator<Integer> combinator) {
-            // TODO: subtraction with eva2 as infinityEvaluation?
-            if (eva1 == infinityEvaluation || eva2 == infinityEvaluation) {
-                return infinityEvaluation;
-            }
             int maxColour = Math.max(eva1.maxColour, eva2.maxColour);
             int[] combinedMap = new int[maxColour];
             for (int colour = 1; colour <= maxColour; colour++) {
@@ -106,9 +68,10 @@ public class StrategyImprovementAlgorithm implements Solver {
         static long timePlus = 0;
 
         static Evaluation plus(final Evaluation eva1, final Evaluation eva2) {
-            long plusStart = System.currentTimeMillis();
+            if (eva1 == infinityEvaluation || eva2 == infinityEvaluation) {
+                return infinityEvaluation;
+            }
             Evaluation sum = combine(eva1, eva2, (a, b) -> a + b);
-            timePlus += System.currentTimeMillis() - plusStart;
             return sum;
         }
 
@@ -117,6 +80,9 @@ public class StrategyImprovementAlgorithm implements Solver {
         }
 
         static Evaluation minus(final Evaluation eva1, final Evaluation eva2) {
+            if (eva1 == infinityEvaluation) {
+                return infinityEvaluation;
+            }
             return combine(eva1, eva2, (a, b) -> a - b);
         }
 
@@ -140,7 +106,7 @@ public class StrategyImprovementAlgorithm implements Solver {
             }
             final int[] nextMap;
             if (colour <= eva.maxColour) {
-                nextMap = eva.map.clone();
+                nextMap = Arrays.copyOf(eva.map, eva.maxColour);
             } else {
                 nextMap = Arrays.copyOf(eva.map, colour);
             }
@@ -330,7 +296,7 @@ public class StrategyImprovementAlgorithm implements Solver {
                     mapping), Player.A, new ConcurrentHashMap<>());
         }
 
-        public boolean isLarger(Estimation other) {
+        public boolean isLargerThan(Estimation other) {
             boolean hasLarger = false;
             SetView<ParityVertex> allKeys = Sets.union(estimation.keySet(),
                     other.estimation.keySet());
@@ -388,6 +354,19 @@ public class StrategyImprovementAlgorithm implements Solver {
             }
             return successorMap.get(vertex);
         }
+
+        @Override
+        public String toString() {
+            String returnString = "";
+            for (final ParityVertex vertex : successorMap.keySet()) {
+                for (final ParityVertex successor : getSuccessorsOf(vertex)) {
+                    returnString += ",\n(" + vertex.getName() + "->"
+                            + successor.getName() + ") => "
+                            + get(vertex, successor).toString();
+                }
+            }
+            return returnString.substring(2);
+        }
     }
 
     @Override
@@ -409,7 +388,7 @@ public class StrategyImprovementAlgorithm implements Solver {
 
             long otherStart = System.currentTimeMillis();
             final Estimation newEstimation = estimation.plus(optimalUpdate);
-            reachedFixPoint = !newEstimation.isLarger(estimation);
+            reachedFixPoint = !newEstimation.isLargerThan(estimation);
             estimation = newEstimation;
             long otherEnd = System.currentTimeMillis();
             otherTime += otherEnd - otherStart;
@@ -417,15 +396,17 @@ public class StrategyImprovementAlgorithm implements Solver {
             System.out.println("Calculating improvement took "
                     + timeImprovementPotential + " ms.");
             System.out.println("Update took " + timeUpdate + " ms.");
-            System.out.println("Update time:\t" + timeUpdate1 + "\t"
-                    + timeUpdate2 + "\t" + timeUpdate3 + "\t" + timeUpdate3a
-                    + "\t" + timeUpdate3b + "\t" + timeUpdate3c + "\t"
-                    + timeUpdate4 + "\t" + timeUpdate5);
-            System.out.println("Update times:\t" + timesUpdate1 + "\t"
-                    + timesUpdate2 + "\t" + timesUpdate3 + "\t" + timesUpdate3
-                    + "\t" + timesUpdate3b + "\t" + timesUpdate3c + "\t"
-                    + timesUpdate4 + "\t" + timesUpdate5);
-            System.out.println("Plus took " + Evaluation.timePlus);
+            System.out.println("Update time:\t1\t" + timeUpdate1 + "\t2\t"
+                    + timeUpdate2 + "\t3\t" + timeUpdate3 + "\t3a\t"
+                    + timeUpdate3a + "\t3b\t" + timeUpdate3b + "\t3c\t"
+                    + timeUpdate3c + "\t4\t" + timeUpdate4 + "\t5\t"
+                    + timeUpdate5);
+            System.out.println("Update times:\t1\t" + timesUpdate1 + "\t2\t"
+                    + timesUpdate2 + "\t3\t" + timesUpdate3 + "\t3a\t"
+                    + timesUpdate3 + "\t3b\t" + timesUpdate3b + "\t3c\t"
+                    + timesUpdate3c + "\t4\t" + timesUpdate4 + "\t5\t"
+                    + timesUpdate5);
+            System.out.println("Plus took\t" + Evaluation.timePlus);
             System.out.println("Min\t" + minTime + "\tminIter\t" + minIterTime
                     + "\tminHasNext\t" + minHasNextTime + "\tminNext\t"
                     + minNextTime + "\tminMap\t" + minMapTime + "\tminMin\t"
@@ -543,8 +524,18 @@ public class StrategyImprovementAlgorithm implements Solver {
     static int timesUpdate4 = 0;
     static int timesUpdate5 = 0;
 
-    private void loopBasicUpdateStep(
-            final Set<? extends ParityVertex> vertices,
+    class VertexEvaluationPair {
+        final ParityVertex vertex;
+        final Evaluation evaluation;
+
+        public VertexEvaluationPair(final ParityVertex vertex,
+                final Evaluation evaluation) {
+            this.vertex = vertex;
+            this.evaluation = evaluation;
+        }
+    }
+
+    private void loopBasicUpdateStep(final Set<ParityVertex> vertices,
             final ImprovementPotential improvementPotential,
             final ModifyableEstimation optimalUpdate) {
         final long updateStart = System.currentTimeMillis();
@@ -555,123 +546,137 @@ public class StrategyImprovementAlgorithm implements Solver {
             whileLoopCount++;
             timesUpdate1++;
             final long update1Start = System.currentTimeMillis();
-            boolean changed = false;
-            ParityVertex minForCase4 = null;
-            Evaluation minIntermediateImprovement = null;
-            Liftable iterator = liftableFactory.getLiftableInstance(
-                    Sets.difference(vertices,
-                            optimalUpdate.getEvaluatedVertices()), true);
-            timeUpdate1 += System.currentTimeMillis() - update1Start;
-            System.out.println(Sets.difference(vertices,
-                    optimalUpdate.getEvaluatedVertices()).size());
-            for (final ParityVertex vertex : iterator) {
-                if (optimalUpdate.hasEvaluatedVertex(vertex)) {
-                    continue;
-                }
-                if (vertex.getPlayer() == Player.B) {
-                    timesUpdate2++;
-                    final long update2Start = System.currentTimeMillis();
-                    if (optimalUpdate
+            Set<ParityVertex> nonEvaluatedVertices = Sets.difference(vertices,
+                    optimalUpdate.getEvaluatedVertices());
+            Set<ParityVertex> liftable = nonEvaluatedVertices
+                    .stream()
+                    .filter(vertex -> optimalUpdate
                             .hasEvaluatedAllVertices(improvementPotential
-                                    .getSuccessorsOf(vertex))
-                            && doUpdateCase1(improvementPotential,
-                                    optimalUpdate, vertex)) {
-                        changed = true;
-                        iterator.liftWasSuccessful(vertex);
+                                    .getSuccessorsOf(vertex)))
+                    .collect(Collectors.toSet());
+            Liftable iterator = liftableFactory.getLiftableInstance(
+                    nonEvaluatedVertices, liftable, true);
+            if (liftable.isEmpty()) {
+                Optional<VertexEvaluationPair> min = nonEvaluatedVertices
+                        .stream()
+                        .filter(vertex -> vertex.getPlayer() == Player.B)
+                        .map(vertex -> new VertexEvaluationPair(vertex,
+                                getMinSuccessorEvaluationOfVertex(
+                                        improvementPotential, optimalUpdate,
+                                        vertex)))
+                        .min((a, b) -> a.evaluation.compareTo(b.evaluation));
+                min.ifPresent(pair -> {
+                    timesUpdate5++;
+                    final long update5Start = System.currentTimeMillis();
+                    doCase4(optimalUpdate, pair.vertex, pair.evaluation,
+                            iterator);
+                    timeUpdate5 += System.currentTimeMillis() - update5Start;
+                });
+            } else {
+                timeUpdate1 += System.currentTimeMillis() - update1Start;
+                System.out.println(Sets.difference(vertices,
+                        optimalUpdate.getEvaluatedVertices()).size());
+                outerForLoop: for (final ParityVertex vertex : iterator) {
+                    if (optimalUpdate.hasEvaluatedVertex(vertex)) {
                         continue;
-                    } else {
-                        // case 2:
-                        for (final ParityVertex successor : improvementPotential
-                                .getSuccessorsOf(vertex)) {
-                            if (optimalUpdate.hasEvaluatedVertex(successor)
-                                    && improvementPotential.get(vertex,
-                                            successor)
-                                            .compareTo(zeroEvaluation) == 0
-                                    && optimalUpdate.get(successor).compareTo(
-                                            zeroEvaluation) == 0) {
-                                optimalUpdate.put(vertex, zeroEvaluation);
-                                changed = true;
-                                iterator.liftWasSuccessful(vertex);
-                                continue;
+                    }
+                    if (vertex.getPlayer() == Player.B) {
+                        timesUpdate2++;
+                        final long update2Start = System.currentTimeMillis();
+                        if (optimalUpdate
+                                .hasEvaluatedAllVertices(improvementPotential
+                                        .getSuccessorsOf(vertex))
+                                && doUpdateCase1(improvementPotential,
+                                        optimalUpdate, vertex)) {
+                            iterator.liftWasSuccessful(vertex);
+                            timeUpdate2 += System.currentTimeMillis()
+                                    - update2Start;
+                            continue;
+                        } else {
+                            // case 2:
+                            for (final ParityVertex successor : improvementPotential
+                                    .getSuccessorsOf(vertex)) {
+                                if (optimalUpdate.hasEvaluatedVertex(successor)
+                                        && improvementPotential.get(vertex,
+                                                successor).compareTo(
+                                                zeroEvaluation) == 0
+                                        && optimalUpdate.get(successor)
+                                                .compareTo(zeroEvaluation) == 0) {
+                                    optimalUpdate.put(vertex, zeroEvaluation);
+                                    iterator.liftWasSuccessful(vertex);
+                                    timeUpdate2 += System.currentTimeMillis()
+                                            - update2Start;
+                                    continue outerForLoop;
+                                }
                             }
                         }
-                    }
-                    timeUpdate2 += System.currentTimeMillis() - update2Start;
-                    timesUpdate3++;
-                    final long update3Start = System.currentTimeMillis();
-                    final long update3aStart = System.currentTimeMillis();
-                    final List<ParityVertex> evaluatedSuccessors = new ArrayList<>(
-                            improvementPotential.getSuccessorsOf(vertex));
-                    evaluatedSuccessors.retainAll(optimalUpdate
-                            .getEvaluatedVertices());
-                    timeUpdate3a += System.currentTimeMillis() - update3aStart;
-                    if (minForCase4 == null
-                            && optimalUpdate.get(vertex) != infinityEvaluation) {
-                        timesUpdate3b++;
-                        final long update3bStart = System.currentTimeMillis();
-                        minForCase4 = vertex;
-                        minIntermediateImprovement = getMinEvaluation(
-                                improvementPotential, optimalUpdate, vertex,
-                                evaluatedSuccessors);
-                        timeUpdate3b += System.currentTimeMillis()
-                                - update3bStart;
+                        timeUpdate2 += System.currentTimeMillis()
+                                - update2Start;
                     } else {
-                        timesUpdate3c++;
-                        final long update3cStart = System.currentTimeMillis();
-                        Evaluation evaToCompare = getMinEvaluation(
-                                improvementPotential, optimalUpdate, vertex,
-                                evaluatedSuccessors);
-                        if (evaToCompare.compareTo(minIntermediateImprovement) < 0) {
-                            minForCase4 = vertex;
-                            minIntermediateImprovement = evaToCompare;
+                        // vertex.getPlayer() == Player.A
+                        timesUpdate4++;
+                        final long update4Start = System.currentTimeMillis();
+                        if (optimalUpdate
+                                .hasEvaluatedAllVertices(improvementPotential
+                                        .getSuccessorsOf(vertex))) {
+                            if (doUpdateCase3(improvementPotential,
+                                    optimalUpdate, vertex)) {
+                                iterator.liftWasSuccessful(vertex);
+                            }
                         }
-                        timeUpdate3c += System.currentTimeMillis()
-                                - update3cStart;
-                    }
-                    timeUpdate3 += System.currentTimeMillis() - update3Start;
-                } else {
-                    // vertex.getPlayer() == Player.A
-                    timesUpdate4++;
-                    final long update4Start = System.currentTimeMillis();
-                    if (optimalUpdate
-                            .hasEvaluatedAllVertices(improvementPotential
-                                    .getSuccessorsOf(vertex))) {
-                        if (doUpdateCase3(improvementPotential, optimalUpdate,
-                                vertex)) {
-                            changed = true;
-                            iterator.liftWasSuccessful(vertex);
-                        }
-                    }
-                    timeUpdate4 += System.currentTimeMillis() - update4Start;
-                }
-            }
-            timesUpdate5++;
-            final long update5Start = System.currentTimeMillis();
-            if (!changed) {
-                forLoopCount++;
-                if (minForCase4 == null
-                        || (optimalUpdate.hasEvaluatedVertex(minForCase4) && optimalUpdate
-                                .get(minForCase4).compareTo(
-                                        minIntermediateImprovement) == 0)) {
-                    System.out.println("Now we would have broken.");
-                } else {
-                    optimalUpdate.put(minForCase4, minIntermediateImprovement);
-                    iterator.liftWasSuccessful(minForCase4);
-                    for (final ParityVertex vertex : iterator) {
-                        if (!optimalUpdate.hasEvaluatedVertex(vertex)) {
-                            optimalUpdate.put(vertex,
-                                    minIntermediateImprovement);
-                            iterator.liftWasSuccessful(vertex);
-                        }
+                        timeUpdate4 += System.currentTimeMillis()
+                                - update4Start;
                     }
                 }
             }
-            timeUpdate5 += System.currentTimeMillis() - update5Start;
         }
         final long updateEnd = System.currentTimeMillis();
         timeUpdate += updateEnd - updateStart;
 
         System.out.println(whileLoopCount + "\t" + forLoopCount);
+    }
+
+    protected Evaluation getMinSuccessorEvaluationOfVertex(
+            final ImprovementPotential improvementPotential,
+            final ModifyableEstimation optimalUpdate, final ParityVertex vertex) {
+        timesUpdate3++;
+        final long update3Start = System.currentTimeMillis();
+        final long update3aStart = System.currentTimeMillis();
+        final List<ParityVertex> evaluatedSuccessors = new ArrayList<>(
+                improvementPotential.getSuccessorsOf(vertex));
+        evaluatedSuccessors.retainAll(optimalUpdate.getEvaluatedVertices());
+        timeUpdate3a += System.currentTimeMillis() - update3aStart;
+        timesUpdate3b++;
+        final long update3bStart = System.currentTimeMillis();
+        timesUpdate3c++;
+        final long update3cStart = System.currentTimeMillis();
+        final Evaluation minIntermediateImprovement = getMinEvaluation(
+                improvementPotential, optimalUpdate, vertex,
+                evaluatedSuccessors);
+        timeUpdate3b += System.currentTimeMillis() - update3bStart;
+        timeUpdate3c += System.currentTimeMillis() - update3cStart;
+        timeUpdate3 += System.currentTimeMillis() - update3Start;
+        return minIntermediateImprovement;
+    }
+
+    protected void doCase4(final ModifyableEstimation optimalUpdate,
+            ParityVertex minForCase4, Evaluation minIntermediateImprovement,
+            Liftable iterator) {
+        if (minForCase4 == null
+                || (optimalUpdate.hasEvaluatedVertex(minForCase4) && optimalUpdate
+                        .get(minForCase4).compareTo(minIntermediateImprovement) == 0)) {
+            System.out.println("Now we would have broken.");
+        } else {
+            optimalUpdate.put(minForCase4, minIntermediateImprovement);
+            // TODO: this does not seem clean.
+            iterator.liftWasSuccessful(minForCase4);
+            for (final ParityVertex vertex : iterator) {
+                if (!optimalUpdate.hasEvaluatedVertex(vertex)) {
+                    optimalUpdate.put(vertex, minIntermediateImprovement);
+                    iterator.liftWasSuccessful(vertex);
+                }
+            }
+        }
     }
 
     private ModifyableEstimation getInitialUpdate() {
@@ -708,30 +713,12 @@ public class StrategyImprovementAlgorithm implements Solver {
             final ImprovementPotential improvementPotential,
             final Estimation optimalUpdate, final ParityVertex vertex,
             Collection<? extends ParityVertex> successors) {
-        Evaluation minEvaluation = infinityEvaluation;
         final long minStartTime = System.currentTimeMillis();
-        final long minIterStartTime = System.currentTimeMillis();
-        Iterator<? extends ParityVertex> iterator = successors.iterator();
-        minIterTime += System.currentTimeMillis() - minIterStartTime;
-        long minHasNextStartTime = System.currentTimeMillis();
-        boolean hasNext = iterator.hasNext();
-        minHasNextTime += System.currentTimeMillis() - minHasNextStartTime;
-        while (hasNext) {
-            final long minNextStartTime = System.currentTimeMillis();
-            final ParityVertex successor = iterator.next();
-            minNextTime += System.currentTimeMillis() - minNextStartTime;
-            final long minMapTimeStart = System.currentTimeMillis();
-            Evaluation evaluation = optimalUpdate.get(successor).plus(
-                    improvementPotential.get(vertex, successor));
-            minMapTime += System.currentTimeMillis() - minMapTimeStart;
-            final long minMinTimeStart = System.currentTimeMillis();
-            minEvaluation = minEvaluation.compareTo(evaluation) > 0 ? evaluation
-                    : minEvaluation;
-            minMinTime += System.currentTimeMillis() - minMinTimeStart;
-            minHasNextStartTime = System.currentTimeMillis();
-            hasNext = iterator.hasNext();
-            minHasNextTime += System.currentTimeMillis() - minHasNextStartTime;
-        }
+        Evaluation minEvaluation = successors
+                .stream()
+                .map(successor -> optimalUpdate.get(successor).plus(
+                        improvementPotential.get(vertex, successor)))
+                .min((a, b) -> a.compareTo(b)).orElse(infinityEvaluation);
         minTime += System.currentTimeMillis() - minStartTime;
         return minEvaluation;
     }
