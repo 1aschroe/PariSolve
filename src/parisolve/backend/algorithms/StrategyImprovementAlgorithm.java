@@ -22,10 +22,8 @@ import parisolve.backend.algorithms.helper.LiftableFactory;
 import com.google.common.base.Functions;
 import com.google.common.base.Objects;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
-import com.google.common.collect.Table;
 
 /**
  * implementation of the algorithm sketched in Schewe (2008), "An Optimal
@@ -105,20 +103,11 @@ public class StrategyImprovementAlgorithm implements Solver {
             return new Evaluation(combinedMap);
         }
 
-        static Table<Evaluation, Evaluation, Evaluation> plusMemo = HashBasedTable
-                .create();
-
         static long timePlus = 0;
 
         static Evaluation plus(final Evaluation eva1, final Evaluation eva2) {
             long plusStart = System.currentTimeMillis();
-            Evaluation sum;
-            if (!plusMemo.contains(eva1, eva2)) {
-                sum = combine(eva1, eva2, (a, b) -> a + b);
-                plusMemo.put(eva1, eva2, sum);
-            } else {
-                sum = plusMemo.get(eva1, eva2);
-            }
+            Evaluation sum = combine(eva1, eva2, (a, b) -> a + b);
             timePlus += System.currentTimeMillis() - plusStart;
             return sum;
         }
