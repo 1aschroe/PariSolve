@@ -78,6 +78,7 @@ public class CommandLineInterface extends AbstractUI {
                             + " - open [FILENAME] an arena-file,\n"
                             + " - generate-random [NUMBER_VERTICES AVERAGE_DEGREE MAX_PRIORITY] an arena,\n"
                             + " - generate-hlb [NUMBER_LEVELS NUMBER_BLOCKS] an arena,\n"
+                            + " - generate-weak [NUMBER_LEVELS] an arena,\n"
                             + " - save [FILENAME] the current arena or\n"
                             + " - solve [ALGORITHMS] a loaded arena using the given algorithms (comma-separated)");
                     break;
@@ -94,6 +95,9 @@ public class CommandLineInterface extends AbstractUI {
                 case "generate-hlb":
                     doGenerateHlb(getParts(br, parts, 2,
                             "Expected parameters are: [number of levels] [number of blocks]"));
+                case "generate-weak":
+                    doGenerateWeak(getParts(br, parts, 1,
+                            "Expected parameters are: [number of levels]"));
                 case "save":
                     doSave(getParts(br, parts, 1, null));
                     break;
@@ -169,7 +173,7 @@ public class CommandLineInterface extends AbstractUI {
     }
 
     /**
-     * executes the generate-action.
+     * executes the generate-action for random arenas.
      * 
      * @param parts
      *            parts of the command line
@@ -179,8 +183,22 @@ public class CommandLineInterface extends AbstractUI {
                 Double.parseDouble(parts[2]), Integer.parseInt(parts[3]));
     }
 
+    /**
+     * executes the generate-action for H_l,b arenas.
+     * 
+     * @param parts
+     */
     protected final void doGenerateHlb(final String[] parts) {
         generateHlbArena(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+    }
+
+    /**
+     * executes the generate-action for Weak arenas.
+     * 
+     * @param parts
+     */
+    protected final void doGenerateWeak(final String[] parts) {
+        generateWeakArena(Integer.parseInt(parts[1]));
     }
 
     /**

@@ -12,6 +12,7 @@ import parisolve.backend.ParityVertex;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
 import parisolve.io.HlbArenaGenerator;
+import parisolve.io.WeakArenaGenerator;
 
 public abstract class AbstractUI implements UserInterface {
     /**
@@ -91,12 +92,14 @@ public abstract class AbstractUI implements UserInterface {
 
     /**
      * generates an arena as specified by Jurdzinski (2000) Theorem 12.
-     * 
-     * @param l
-     * @param b
      */
     protected final void generateHlbArena(final int l, final int b) {
         final Arena arena = HlbArenaGenerator.generateHlbArena(l, b);
+        fireOpened(arena);
+    }
+
+    protected final void generateWeakArena(final int n) {
+        final Arena arena = WeakArenaGenerator.generateWeakArena(n);
         fireOpened(arena);
     }
 
