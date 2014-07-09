@@ -260,4 +260,38 @@ public final class ArenaManager {
         Files.write(Paths.get(path), lines, Charset.defaultCharset(),
                 StandardOpenOption.CREATE);
     }
+
+    /**
+     * tests whether the arena given is weak as in Definition 3 of Gazda,
+     * Willemse (2013)
+     * "Zielonka’s Recursive Algorithm: dull, weak and solitaire games and tighter bounds"
+     */
+    public static boolean isWeak(final Arena arena) {
+        for (final ParityVertex vertex : arena.getVertices()) {
+            for (final ParityVertex successor : vertex.getSuccessors()) {
+                if (successor.getPriority() > vertex.getPriority()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * tests whether the arena given is weak as in Definition 5 of Gazda,
+     * Willemse (2013)
+     * "Zielonka’s Recursive Algorithm: dull, weak and solitaire games and tighter bounds"
+     */
+    public static boolean isSolitaire(final Arena arena) {
+        boolean mightBeSolitaireForA = true;
+        boolean mightBeSolitaireForB = true;
+        for (final ParityVertex vertex : arena.getVertices()) {
+            if (vertex.getPlayer() == Player.A) {
+                mightBeSolitaireForA &= (vertex.getSuccessors().size() == 1);
+            } else {
+                mightBeSolitaireForB &= (vertex.getSuccessors().size() == 1);
+            }
+        }
+        return mightBeSolitaireForA || mightBeSolitaireForB;
+    }
 }
