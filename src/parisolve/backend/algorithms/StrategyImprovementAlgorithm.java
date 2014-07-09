@@ -127,17 +127,13 @@ public class StrategyImprovementAlgorithm implements Solver {
         static long timeCompare = 0;
 
         static int compare(final Evaluation eva1, final Evaluation eva2) {
-            final long compareStart = System.currentTimeMillis();
             if (eva1 == eva2) {
-                timeCompare += System.currentTimeMillis() - compareStart;
                 return 0;
             }
             if (eva1 == infinityEvaluation) {
-                timeCompare += System.currentTimeMillis() - compareStart;
                 return 1;
             }
             if (eva2 == infinityEvaluation) {
-                timeCompare += System.currentTimeMillis() - compareStart;
                 return -1;
             }
             int maxColour = Math.max(eva1.maxColour, eva2.maxColour);
@@ -145,27 +141,18 @@ public class StrategyImprovementAlgorithm implements Solver {
                 // maybe this can be sped up by testing equality first
                 if (eva1.get(colour) > eva2.get(colour)) {
                     if (colour % 2 == 0) {
-                        timeCompare += System.currentTimeMillis()
-                                - compareStart;
                         return 1;
                     } else {
-                        timeCompare += System.currentTimeMillis()
-                                - compareStart;
                         return -1;
                     }
                 } else if (eva1.get(colour) < eva2.get(colour)) {
                     if (colour % 2 == 0) {
-                        timeCompare += System.currentTimeMillis()
-                                - compareStart;
                         return -1;
                     } else {
-                        timeCompare += System.currentTimeMillis()
-                                - compareStart;
                         return 1;
                     }
                 }
             }
-            timeCompare += System.currentTimeMillis() - compareStart;
             return 0;
         }
 
@@ -713,13 +700,11 @@ public class StrategyImprovementAlgorithm implements Solver {
             final ImprovementPotential improvementPotential,
             final Estimation optimalUpdate, final ParityVertex vertex,
             Collection<? extends ParityVertex> successors) {
-        final long minStartTime = System.currentTimeMillis();
         Evaluation minEvaluation = successors
                 .stream()
                 .map(successor -> optimalUpdate.get(successor).plus(
                         improvementPotential.get(vertex, successor)))
                 .min((a, b) -> a.compareTo(b)).orElse(infinityEvaluation);
-        minTime += System.currentTimeMillis() - minStartTime;
         return minEvaluation;
     }
 
