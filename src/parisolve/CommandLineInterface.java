@@ -11,6 +11,7 @@ import parisolve.backend.Arena;
 import parisolve.backend.algorithms.AlgorithmManager;
 import parisolve.backend.algorithms.BigStepAlgorithm;
 import parisolve.backend.algorithms.Solver;
+import parisolve.io.LinearArenaGenerator.GeneratorType;
 
 /**
  * User interface implementation to interact with the program via a command-line
@@ -78,8 +79,7 @@ public class CommandLineInterface extends AbstractUI {
                             + " - open [FILENAME] an arena-file,\n"
                             + " - generate-random [NUMBER_VERTICES AVERAGE_DEGREE MAX_PRIORITY] an arena,\n"
                             + " - generate-hlb [NUMBER_LEVELS NUMBER_BLOCKS] an arena,\n"
-                            + " - generate-weak [NUMBER_LEVELS] an arena,\n"
-                            + " - generate-solitaire [NUMBER_LEVELS] an arena,\n"
+                            + " - generate-linear [ARENA_TYPE] [NUMBER_LEVELS] an arena,\n"
                             + " - save [FILENAME] the current arena or\n"
                             + " - solve [ALGORITHMS] a loaded arena using the given algorithms (comma-separated)");
                     break;
@@ -96,12 +96,9 @@ public class CommandLineInterface extends AbstractUI {
                 case "generate-hlb":
                     doGenerateHlb(getParts(br, parts, 2,
                             "Expected parameters are: [number of levels] [number of blocks]"));
-                case "generate-weak":
-                    doGenerateWeak(getParts(br, parts, 1,
-                            "Expected parameters are: [number of levels]"));
-                case "generate-solitaire":
-                    doGenerateSolitaire(getParts(br, parts, 1,
-                            "Expected parameters are: [number of levels]"));
+                case "generate-linear":
+                    doGenerateLinear(getParts(br, parts, 2,
+                            "Expected parameters are: [type of arena] [number of levels]"));
                 case "save":
                     doSave(getParts(br, parts, 1, null));
                     break;
@@ -197,21 +194,30 @@ public class CommandLineInterface extends AbstractUI {
     }
 
     /**
-     * executes the generate-action for weak arenas.
+     * executes the generate-action for the respective family of arenas as
+     * specified in "Zielonka’s Recursive Algorithm: dull, weak and solitaire
+     * games and tighter bounds".
      * 
      * @param parts
+     *            first the command, second the type, third the size
      */
-    protected final void doGenerateWeak(final String[] parts) {
-        generateWeakArena(Integer.parseInt(parts[1]));
-    }
-
-    /**
-     * executes the generate-action for solitaire arenas.
-     * 
-     * @param parts
-     */
-    protected final void doGenerateSolitaire(final String[] parts) {
-        generateSolitaireArena(Integer.parseInt(parts[1]));
+    protected final void doGenerateLinear(final String[] parts) {
+        final GeneratorType generatorType;
+        switch (parts[1].toLowerCase()) {
+        case "weak":
+            generatorType = GeneratorType.WEAK;
+            break;
+        case "solitaire":
+            generatorType = GeneratorType.SOLITAIRE;
+            break;
+        case "resilient":
+            generatorType = GeneratorType.RESILIENT;
+            break;
+        default:
+            displayError("Unknown generator type: " + parts[1]);
+            return;
+        }
+        generateLinearArena(generatorType, Integer.parseInt(parts[2]));
     }
 
     /**

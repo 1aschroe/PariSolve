@@ -11,7 +11,7 @@ import parisolve.backend.Player;
  * 
  * @author Arne Schröder
  */
-public class WeakArenaGenerator {
+public class WeakArenaGenerator implements LinearArenaGenerator {
 
     /**
      * 
@@ -19,7 +19,7 @@ public class WeakArenaGenerator {
      *            parameter for the arena. Has to be at least 1.
      * @return
      */
-    public static Arena generateWeakArena(final int n) {
+    public Arena generateArena(final int n) {
         LinkedArena arena = new LinkedArena();
         arena.addVertex("u0", 0, Player.A);
         arena.addEdge("u0", "u0");

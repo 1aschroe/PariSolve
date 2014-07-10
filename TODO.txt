@@ -1,7 +1,5 @@
 - Parallelisierung von BetterAlgorithm
 - Batch-Datei als Alternative für launch_parisolve.sh
-- Generator(en) für Arenen mit variabler Größe
-  -> Klassen aus "... Practice"
 - Angabe, wie groß die Gewinnbereiche sind bei CLI
 - Ausgabe, ob geöffnete Arena dull, weak oder solitaire
 - Rückgabe und Markierung von Gewinnstrategien

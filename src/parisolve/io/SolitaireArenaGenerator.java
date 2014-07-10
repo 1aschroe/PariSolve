@@ -4,8 +4,8 @@ import parisolve.backend.Arena;
 import parisolve.backend.LinkedArena;
 import parisolve.backend.Player;
 
-public class SolitaireArenaGenerator {
-    public static Arena generateSolitaireArena(final int n) {
+public class SolitaireArenaGenerator implements LinearArenaGenerator {
+    public Arena generateArena(final int n) {
         LinkedArena arena = new LinkedArena();
         // in the definition of the family this is player As vertex, but that
         // does not change the solitaire-property.
