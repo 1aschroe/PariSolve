@@ -79,6 +79,7 @@ public class CommandLineInterface extends AbstractUI {
                             + " - generate-random [NUMBER_VERTICES AVERAGE_DEGREE MAX_PRIORITY] an arena,\n"
                             + " - generate-hlb [NUMBER_LEVELS NUMBER_BLOCKS] an arena,\n"
                             + " - generate-weak [NUMBER_LEVELS] an arena,\n"
+                            + " - generate-solitaire [NUMBER_LEVELS] an arena,\n"
                             + " - save [FILENAME] the current arena or\n"
                             + " - solve [ALGORITHMS] a loaded arena using the given algorithms (comma-separated)");
                     break;
@@ -97,6 +98,9 @@ public class CommandLineInterface extends AbstractUI {
                             "Expected parameters are: [number of levels] [number of blocks]"));
                 case "generate-weak":
                     doGenerateWeak(getParts(br, parts, 1,
+                            "Expected parameters are: [number of levels]"));
+                case "generate-solitaire":
+                    doGenerateSolitaire(getParts(br, parts, 1,
                             "Expected parameters are: [number of levels]"));
                 case "save":
                     doSave(getParts(br, parts, 1, null));
@@ -193,12 +197,21 @@ public class CommandLineInterface extends AbstractUI {
     }
 
     /**
-     * executes the generate-action for Weak arenas.
+     * executes the generate-action for weak arenas.
      * 
      * @param parts
      */
     protected final void doGenerateWeak(final String[] parts) {
         generateWeakArena(Integer.parseInt(parts[1]));
+    }
+
+    /**
+     * executes the generate-action for solitaire arenas.
+     * 
+     * @param parts
+     */
+    protected final void doGenerateSolitaire(final String[] parts) {
+        generateSolitaireArena(Integer.parseInt(parts[1]));
     }
 
     /**

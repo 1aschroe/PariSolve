@@ -12,6 +12,7 @@ import parisolve.backend.ParityVertex;
 import parisolve.backend.algorithms.Solver;
 import parisolve.io.ArenaManager;
 import parisolve.io.HlbArenaGenerator;
+import parisolve.io.SolitaireArenaGenerator;
 import parisolve.io.WeakArenaGenerator;
 
 public abstract class AbstractUI implements UserInterface {
@@ -100,6 +101,11 @@ public abstract class AbstractUI implements UserInterface {
 
     protected final void generateWeakArena(final int n) {
         final Arena arena = WeakArenaGenerator.generateWeakArena(n);
+        fireOpened(arena);
+    }
+
+    protected final void generateSolitaireArena(final int n) {
+        final Arena arena = SolitaireArenaGenerator.generateSolitaireArena(n);
         fireOpened(arena);
     }
 
