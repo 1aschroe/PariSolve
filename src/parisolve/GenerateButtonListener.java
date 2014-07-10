@@ -3,6 +3,7 @@ package parisolve;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -11,6 +12,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+
+import parisolve.io.LinearArenaGenerator.GeneratorType;
 
 /**
  * class representing the dialog querying for parameter when an arena is to be
@@ -38,22 +41,27 @@ final class GenerateButtonListener extends SelectionAdapter {
 
         final TabFolder tabFolder = new TabFolder(generateShell, SWT.BORDER);
 
-        final TabItem randomTabItem = new TabItem(tabFolder, SWT.NONE);
-        randomTabItem.setText("Random");
-        final Composite randomTab = new Composite(tabFolder, SWT.NONE);
+        final Composite randomTab = createTab(tabFolder, "Random");
         populateRandomTab(randomTab, generateShell);
-        randomTabItem.setControl(randomTab);
 
-        final TabItem hlbTabItem = new TabItem(tabFolder, SWT.NONE);
-        hlbTabItem.setText("H_lb");
-        final Composite hlbTab = new Composite(tabFolder, SWT.NONE);
+        final Composite hlbTab = createTab(tabFolder, "H_lb");
         populateHlbTab(hlbTab, generateShell);
-        hlbTabItem.setControl(hlbTab);
+
+        final Composite linearTab = createTab(tabFolder, "Linear");
+        populateLinearTab(linearTab, generateShell);
 
         tabFolder.pack();
 
         generateShell.pack();
         generateShell.open();
+    }
+
+    private Composite createTab(final TabFolder tabFolder, final String text) {
+        final TabItem randomTabItem = new TabItem(tabFolder, SWT.NONE);
+        randomTabItem.setText(text);
+        final Composite randomTab = new Composite(tabFolder, SWT.NONE);
+        randomTabItem.setControl(randomTab);
+        return randomTab;
     }
 
     /**
@@ -77,21 +85,12 @@ final class GenerateButtonListener extends SelectionAdapter {
         layout.numColumns = 2;
         randomTab.setLayout(layout);
 
-        final Label nodesLabel = new Label(randomTab, SWT.NONE);
-        nodesLabel.setText("# of vertices:");
-        final Spinner noVertices = new Spinner(randomTab, SWT.NONE);
-        noVertices.setSelection(this.lastSize);
-
-        final Label averageLabel = new Label(randomTab, SWT.NONE);
-        averageLabel.setText("average degree:");
-        final Spinner degree = new Spinner(randomTab, SWT.NONE);
-        degree.setDigits(1);
-        degree.setSelection(this.lastAverage);
-
-        final Label priorityLabel = new Label(randomTab, SWT.NONE);
-        priorityLabel.setText("max. priority:");
-        final Spinner maxPrio = new Spinner(randomTab, SWT.NONE);
-        maxPrio.setSelection(this.lastMaxPrio);
+        final Spinner noVertices = createSpinner(randomTab, "# of vertices:",
+                lastSize);
+        final Spinner degree = createSpinner(randomTab, "average degree:",
+                lastAverage, 1);
+        final Spinner maxPrio = createSpinner(randomTab, "max. priority:",
+                lastMaxPrio);
 
         final Button okButton = new Button(randomTab, SWT.PUSH);
         okButton.addSelectionListener(new SelectionAdapter() {
@@ -108,6 +107,21 @@ final class GenerateButtonListener extends SelectionAdapter {
         okButton.setText("Generate");
     }
 
+    private Spinner createSpinner(final Composite tab, final String text,
+            final int value) {
+        return createSpinner(tab, text, value, 0);
+    }
+
+    private Spinner createSpinner(final Composite tab, final String text,
+            final int value, final int digits) {
+        final Label label = new Label(tab, SWT.NONE);
+        label.setText(text);
+        final Spinner spinner = new Spinner(tab, SWT.NONE);
+        spinner.setSelection(value);
+        spinner.setDigits(digits);
+        return spinner;
+    }
+
     int lastLevels = 4;
 
     int lastBlocks = 3;
@@ -117,26 +131,67 @@ final class GenerateButtonListener extends SelectionAdapter {
         layout.numColumns = 2;
         hlbTab.setLayout(layout);
 
-        final Label levelsLabel = new Label(hlbTab, SWT.NONE);
-        levelsLabel.setText("# of levels:");
-        final Spinner noLabels = new Spinner(hlbTab, SWT.NONE);
-        noLabels.setSelection(this.lastLevels);
-
-        final Label blocksLabel = new Label(hlbTab, SWT.NONE);
-        blocksLabel.setText("# of blocks:");
-        final Spinner noBlocks = new Spinner(hlbTab, SWT.NONE);
-        noBlocks.setSelection(this.lastBlocks);
+        final Spinner noLevels = createSpinner(hlbTab, "# of levels:",
+                this.lastLevels);
+        final Spinner noBlocks = createSpinner(hlbTab, "# of blocks:",
+                this.lastBlocks);
 
         final Button okButton = new Button(hlbTab, SWT.PUSH);
         okButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(final SelectionEvent arg0) {
-                lastLevels = noLabels.getSelection();
+                lastLevels = noLevels.getSelection();
                 lastBlocks = noBlocks.getSelection();
                 ui.generateHlbArena(lastLevels, lastBlocks);
                 shell.dispose();
             }
         });
         okButton.setText("Generate");
+    }
+
+    int lastLinearSize = 4;
+
+    private void populateLinearTab(final Composite linearTab, final Shell shell) {
+        GridLayout layout = new GridLayout();
+        layout.numColumns = 2;
+        linearTab.setLayout(layout);
+
+        final Button weakButton = createRadioButton(linearTab, "weak");
+        final Button solitaireButton = createRadioButton(linearTab, "solitaire");
+        final Button resilientButton = createRadioButton(linearTab, "resilient");
+
+        final Spinner noLevels = createSpinner(linearTab, "# of levels:",
+                lastLinearSize);
+
+        final Button okButton = new Button(linearTab, SWT.PUSH);
+        okButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(final SelectionEvent arg0) {
+                lastLevels = noLevels.getSelection();
+                final GeneratorType type;
+                if (weakButton.getSelection()) {
+                    type = GeneratorType.WEAK;
+                } else if (solitaireButton.getSelection()) {
+                    type = GeneratorType.SOLITAIRE;
+                } else if (resilientButton.getSelection()) {
+                    type = GeneratorType.RESILIENT;
+                } else {
+                    ui.displayError("No selection of generator type made.");
+                    return;
+                }
+                ui.generateLinearArena(type, lastLinearSize);
+                shell.dispose();
+            }
+        });
+        okButton.setText("Generate");
+    }
+
+    private Button createRadioButton(final Composite tab, final String text) {
+        final Button button = new Button(tab, SWT.RADIO);
+        button.setText(text);
+        GridData data = new GridData();
+        data.horizontalSpan = 2;
+        button.setLayoutData(data);
+        return button;
     }
 }
