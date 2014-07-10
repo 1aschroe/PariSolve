@@ -6,8 +6,11 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 
 import parisolve.backend.Arena;
+import parisolve.backend.ParityVertex;
 import parisolve.backend.algorithms.AlgorithmManager;
 import parisolve.backend.algorithms.BigStepAlgorithm;
 import parisolve.backend.algorithms.Solver;
@@ -37,6 +40,13 @@ public class CommandLineInterface extends AbstractUI {
     @Override
     public final void populateGraphWithArena(final Arena currentArena) {
         displayInfo(currentArena.getStatistics());
+    }
+
+    @Override
+    public void highlightSolution(
+            Collection<? extends ParityVertex> winningRegion,
+            Map<ParityVertex, ParityVertex> strategy) {
+        displayInfo("Player A wins " + winningRegion.size() + " vertices.");
     }
 
     /**

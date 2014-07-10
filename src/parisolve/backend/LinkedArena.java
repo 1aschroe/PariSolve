@@ -1,10 +1,11 @@
 package parisolve.backend;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import parisolve.io.ArenaManager;
 
 public class LinkedArena implements Arena {
     public static class LinkedParityVertex implements ParityVertex {
@@ -96,16 +97,16 @@ public class LinkedArena implements Arena {
         }
         final int numberVertices = vertices.size();
 
-        return "Number of vertices\tNumber of edges\tAverage degree\tMaximal degree\tMaximal priority\tNumber of selfloops\n"
-                + numberVertices
-                + "\t"
-                + numberEdges
-                + "\t"
-                + ((double) numberEdges)
-                / numberVertices
-                + "\t"
-                + maxDegree
-                + "\t" + getMaxPriority() + "\t" + numberOfSelfloops;
+        final boolean solitaire = ArenaManager.isSolitaire(this);
+        final boolean weak = ArenaManager.isWeak(this);
+
+        return "Number of vertices:\t" + numberVertices + "\nNumber of edges\t"
+                + numberEdges + "\nAverage degree\t" + ((double) numberEdges)
+                / numberVertices + "\nMaximal degree\t" + maxDegree
+                + "\nMaximal priority\t" + getMaxPriority()
+                + "\nNumber of selfloops\t" + numberOfSelfloops + "\n\n"
+                + (!solitaire ? "not " : "") + "solitaire\n"
+                + (!weak ? "not " : "") + "weak";
     }
 
     public ParityVertex getVertex(String string) {
