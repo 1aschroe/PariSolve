@@ -223,6 +223,9 @@ public class CommandLineInterface extends AbstractUI {
         case "resilient":
             generatorType = GeneratorType.RESILIENT;
             break;
+        case "hard":
+            generatorType = GeneratorType.HARD;
+            break;
         default:
             displayError("Unknown generator type: " + parts[1]);
             return;

@@ -159,6 +159,7 @@ final class GenerateButtonListener extends SelectionAdapter {
         final Button weakButton = createRadioButton(linearTab, "weak");
         final Button solitaireButton = createRadioButton(linearTab, "solitaire");
         final Button resilientButton = createRadioButton(linearTab, "resilient");
+        final Button hardButton = createRadioButton(linearTab, "hard");
 
         final Spinner noLevels = createSpinner(linearTab, "# of levels:",
                 lastLinearSize);
@@ -175,6 +176,8 @@ final class GenerateButtonListener extends SelectionAdapter {
                     type = GeneratorType.SOLITAIRE;
                 } else if (resilientButton.getSelection()) {
                     type = GeneratorType.RESILIENT;
+                } else if (hardButton.getSelection()) {
+                    type = GeneratorType.HARD;
                 } else {
                     ui.displayError("No selection of generator type made.");
                     return;
