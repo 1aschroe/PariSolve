@@ -106,9 +106,11 @@ public class CommandLineInterface extends AbstractUI {
                 case "generate-hlb":
                     doGenerateHlb(getParts(br, parts, 2,
                             "Expected parameters are: [number of levels] [number of blocks]"));
+                    break;
                 case "generate-linear":
                     doGenerateLinear(getParts(br, parts, 2,
                             "Expected parameters are: [type of arena] [number of levels]"));
+                    break;
                 case "save":
                     doSave(getParts(br, parts, 1, null));
                     break;
