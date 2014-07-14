@@ -47,6 +47,11 @@ public class KnownArenasTest {
     // doTestArena("wikipedia.arena");
     // }
 
+    @Test
+    public final void testSchewe() throws IOException, URISyntaxException {
+        doTestArena("Schewe-example.txt");
+    }
+
     /**
      * given a specific arena file, tests whether all algorithms implemented
      * give the same winning region on this arena.
