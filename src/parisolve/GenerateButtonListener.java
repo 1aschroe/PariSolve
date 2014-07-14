@@ -160,6 +160,7 @@ final class GenerateButtonListener extends SelectionAdapter {
         final Button solitaireButton = createRadioButton(linearTab, "solitaire");
         final Button resilientButton = createRadioButton(linearTab, "resilient");
         final Button hardButton = createRadioButton(linearTab, "hard");
+        final Button twoRingButton = createRadioButton(linearTab, "two ring");
 
         final Spinner noLevels = createSpinner(linearTab, "# of levels:",
                 lastLinearSize);
@@ -168,7 +169,7 @@ final class GenerateButtonListener extends SelectionAdapter {
         okButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(final SelectionEvent arg0) {
-                lastLevels = noLevels.getSelection();
+                lastLinearSize = noLevels.getSelection();
                 final GeneratorType type;
                 if (weakButton.getSelection()) {
                     type = GeneratorType.WEAK;
@@ -178,6 +179,8 @@ final class GenerateButtonListener extends SelectionAdapter {
                     type = GeneratorType.RESILIENT;
                 } else if (hardButton.getSelection()) {
                     type = GeneratorType.HARD;
+                } else if (twoRingButton.getSelection()) {
+                    type = GeneratorType.TWO_RING;
                 } else {
                     ui.displayError("No selection of generator type made.");
                     return;
