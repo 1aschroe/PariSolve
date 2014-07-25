@@ -257,6 +257,7 @@ public final class ArenaManager {
             lines = getTxtFromArena(currentArena);
         }
 
+        Files.deleteIfExists(Paths.get(path));
         Files.write(Paths.get(path), lines, Charset.defaultCharset(),
                 StandardOpenOption.CREATE);
     }
