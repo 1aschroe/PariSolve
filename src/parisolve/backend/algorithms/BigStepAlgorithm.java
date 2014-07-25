@@ -1,7 +1,5 @@
 package parisolve.backend.algorithms;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 import parisolve.backend.ParityVertex;
@@ -76,7 +74,7 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
      *            number of colours
      * @return
      */
-    private double gamma(final int colours) {
+    public static double gamma(final int colours) {
         if (colours <= 1) {
             return 0;
         }
@@ -87,7 +85,7 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
             final int coloursHalve = colours / 2;
             subtrahent = 1.0 / (coloursHalve * (coloursHalve + 1));
         }
-        return colours / 3.0 + 1.0 / 2 - subtrahent;
+        return colours / 3.0 + 0.5 - subtrahent;
     }
 
     /**
@@ -97,10 +95,9 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
      *            number of colours
      * @return
      */
-    private double beta(final int colours) {
-        final int coloursHalve = (colours % 2 == 0) ? colours / 2
-                : colours / 2 + 1;
-        return gamma(colours - 1) / coloursHalve;
+    public static double beta(final int colours) {
+        final int coloursHalve = colours / 2 + 1;
+        return gamma(colours) / coloursHalve;
     }
 
     /**
@@ -116,7 +113,7 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
      *            number of priorities (Schewe calls them colours)
      * @return smallest natural number that satisfies the inequation
      */
-    private int pi(final int n, final int c) {
+    public static int pi(final int n, final int c) {
         final double rootExpression = 2.0 * Math.cbrt(c) * Math.pow(n, beta(c));
         return (int) Math.ceil(rootExpression * n + 2 * rootExpression - 2 * n
                 / (n - rootExpression));
