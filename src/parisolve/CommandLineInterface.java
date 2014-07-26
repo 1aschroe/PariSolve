@@ -225,6 +225,8 @@ public class CommandLineInterface extends AbstractUI {
      */
     protected final void doGenerateLinear(final String[] parts) {
         final GeneratorType generatorType;
+        // TODO: introduce mapping (String -> type) in GeneratorType for this
+        // and the corresponding code in GenerateButtonListener
         switch (parts[1].toLowerCase()) {
         case "weak":
             generatorType = GeneratorType.WEAK;
@@ -237,6 +239,12 @@ public class CommandLineInterface extends AbstractUI {
             break;
         case "hard":
             generatorType = GeneratorType.HARD;
+            break;
+        case "two-ring":
+            generatorType = GeneratorType.TWO_RING;
+            break;
+        case "chain":
+            generatorType = GeneratorType.CHAIN;
             break;
         default:
             displayError("Unknown generator type: " + parts[1]);
@@ -286,8 +294,8 @@ public class CommandLineInterface extends AbstractUI {
         final Solver solver = new BigStepAlgorithm();
         for (final String arenaFile : arenas) {
             loadArenaFromFile(arenaFile);
-            displayInfo(String.format(UserInterface.SOLVE_MSG, arenaFile, solver
-                    .getClass().getSimpleName()));
+            displayInfo(String.format(UserInterface.SOLVE_MSG, arenaFile,
+                    solver.getClass().getSimpleName()));
             fireSolve(solver);
         }
     }

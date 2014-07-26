@@ -155,12 +155,15 @@ final class GenerateButtonListener extends SelectionAdapter {
         GridLayout layout = new GridLayout();
         layout.numColumns = 2;
         linearTab.setLayout(layout);
+        
+        //TODO: make last selection selected
 
         final Button weakButton = createRadioButton(linearTab, "weak");
         final Button solitaireButton = createRadioButton(linearTab, "solitaire");
         final Button resilientButton = createRadioButton(linearTab, "resilient");
         final Button hardButton = createRadioButton(linearTab, "hard");
         final Button twoRingButton = createRadioButton(linearTab, "two ring");
+        final Button chainButton = createRadioButton(linearTab, "chain");
 
         final Spinner noLevels = createSpinner(linearTab, "# of levels:",
                 lastLinearSize);
@@ -181,6 +184,8 @@ final class GenerateButtonListener extends SelectionAdapter {
                     type = GeneratorType.HARD;
                 } else if (twoRingButton.getSelection()) {
                     type = GeneratorType.TWO_RING;
+                } else if (chainButton.getSelection()) {
+                    type = GeneratorType.CHAIN;
                 } else {
                     ui.displayError("No selection of generator type made.");
                     return;
