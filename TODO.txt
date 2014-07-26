@@ -3,4 +3,6 @@
 - Ausgabe, ob geöffnete Arena dull
 - Rückgabe und Markierung von Gewinnstrategien
   -> möglich mit BetterAlgorithm?
+    -> Schewe, PHD, S. 30
 - Grafisches Erstellen von Arenen
+- Optionen wie -nt (zusammengezogen von -n -t) zulassen
