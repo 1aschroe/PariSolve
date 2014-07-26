@@ -40,6 +40,7 @@
 				<pathelement path="${lib.dir}/org.eclipse.draw2d_3.9.0.201308190730.jar" />
 				<pathelement path="${lib.dir}/commons-cli-1.2.jar" />
 				<pathelement path="${lib.dir}/guava-17.0.jar" />
+				<pathelement path="${lib.dir}/commons-math3-3.3.jar" />
 			</classpath>
 		</javac>
 		<copy todir="${build.bin.dir}/images">
@@ -57,13 +58,14 @@
 			<fileset file="${lib.dir}/org.eclipse.draw2d*.jar" />
 			<fileset file="${lib.dir}/commons-cli-1.2.jar" />
 			<fileset file="${lib.dir}/guava-17.0.jar" />
+			<fileset file="${lib.dir}/commons-math3-3.3.jar" />
 		</copy>
 		<jar destfile="${deploy.dir}/parisolve_${version}.jar">
 			<manifest>
 				<attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader" />
 				<attribute name="Rsrc-Main-Class" value="parisolve.StartUp" />
 				<attribute name="Class-Path" value="." />
-				<attribute name="Rsrc-Class-Path" value="./ swt.jar org.eclipse.draw2d_3.9.0.201308190730.jar commons-cli-1.2.jar guava-17.0.jar" />
+				<attribute name="Rsrc-Class-Path" value="./ swt.jar org.eclipse.draw2d_3.9.0.201308190730.jar commons-cli-1.2.jar guava-17.0.jar commons-math3-3.3.jar" />
 			</manifest>
 			<zipfileset src="jar-in-jar-loader.zip" />
 			<!-- TODO: Build these from Source -->
@@ -73,6 +75,7 @@
 			<zipfileset dir="${build.lib.dir}" includes="org.eclipse.draw2d*.jar"/>
 			<zipfileset dir="${build.lib.dir}" includes="commons-cli-1.2.jar" />
 			<zipfileset dir="${build.lib.dir}" includes="guava-17.0.jar" />
+			<zipfileset dir="${build.lib.dir}" includes="commons-math3-3.3.jar" />
 		</jar>
 	</target>
 </project>

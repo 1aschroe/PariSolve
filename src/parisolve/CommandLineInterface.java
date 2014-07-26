@@ -63,7 +63,7 @@ public class CommandLineInterface extends AbstractUI {
     public final void run() {
         displayInfo("To get help for the commands possible, type '?' or 'help'");
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        batchReader(br);
+        executeRequests(br, false);
     }
 
     /**
@@ -72,14 +72,20 @@ public class CommandLineInterface extends AbstractUI {
      * 
      * @param br
      *            reader to get the lines from
+     * @param batch
+     *            whether these requests are part of a batch-file
      */
-    protected final void batchReader(final BufferedReader br) {
-        batchLoop: while (true) {
+    protected final void executeRequests(final BufferedReader br,
+            final boolean batch) {
+        while (true) {
             System.out.print(PROMPT);
             try {
                 final String line = br.readLine();
                 if (line == null) {
                     break;
+                }
+                if (batch) {
+                    System.out.println(line);
                 }
                 final String[] parts = line.split(COMMAND_SEPARATOR);
                 switch (parts[0]) {
@@ -119,7 +125,11 @@ public class CommandLineInterface extends AbstractUI {
                             + AlgorithmManager.getAlgorithms()));
                     break;
                 case "exit":
-                    break batchLoop;
+                    // TODO: is this too harsh, as it cannot be stopped? Maybe
+                    // an exception instead?
+                    System.exit(0);
+                case "":
+                    continue;
                 default:
                     displayInfo("Unknown command " + parts[0]);
                 }
@@ -276,7 +286,7 @@ public class CommandLineInterface extends AbstractUI {
         final Solver solver = new BigStepAlgorithm();
         for (final String arenaFile : arenas) {
             loadArenaFromFile(arenaFile);
-            displayInfo(String.format(StartUp.SOLVE_MSG, arenaFile, solver
+            displayInfo(String.format(UserInterface.SOLVE_MSG, arenaFile, solver
                     .getClass().getSimpleName()));
             fireSolve(solver);
         }

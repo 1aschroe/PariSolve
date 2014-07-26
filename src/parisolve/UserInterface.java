@@ -16,6 +16,13 @@ import parisolve.backend.ParityVertex;
  * @author Arne Schröder
  */
 public interface UserInterface {
+    static final String TIME_MSG = "Solving using %s took %d milliseconds";
+    static final String SOLVE_MSG = "Solving %s using %s";
+    /**
+     * display-string when an arenas file could not be loaded.
+     */
+    static final String ARENA_NOT_READ_MSG = "Arena %s could not be read.";
+
     /**
      * displays general information to the user.
      * 
