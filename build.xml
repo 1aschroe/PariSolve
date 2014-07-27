@@ -17,6 +17,8 @@
 	<property name="build.lib.dir" value="${build.dir}/${lib.dir}" />
 	<property name="build.bin.dir" value="${build.dir}/bin" />
 	<property name="launch.script" value="launch_parisolve.sh" />
+	
+	<taskdef resource="checkstyletask.properties" classpath="../checkstyle-5.7/checkstyle-5.7-all.jar" />
 
 	<target name="clean">
 		<delete dir="${build.dir}" failonerror="false" />
@@ -32,6 +34,10 @@
 	</target>
 
 	<target name="build" depends="clean,init">
+		<checkstyle config="checkstyle.xml" maxErrors="2147483647">
+			<fileset dir="src" includes="**/*.java" />
+			<formatter type="plain" toFile="checkstyle_errors.log" />
+		</checkstyle>
 		<javac srcdir="${build.src.dir}" destdir="${build.bin.dir}">
 			<classpath>
 				<!-- Es ist irrelevant, mit welcher Version übersetzt wird -->

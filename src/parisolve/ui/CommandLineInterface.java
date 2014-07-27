@@ -1,4 +1,4 @@
-package parisolve;
+package parisolve.ui;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -75,7 +75,7 @@ public class CommandLineInterface extends AbstractUI {
      * @param batch
      *            whether these requests are part of a batch-file
      */
-    protected final void executeRequests(final BufferedReader br,
+    public final void executeRequests(final BufferedReader br,
             final boolean batch) {
         while (true) {
             System.out.print(PROMPT);

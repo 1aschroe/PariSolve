@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
+import parisolve.backend.algorithms.helper.Solution;
 
 /**
  * Idea given in theorem 7.6 LNCS 2500 p. 113 and respectively Zwick, Paterson

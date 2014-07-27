@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
+import parisolve.backend.algorithms.helper.Solution;
 
 /**
  * Naive approach, trying all possible strategies and comparing their value for

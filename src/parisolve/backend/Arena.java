@@ -27,8 +27,14 @@ public interface Arena {
         return getMaxPriority(getVertices());
     }
 
+    /**
+     * @return a textual description of the features of this arena.
+     */
     String getStatistics();
 
+    /**
+     * @return the maximal priority of the <code>vertices</code> given.
+     */
     public static int getMaxPriority(
             final Collection<? extends ParityVertex> vertices) {
         return vertices.parallelStream().mapToInt(ParityVertex::getPriority)

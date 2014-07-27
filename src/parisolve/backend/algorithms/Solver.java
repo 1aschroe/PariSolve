@@ -1,6 +1,8 @@
 package parisolve.backend.algorithms;
 
 import parisolve.backend.Arena;
+import parisolve.backend.algorithms.helper.Solution;
+import parisolve.backend.algorithms.helper.SolutionWithTime;
 
 /**
  * interface implemented by every algorithm for solving parity games.

@@ -9,6 +9,7 @@ import parisolve.backend.Player;
 import parisolve.backend.algorithms.helper.Liftable;
 import parisolve.backend.algorithms.helper.LiftableFactory;
 import parisolve.backend.algorithms.helper.ProgressMeasure;
+import parisolve.backend.algorithms.helper.Solution;
 
 /**
  * implementation of the algorithm of Jurdzinski - Small Progress Measures for

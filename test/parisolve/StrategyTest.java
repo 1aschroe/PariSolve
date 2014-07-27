@@ -9,10 +9,9 @@ import org.junit.Test;
 
 import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
-import parisolve.backend.algorithms.AlgorithmManager;
 import parisolve.backend.algorithms.RecursiveAlgorithm;
-import parisolve.backend.algorithms.Solution;
 import parisolve.backend.algorithms.Solver;
+import parisolve.backend.algorithms.helper.Solution;
 
 public class StrategyTest {
 

@@ -1,4 +1,4 @@
-package parisolve.backend.algorithms;
+package parisolve.backend.algorithms.helper;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -14,7 +14,7 @@ import parisolve.backend.Player;
  * right player. This brings clarification to the informal notion of a pair,
  * as used in
  */
-class WinningRegionPartition {
+public class WinningRegionPartition {
     private final transient Map<Player, Set<ParityVertex>> partitionMap = new ConcurrentHashMap<>();
 
     /**

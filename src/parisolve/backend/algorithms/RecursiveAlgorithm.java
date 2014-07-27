@@ -12,6 +12,7 @@ import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 import parisolve.backend.algorithms.helper.Liftable;
 import parisolve.backend.algorithms.helper.LiftableFactory;
+import parisolve.backend.algorithms.helper.Solution;
 
 /**
  * implementation of a recursive algorithm given in McNaughton (1993), Zielonka

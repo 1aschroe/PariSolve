@@ -1,4 +1,4 @@
-package parisolve;
+package parisolve.ui;
 
 import java.util.Collection;
 import java.util.List;

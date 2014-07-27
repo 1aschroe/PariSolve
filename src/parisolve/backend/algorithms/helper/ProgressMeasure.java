@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
-import parisolve.backend.algorithms.Solution;
 import parisolve.backend.algorithms.helper.MeasureValue.MeasureValueComparator;
 
 import com.google.common.collect.Sets;
@@ -27,10 +26,6 @@ import com.google.common.collect.Sets.SetView;
  * @author Arne Schröder
  */
 public class ProgressMeasure {
-    /**
-     * the maximal priority in the arena considered.
-     */
-    private int maxPriority;
     /**
      * represents the map from V to M_G^T. In contrast to the book, we compare
      * measures from the back to the front in order to solve max-parity-games.
@@ -57,8 +52,8 @@ public class ProgressMeasure {
      * the player from who's perspective this progress measure is to be built,
      * that is Top are winning for player.getOponnent().
      */
-    private Player player;
-    private Set<? extends ParityVertex> vertices;
+    private final Player player;
+    private final Set<? extends ParityVertex> vertices;
 
     /**
      * create <code>ProgressMeasure</code> on the given vertices which is
@@ -77,7 +72,7 @@ public class ProgressMeasure {
             final Player player, final int maxSumAllowed) {
         this.vertices = vertices;
         this.player = player;
-        this.maxPriority = Arena.getMaxPriority(vertices);
+        final int maxPriority = Arena.getMaxPriority(vertices);
         this.sizeOfMG = getSizeOfMG(vertices, player, maxPriority);
         this.maxSumAllowed = maxSumAllowed;
         minMeasure = new MeasureValue(maxPriority);
@@ -231,7 +226,7 @@ public class ProgressMeasure {
      * @return an array of the sizes of the components in M_G
      */
     protected static final int[] getSizeOfMG(
-            final Collection<? extends ParityVertex> vertices, Player player,
+            final Collection<? extends ParityVertex> vertices, final Player player,
             final int maxPriority) {
         final int[] counts = new int[maxPriority + 1];
         for (final ParityVertex vertex : vertices) {

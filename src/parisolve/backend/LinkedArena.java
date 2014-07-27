@@ -105,8 +105,8 @@ public class LinkedArena implements Arena {
                 / numberVertices + "\nMaximal degree\t" + maxDegree
                 + "\nMaximal priority\t" + getMaxPriority()
                 + "\nNumber of selfloops\t" + numberOfSelfloops + "\n\n"
-                + (!solitaire ? "not " : "") + "solitaire\n"
-                + (!weak ? "not " : "") + "weak";
+                + (solitaire ? "" : "not ") + "solitaire\n"
+                + (weak ? "" : "not ") + "weak";
     }
 
     public ParityVertex getVertex(String string) {

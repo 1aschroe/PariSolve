@@ -1,28 +1,27 @@
 package parisolve.backend.algorithms;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 import parisolve.backend.Arena;
 import parisolve.backend.LinkedArena.LinkedParityVertex;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
+import parisolve.backend.algorithms.helper.Estimation;
+import parisolve.backend.algorithms.helper.Evaluation;
+import parisolve.backend.algorithms.helper.ImprovementPotential;
 import parisolve.backend.algorithms.helper.Liftable;
 import parisolve.backend.algorithms.helper.LiftableFactory;
+import parisolve.backend.algorithms.helper.ModifyableEstimation;
+import parisolve.backend.algorithms.helper.Solution;
 
-import com.google.common.base.Functions;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
-import com.google.common.collect.Sets.SetView;
 
 /**
  * implementation of the algorithm sketched in Schewe (2008), "An Optimal
@@ -32,333 +31,11 @@ import com.google.common.collect.Sets.SetView;
  * 
  */
 public class StrategyImprovementAlgorithm implements Solver {
-    /**
-     * class representing the type R = (C_0 → Z) ∪ ∞ which is defined in Schewe
-     * (2008) p. 374 "Escape Games".
-     * 
-     * @author Arne Schröder
-     */
-    static class Evaluation {
-        final int[] map;
-        final int maxColour;
-
-        Evaluation(final int[] map) {
-            maxColour = map.length;
-            this.map = map.clone();
-        }
-
-        private int get(final int colour) {
-            if (colour > 0 && colour <= maxColour) {
-                return map[colour - 1];
-            }
-            return 0;
-        }
-
-        static Evaluation combine(final Evaluation eva1, final Evaluation eva2,
-                final BinaryOperator<Integer> combinator) {
-            int maxColour = Math.max(eva1.maxColour, eva2.maxColour);
-            int[] combinedMap = new int[maxColour];
-            for (int colour = 1; colour <= maxColour; colour++) {
-                combinedMap[colour - 1] = combinator.apply(eva1.get(colour),
-                        eva2.get(colour));
-            }
-            return new Evaluation(combinedMap);
-        }
-
-        static long timePlus = 0;
-
-        static Evaluation plus(final Evaluation eva1, final Evaluation eva2) {
-            if (eva1 == infinityEvaluation || eva2 == infinityEvaluation) {
-                return infinityEvaluation;
-            }
-            Evaluation sum = combine(eva1, eva2, (a, b) -> a + b);
-            return sum;
-        }
-
-        Evaluation plus(final Evaluation summand) {
-            return plus(this, summand);
-        }
-
-        static Evaluation minus(final Evaluation eva1, final Evaluation eva2) {
-            if (eva1 == infinityEvaluation) {
-                return infinityEvaluation;
-            }
-            return combine(eva1, eva2, (a, b) -> a - b);
-        }
-
-        Evaluation minus(final Evaluation subtrahent) {
-            return minus(this, subtrahent);
-        }
-
-        /**
-         * oplus-operator as defined in Schewe (2008) p. 374, last paragraph of
-         * "Escape Games".
-         * 
-         * @param eva
-         *            \rho
-         * @param colour
-         *            c'
-         * @return \rho'
-         */
-        static Evaluation plus(final Evaluation eva, final int colour) {
-            if (eva == infinityEvaluation || colour == 0) {
-                return eva;
-            }
-            final int[] nextMap;
-            if (colour <= eva.maxColour) {
-                nextMap = Arrays.copyOf(eva.map, eva.maxColour);
-            } else {
-                nextMap = Arrays.copyOf(eva.map, colour);
-            }
-            nextMap[colour - 1]++;
-            return new Evaluation(nextMap);
-        }
-
-        /**
-         * syntactic sugar of oplus-operator to use infix-notation.
-         * 
-         * @param colourToAdd
-         * @return
-         */
-        Evaluation plus(final int colourToAdd) {
-            return plus(this, colourToAdd);
-        }
-
-        static long timeCompare = 0;
-
-        static int compare(final Evaluation eva1, final Evaluation eva2) {
-            if (eva1 == eva2) {
-                return 0;
-            }
-            if (eva1 == infinityEvaluation) {
-                return 1;
-            }
-            if (eva2 == infinityEvaluation) {
-                return -1;
-            }
-            int maxColour = Math.max(eva1.maxColour, eva2.maxColour);
-            for (int colour = maxColour; colour > 0; colour--) {
-                // maybe this can be sped up by testing equality first
-                if (eva1.get(colour) > eva2.get(colour)) {
-                    if (colour % 2 == 0) {
-                        return 1;
-                    } else {
-                        return -1;
-                    }
-                } else if (eva1.get(colour) < eva2.get(colour)) {
-                    if (colour % 2 == 0) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-                }
-            }
-            return 0;
-        }
-
-        int compareTo(final Evaluation eva) {
-            return compare(this, eva);
-        }
-
-        @Override
-        public String toString() {
-            if (maxColour <= 0) {
-                return "0";
-            }
-            String returnString = "";
-            for (int i = maxColour; i > 0; i--) {
-                returnString += ", " + get(i);
-            }
-            return "(" + returnString.substring(2) + ")";
-        }
-    }
-
-    final static Evaluation zeroEvaluation = new Evaluation(new int[0]);
-
-    final static Evaluation infinityEvaluation = new Evaluation(new int[0]) {
-        public String toString() {
-            return "∞";
-        };
-    };
-
-    private static final ParityVertex BOTTOM = new LinkedParityVertex("Bottom",
-            0, Player.B);
-
-    /**
-     * v \in (V' -> R)
-     * 
-     * @author Arne Schröder
-     * 
-     */
-    static class Estimation {
-        final Map<ParityVertex, Evaluation> estimation;
-
-        public Estimation(Map<ParityVertex, Evaluation> estimationMap) {
-            estimation = estimationMap;
-        }
-
-        Evaluation get(final ParityVertex vertex) {
-            if (estimation.containsKey(vertex)) {
-                return estimation.get(vertex);
-            }
-            if (vertex.getPlayer() == Player.A) {
-                return zeroEvaluation;
-            } else {
-                Evaluation minEvaluation = zeroEvaluation;
-                for (final ParityVertex succesor : vertex.getSuccessors()) {
-                    Evaluation compareTo = zeroEvaluation.plus(succesor
-                            .getPriority());
-                    if (minEvaluation.compareTo(compareTo) > 0) {
-                        minEvaluation = compareTo;
-                    }
-                }
-                return minEvaluation;
-            }
-        }
-
-        public boolean hasEvaluatedVertex(final ParityVertex vertex) {
-            return estimation.containsKey(vertex);
-        }
-
-        public boolean hasEvaluatedAllVertices(
-                final Collection<? extends ParityVertex> vertices) {
-            return estimation.keySet().containsAll(vertices);
-        }
-
-        public Set<ParityVertex> getEvaluatedVertices() {
-            return estimation.keySet();
-        }
-
-        public static Estimation plus(final Estimation estimate1,
-                final Estimation estimate2) {
-            final Map<ParityVertex, Evaluation> sumEstimation = new ConcurrentHashMap<>(
-                    estimate1.estimation);
-            for (final ParityVertex key : estimate2.estimation.keySet()) {
-                if (sumEstimation.containsKey(key)) {
-                    sumEstimation.put(
-                            key,
-                            sumEstimation.get(key).plus(
-                                    estimate2.estimation.get(key)));
-                } else {
-                    sumEstimation.put(key, estimate2.estimation.get(key));
-                }
-            }
-            return new Estimation(sumEstimation);
-        }
-
-        public Estimation plus(final Estimation other) {
-            return plus(this, other);
-        }
-
-        @Override
-        public String toString() {
-            return estimation.toString();
-        }
-
-        public Set<ParityVertex> getNonInfiniteVertices() {
-            return estimation.entrySet().stream()
-                    .filter(entry -> entry.getValue() != infinityEvaluation)
-                    .map(entry -> entry.getKey())
-                    .filter(vertex -> vertex != BOTTOM)
-                    .collect(Collectors.toSet());
-        }
-
-        public Set<ParityVertex> getInfiniteVertices() {
-            return estimation.entrySet().stream()
-                    .filter(entry -> entry.getValue() == infinityEvaluation)
-                    .map(entry -> entry.getKey()).collect(Collectors.toSet());
-        }
-
-        public static Set<ParityVertex> getOriginalRegion(
-                Set<ParityVertex> artificialVertices,
-                Map<ParityVertex, ParityVertex> mapping) {
-            return new HashSet<>(Collections2.transform(artificialVertices,
-                    Functions.forMap(mapping)));
-        }
-
-        public Solution getSolution(
-                final Map<ParityVertex, ParityVertex> mapping) {
-            return new Solution(getOriginalRegion(getInfiniteVertices(),
-                    mapping), getOriginalRegion(getNonInfiniteVertices(),
-                    mapping), Player.A, new ConcurrentHashMap<>());
-        }
-
-        public boolean isLargerThan(Estimation other) {
-            boolean hasLarger = false;
-            SetView<ParityVertex> allKeys = Sets.union(estimation.keySet(),
-                    other.estimation.keySet());
-            for (final ParityVertex vertex : allKeys) {
-                final Evaluation ourEvaluation = get(vertex);
-                final Evaluation theirEvaluation = other.get(vertex);
-                if (ourEvaluation.compareTo(theirEvaluation) > 0) {
-                    hasLarger = true;
-                } else if (ourEvaluation.compareTo(theirEvaluation) < 0) {
-                    return false;
-                }
-            }
-            return hasLarger;
-        }
-    }
-
-    class ModifyableEstimation extends Estimation {
-        public ModifyableEstimation() {
-            super(new ConcurrentHashMap<ParityVertex, Evaluation>());
-        }
-
-        public void put(final ParityVertex vertex, final Evaluation eva) {
-            estimation.put(vertex, eva);
-        }
-    }
-
-    static class ImprovementPotential {
-        private Map<ParityVertex, Map<ParityVertex, Evaluation>> potentialMap = new ConcurrentHashMap<>();
-        private Map<ParityVertex, List<ParityVertex>> successorMap = new ConcurrentHashMap<>();
-
-        public void put(final ParityVertex vertex,
-                final ParityVertex successor, Evaluation potential) {
-            row(vertex).put(successor, potential);
-            List<ParityVertex> successorList = getSuccessorsOf(vertex);
-            if (!successorList.contains(successor)) {
-                successorList.add(successor);
-            }
-        }
-
-        private Map<ParityVertex, Evaluation> row(final ParityVertex vertex) {
-            if (!potentialMap.containsKey(vertex)) {
-                potentialMap.put(vertex, new ConcurrentHashMap<>());
-            }
-            return potentialMap.get(vertex);
-        }
-
-        public Evaluation get(final ParityVertex vertex,
-                final ParityVertex successor) {
-            return row(vertex).get(successor);
-        }
-
-        public List<ParityVertex> getSuccessorsOf(final ParityVertex vertex) {
-            if (!successorMap.containsKey(vertex)) {
-                successorMap.put(vertex, new ArrayList<>());
-            }
-            return successorMap.get(vertex);
-        }
-
-        @Override
-        public String toString() {
-            String returnString = "";
-            for (final ParityVertex vertex : successorMap.keySet()) {
-                for (final ParityVertex successor : getSuccessorsOf(vertex)) {
-                    returnString += ",\n(" + vertex.getName() + "->"
-                            + successor.getName() + ") => "
-                            + get(vertex, successor).toString();
-                }
-            }
-            return returnString.substring(2);
-        }
-    }
 
     @Override
     public final Solution getSolution(final Arena arena) {
-        // TODO: this might cost time. Maybe it is possible to not do this?
+        // TODO: it might cost time to convert the graph to bipartite. Maybe
+        // there is a way to not do this?
         Map<ParityVertex, ParityVertex> mapping = getBipartiteArena(arena);
         final Set<ParityVertex> vertices = mapping.keySet();
         Estimation estimation = getDefaultEstimation(vertices);
@@ -369,7 +46,8 @@ public class StrategyImprovementAlgorithm implements Solver {
 
         boolean reachedFixPoint = false;
         while (!reachedFixPoint) {
-            final ModifyableEstimation optimalUpdate = getInitialUpdate();
+            final ModifyableEstimation optimalUpdate = Estimation
+                    .getInitialUpdate();
 
             loopBasicUpdateStep(vertices, improvementPotential, optimalUpdate);
 
@@ -407,7 +85,7 @@ public class StrategyImprovementAlgorithm implements Solver {
         return estimation.getSolution(mapping);
     }
 
-    private Map<ParityVertex, ParityVertex> getBipartiteArena(Arena arena) {
+    private static Map<ParityVertex, ParityVertex> getBipartiteArena(Arena arena) {
         final long startConvert = System.currentTimeMillis();
         Set<ParityVertex> originalVertices = arena.getVertices();
         Map<String, LinkedParityVertex> newVertices = new ConcurrentHashMap<>();
@@ -449,7 +127,7 @@ public class StrategyImprovementAlgorithm implements Solver {
 
     static long timeImprovementPotential = 0;
 
-    private ImprovementPotential getImprovementPotential(
+    private static ImprovementPotential getImprovementPotential(
             final Set<? extends ParityVertex> vertices,
             final Estimation estimation) {
         long potentialStart = System.currentTimeMillis();
@@ -474,19 +152,20 @@ public class StrategyImprovementAlgorithm implements Solver {
         return improvementPotential;
     }
 
-    protected Estimation getDefaultEstimation(
+    protected static Estimation getDefaultEstimation(
             final Set<? extends ParityVertex> vertices) {
         final Map<ParityVertex, Evaluation> estimationMap = new ConcurrentHashMap<>();
         for (final ParityVertex vertex : vertices) {
             if (vertex.getPlayer() == Player.A) {
-                estimationMap.put(vertex, zeroEvaluation);
+                estimationMap.put(vertex, Evaluation.ZERO_EVALUATION);
             } else {
                 final Evaluation minEvaluation = vertex
                         .getSuccessors()
                         .stream()
-                        .map(successor -> zeroEvaluation.plus(successor
-                                .getPriority())).min((a, b) -> a.compareTo(b))
-                        .orElse(zeroEvaluation);
+                        .map(successor -> Evaluation.ZERO_EVALUATION
+                                .plus(successor.getPriority()))
+                        .min((a, b) -> a.compareTo(b))
+                        .orElse(Evaluation.ZERO_EVALUATION);
                 estimationMap.put(vertex, minEvaluation);
             }
         }
@@ -511,7 +190,7 @@ public class StrategyImprovementAlgorithm implements Solver {
     static int timesUpdate4 = 0;
     static int timesUpdate5 = 0;
 
-    class VertexEvaluationPair {
+    static class VertexEvaluationPair {
         final ParityVertex vertex;
         final Evaluation evaluation;
 
@@ -522,7 +201,7 @@ public class StrategyImprovementAlgorithm implements Solver {
         }
     }
 
-    private void loopBasicUpdateStep(final Set<ParityVertex> vertices,
+    private static void loopBasicUpdateStep(final Set<ParityVertex> vertices,
             final ImprovementPotential improvementPotential,
             final ModifyableEstimation optimalUpdate) {
         final long updateStart = System.currentTimeMillis();
@@ -586,10 +265,13 @@ public class StrategyImprovementAlgorithm implements Solver {
                                 if (optimalUpdate.hasEvaluatedVertex(successor)
                                         && improvementPotential.get(vertex,
                                                 successor).compareTo(
-                                                zeroEvaluation) == 0
-                                        && optimalUpdate.get(successor)
-                                                .compareTo(zeroEvaluation) == 0) {
-                                    optimalUpdate.put(vertex, zeroEvaluation);
+                                                Evaluation.ZERO_EVALUATION) == 0
+                                        && optimalUpdate
+                                                .get(successor)
+                                                .compareTo(
+                                                        Evaluation.ZERO_EVALUATION) == 0) {
+                                    optimalUpdate.put(vertex,
+                                            Evaluation.ZERO_EVALUATION);
                                     iterator.liftWasSuccessful(vertex);
                                     timeUpdate2 += System.currentTimeMillis()
                                             - update2Start;
@@ -605,11 +287,10 @@ public class StrategyImprovementAlgorithm implements Solver {
                         final long update4Start = System.currentTimeMillis();
                         if (optimalUpdate
                                 .hasEvaluatedAllVertices(improvementPotential
-                                        .getSuccessorsOf(vertex))) {
-                            if (doUpdateCase3(improvementPotential,
-                                    optimalUpdate, vertex)) {
-                                iterator.liftWasSuccessful(vertex);
-                            }
+                                        .getSuccessorsOf(vertex))
+                                && doUpdateCase3(improvementPotential,
+                                        optimalUpdate, vertex)) {
+                            iterator.liftWasSuccessful(vertex);
                         }
                         timeUpdate4 += System.currentTimeMillis()
                                 - update4Start;
@@ -623,7 +304,7 @@ public class StrategyImprovementAlgorithm implements Solver {
         System.out.println(whileLoopCount + "\t" + forLoopCount);
     }
 
-    protected Evaluation getMinSuccessorEvaluationOfVertex(
+    protected static Evaluation getMinSuccessorEvaluationOfVertex(
             final ImprovementPotential improvementPotential,
             final ModifyableEstimation optimalUpdate, final ParityVertex vertex) {
         timesUpdate3++;
@@ -646,7 +327,7 @@ public class StrategyImprovementAlgorithm implements Solver {
         return minIntermediateImprovement;
     }
 
-    protected void doCase4(final ModifyableEstimation optimalUpdate,
+    protected static void doCase4(final ModifyableEstimation optimalUpdate,
             ParityVertex minForCase4, Evaluation minIntermediateImprovement,
             Liftable iterator) {
         if (minForCase4 == null
@@ -666,13 +347,7 @@ public class StrategyImprovementAlgorithm implements Solver {
         }
     }
 
-    private ModifyableEstimation getInitialUpdate() {
-        final ModifyableEstimation optimalUpdate = new ModifyableEstimation();
-        optimalUpdate.put(BOTTOM, zeroEvaluation);
-        return optimalUpdate;
-    }
-
-    protected boolean doUpdateCase1(
+    protected static boolean doUpdateCase1(
             final ImprovementPotential improvementPotential,
             final ModifyableEstimation optimalUpdate, final ParityVertex vertex) {
         final List<? extends ParityVertex> successors = improvementPotential
@@ -687,16 +362,16 @@ public class StrategyImprovementAlgorithm implements Solver {
         return true;
     }
 
-    long minTime = 0;
-    long minIterTime = 0;
-    long minHasNextTime = 0;
-    long minNextTime = 0;
-    long minMapTime = 0;
-    long minMinTime = 0;
+    private static long minTime = 0;
+    private static long minIterTime = 0;
+    private static long minHasNextTime = 0;
+    private static long minNextTime = 0;
+    private static long minMapTime = 0;
+    private static long minMinTime = 0;
 
     // TODO: duplicate code in getMinEvaluation and doUpdateCase1 and
     // doUpdateCase3
-    protected Evaluation getMinEvaluation(
+    protected static Evaluation getMinEvaluation(
             final ImprovementPotential improvementPotential,
             final Estimation optimalUpdate, final ParityVertex vertex,
             Collection<? extends ParityVertex> successors) {
@@ -704,11 +379,12 @@ public class StrategyImprovementAlgorithm implements Solver {
                 .stream()
                 .map(successor -> optimalUpdate.get(successor).plus(
                         improvementPotential.get(vertex, successor)))
-                .min((a, b) -> a.compareTo(b)).orElse(infinityEvaluation);
+                .min((a, b) -> a.compareTo(b))
+                .orElse(Evaluation.INFINITY_EVALUTION);
         return minEvaluation;
     }
 
-    protected boolean doUpdateCase3(
+    protected static boolean doUpdateCase3(
             final ImprovementPotential improvementPotential,
             final ModifyableEstimation optimalUpdate, final ParityVertex vertex) {
         Evaluation maxEvaluation = improvementPotential
@@ -716,7 +392,8 @@ public class StrategyImprovementAlgorithm implements Solver {
                 .stream()
                 .map(successor -> optimalUpdate.get(successor).plus(
                         improvementPotential.get(vertex, successor)))
-                .max((a, b) -> a.compareTo(b)).orElse(zeroEvaluation);
+                .max((a, b) -> a.compareTo(b))
+                .orElse(Evaluation.ZERO_EVALUATION);
         if (optimalUpdate.hasEvaluatedVertex(vertex)
                 && optimalUpdate.get(vertex).compareTo(maxEvaluation) == 0) {
             return false;

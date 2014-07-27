@@ -1,8 +1,9 @@
-package parisolve;
+package parisolve.ui;
 
 import java.util.Collection;
 import java.util.Map;
 
+import parisolve.UserListener;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 

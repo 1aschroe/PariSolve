@@ -12,6 +12,10 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import parisolve.ui.CommandLineInterface;
+import parisolve.ui.GraphicalUI;
+import parisolve.ui.UserInterface;
+
 /**
  * Entry point for PariSolve.
  * 

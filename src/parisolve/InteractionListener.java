@@ -6,9 +6,10 @@ import java.util.Collection;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
-import parisolve.backend.algorithms.SolutionWithTime;
 import parisolve.backend.algorithms.Solver;
+import parisolve.backend.algorithms.helper.SolutionWithTime;
 import parisolve.io.ArenaManager;
+import parisolve.ui.UserInterface;
 
 /**
  * defines how PariSolve interacts with the user.
@@ -21,23 +22,23 @@ public final class InteractionListener implements UserListener {
      * the arena currently open (loaded from file or generated) to be worked
      * with in the next steps (to be solved or saved).
      */
-    static Arena currentArena;
+    private Arena currentArena;
     /**
      * the winning region of A in <code>currentArena</code> or null if A's
      * winning region has not been calculated. Used to determine if two
      * consecutive solves of one arena solve it the same way.
      */
-    static Collection<? extends ParityVertex> currentWinningRegion = null;
+    private Collection<? extends ParityVertex> currentWinningRegion = null;
 
     /**
-     * whether to display information how long solving took
+     * whether to display the time how long solving took.
      */
     private final boolean displayTimeToSolve;
     // TOOD: should this instance know the ui? or should the ui rather hand
     // a backpointer to itself or the methods return values?
     private final UserInterface ui;
 
-    InteractionListener(boolean doTime, UserInterface ui) {
+    InteractionListener(final boolean doTime, final UserInterface ui) {
         this.displayTimeToSolve = doTime;
         this.ui = ui;
     }

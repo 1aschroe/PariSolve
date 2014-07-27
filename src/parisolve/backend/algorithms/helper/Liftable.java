@@ -47,7 +47,7 @@ public abstract class Liftable implements Iterable<ParityVertex>,
     /**
      * stores whether we are to use (lift) a vertex only once.
      */
-    private boolean liftOnce;
+    private final boolean liftOnce;
 
     /**
      * can be queried what the predecessors of a vertex are. However, this might
@@ -56,7 +56,7 @@ public abstract class Liftable implements Iterable<ParityVertex>,
      * 
      * May be replaced with a suitable interface if needed.
      */
-    private LiftableFactory predecessorProvider;
+    private final LiftableFactory predecessorProvider;
 
     /**
      * the vertices of the subgame considered. Used to remove the predecessors

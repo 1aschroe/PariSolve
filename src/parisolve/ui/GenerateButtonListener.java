@@ -1,4 +1,4 @@
-package parisolve;
+package parisolve.ui;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;

@@ -5,6 +5,7 @@ import java.util.Set;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
 import parisolve.backend.algorithms.RecursiveAlgorithm;
+import parisolve.backend.algorithms.helper.Solution;
 
 public class MediumSizedStepAlgorithm extends RecursiveAlgorithm {
 

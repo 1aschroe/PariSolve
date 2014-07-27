@@ -1,4 +1,4 @@
-package parisolve;
+package parisolve.ui;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import parisolve.UserListener;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.algorithms.Solver;
@@ -15,9 +16,15 @@ import parisolve.io.HlbArenaGenerator;
 import parisolve.io.LinearArenaGenerator;
 import parisolve.io.LinearArenaGenerator.GeneratorType;
 
+/**
+ * provides general functionality for user interfaces in order to make
+ * interaction with the program consistent across user interfaces.
+ * 
+ * @author Arne Schröder
+ */
 public abstract class AbstractUI implements UserInterface {
     /**
-     * listeners to inform, once the user has taken an action
+     * listeners to inform, once the user has taken an action.
      */
     private final List<UserListener> userListeners = new ArrayList<UserListener>();
 
@@ -59,6 +66,13 @@ public abstract class AbstractUI implements UserInterface {
         }
     }
 
+    /**
+     * informs the listeners, that the arena given has been opened (thus
+     * generated or loaded).
+     * 
+     * @param arena
+     *            the arena opened
+     */
     protected final void fireOpened(final Arena arena) {
         for (final UserListener listener : userListeners) {
             listener.openedArena(arena);
@@ -99,8 +113,19 @@ public abstract class AbstractUI implements UserInterface {
         fireOpened(arena);
     }
 
+    /**
+     * generate an arena which only depends on one parameter and inform
+     * listeners about the opened arena.
+     * 
+     * @param type
+     *            what kind of arena to generate
+     * @param n
+     *            the parameter determining the arena's size
+     */
     protected final void generateLinearArena(final GeneratorType type,
             final int n) {
+        // TODO: linear is not quite correct as the arena might just as well be
+        // quadratic in terms of the one parameter given.
         final Arena arena = LinearArenaGenerator.generateArena(type, n);
         fireOpened(arena);
     }

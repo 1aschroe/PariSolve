@@ -1,6 +1,5 @@
-package parisolve.backend.algorithms;
+package parisolve.backend.algorithms.helper;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package parisolve.backend.algorithms;
+package parisolve.backend.algorithms.helper;
 
 
 /**
