@@ -1,8 +1,11 @@
 package parisolve;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
+import com.google.common.collect.ImmutableList;
 
 import parisolve.backend.Arena;
 import parisolve.backend.algorithms.BetterAlgorithm;
@@ -38,8 +41,10 @@ public final class BenchmarkingManager {
     /**
      * defines the subcollection of algorithms to benchmark.
      */
-    private static Solver[] getAlgorithms() {
-        return new Solver[] { new RecursiveAlgorithm(), new BetterAlgorithm() };
+    private static List<Class<? extends Solver>> getAlgorithms() {
+        return new ImmutableList.Builder<Class<? extends Solver>>()
+                .add(BetterAlgorithm.class).add(RecursiveAlgorithm.class)
+                .build();
     }
 
     /**
@@ -57,43 +62,59 @@ public final class BenchmarkingManager {
      * descriptive file name.
      */
     protected static void doLinearBenchmarking() {
-        for (final GeneratorType type : GeneratorType.values()) {
+        for (final GeneratorType type : new GeneratorType[] {
+                GeneratorType.CHAIN, GeneratorType.WEAK }) {
             System.out.println(type);
-            for (final Solver solver : getAlgorithms()) {
-                System.out.println(solver.getClass().getSimpleName());
-                doLinearBenchmarking(type, solver);
+            for (final Class<? extends Solver> solverClass : getAlgorithms()) {
+                System.out.println(solverClass.getSimpleName());
+                doLinearBenchmarking(type, solverClass);
             }
         }
     }
 
     /**
-     * time spent solving arenas to warm up the JVM. Value determined in Schröder
-     * (2014), 5.1.1.1.
+     * time spent solving arenas to warm up the JVM. Value determined in
+     * Schröder (2014), 5.1.1.1.
      */
     static final long WARM_UP_TIME = 2000;
 
-    protected static void warmUp(final Arena arena, final Solver solver) {
+    protected static void warmUp(final Arena arena,
+            final Class<? extends Solver> solverClass) {
         int time = 0;
         while (time < WARM_UP_TIME) {
-            SolutionWithTime solutionWithTime = solver.solveAndTime(arena);
-            time += solutionWithTime.getTime();
+            try {
+                final Solver solver = solverClass.newInstance();
+                SolutionWithTime solutionWithTime = solver.solveAndTime(arena);
+                time += solutionWithTime.getTime();
+            } catch (IllegalAccessException | InstantiationException e) {
+                // should not happen
+                System.err.println("Solver could not be instatiated.");
+                e.printStackTrace();
+            }
         }
 
     }
 
+    static final long MAX_LINEAR_N = 1500;
+
     protected static void doLinearBenchmarking(GeneratorType type,
-            final Solver solver) {
+            final Class<? extends Solver> solverClass) {
         double lastTime = 0;
         int n = 1;
-        warmUp(LinearArenaGenerator.generateArena(type, n), solver);
+        warmUp(LinearArenaGenerator.generateArena(type, n), solverClass);
         while (lastTime < MAX_TIME_TO_SAMPLE) {
             System.out.print("n=" + n + "\t");
             final Arena arena = LinearArenaGenerator.generateArena(type, n);
 
-            long time = measure(solver, arena);
+            long time = (long) measure(solverClass, arena).getPercentile(50);
+
             System.out.println(time);
             lastTime = time;
-            n++;
+            if (n < MAX_LINEAR_N) {
+                n++;
+            } else {
+                n *= 2;
+            }
         }
     }
 
@@ -132,13 +153,13 @@ public final class BenchmarkingManager {
      * descriptive file name.
      */
     protected static void doRandomBenchmarking() {
-        for (final Solver solver : getAlgorithms()) {
-            System.out.println(solver.getClass().getSimpleName());
+        for (final Class<? extends Solver> solverClass : getAlgorithms()) {
+            System.out.println(solverClass.getSimpleName());
             double lastTime = 0;
             double firstTime = 0;
             int n = MIN_N;
             int c = MIN_C;
-            warmUp(ArenaManager.generateRandomArena(1000, 4, 5), solver);
+            warmUp(ArenaManager.generateRandomArena(1000, 4, 5), solverClass);
             while (firstTime < MAX_TIME_TO_SAMPLE) {
                 while (lastTime < MAX_TIME_TO_SAMPLE && c <= MAX_C) {
                     DescriptiveStatistics statistics = new DescriptiveStatistics();
@@ -148,10 +169,11 @@ public final class BenchmarkingManager {
 
                         try {
                             String path = "last_arena/"
-                                    + solver.getClass().getSimpleName() + "-n"
-                                    + n + "-c" + c + "-" + i;
+                                    + solverClass.getSimpleName() + "-n" + n
+                                    + "-c" + c + "-" + i;
                             ArenaManager.saveArena(arena, path + ".txt");
-                            long time = measure(solver, arena);
+                            long time = (long) measure(solverClass, arena)
+                                    .getPercentile(50);
                             System.out.print(time + ",");
                             statistics.addValue(time);
                         } catch (IOException e) {
@@ -187,19 +209,27 @@ public final class BenchmarkingManager {
      * solve <code>NO_OF_REPETITIONS</code> times. the median is determined and
      * returned as a representative time.
      * 
-     * @param solver
+     * @param solverClass
      *            algorithm to solve the arena with
      * @param arena
      *            arena to solve
      * @return median of timings which were similar enough
      */
-    static long measure(final Solver solver, final Arena arena) {
+    static DescriptiveStatistics measure(
+            final Class<? extends Solver> solverClass, final Arena arena) {
         DescriptiveStatistics statistics = new DescriptiveStatistics();
         for (int i = 0; i < NO_OF_REPETITIONS; i++) {
-            final long time = solver.solveAndTime(arena).getTime();
-            statistics.addValue(time);
+            try {
+                final Solver solver = solverClass.newInstance();
+                final long time = solver.solveAndTime(arena).getTime();
+                statistics.addValue(time);
+            } catch (IllegalAccessException | InstantiationException e) {
+                // should not happen
+                System.err.println("Solver could not be instatiated.");
+                e.printStackTrace();
+            }
         }
-        return (long) statistics.getPercentile(50);
+        return statistics;
     }
 
 }
