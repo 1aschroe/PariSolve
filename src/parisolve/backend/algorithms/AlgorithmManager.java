@@ -21,6 +21,7 @@ public final class AlgorithmManager {
      */
     public static List<Solver> getAlgorithms() {
         return Arrays.asList(new RecursiveAlgorithm(), new BetterAlgorithm(),
+                new MemoizedRecursiveAlgorithm(),
                 new MediumSizedStepAlgorithm(), new BigStepAlgorithm(),
                 new StrategyImprovementAlgorithm());
     }

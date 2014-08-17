@@ -54,7 +54,7 @@ public class RecursiveAlgorithm implements Solver {
      *            Abbildung 15.5
      * @return a partition with a set of vertices for each player to win upon.
      */
-    protected final Solution solveGame(final Set<ParityVertex> vertices) {
+    protected Solution solveGame(final Set<ParityVertex> vertices) {
         // in Abbildung 15.5 this is n
         final int maxPriority = Arena.getMaxPriority(vertices);
         if (maxPriority <= 0) {
