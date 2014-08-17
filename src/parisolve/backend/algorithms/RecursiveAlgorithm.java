@@ -55,10 +55,17 @@ public class RecursiveAlgorithm implements Solver {
      * @return a partition with a set of vertices for each player to win upon.
      */
     protected Solution solveGame(final Set<ParityVertex> vertices) {
+        if (vertices.isEmpty()) {
+            return new Solution(EMPTY_SET, Player.A);
+        }
         // in Abbildung 15.5 this is n
         final int maxPriority = Arena.getMaxPriority(vertices);
-        if (maxPriority <= 0) {
-            return new Solution(vertices, Player.A);
+        final int minPriority = vertices.parallelStream()
+                .mapToInt(ParityVertex::getPriority).min()
+                .orElse(Integer.MAX_VALUE);
+        if (maxPriority == minPriority) {
+            return new Solution(vertices,
+                    Player.getPlayerForPriority(maxPriority));
         }
 
         // this enables BigStepAlgorithm to take a shortcut
