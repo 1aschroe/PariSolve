@@ -9,10 +9,10 @@ import parisolve.io.ArenaManager;
 
 public class LinkedArena implements Arena {
     public static class LinkedParityVertex implements ParityVertex {
-        final private int priority;
-        final private Player player;
-        final private Set<LinkedParityVertex> successors = new HashSet<>();
-        final private String name;
+        private final int priority;
+        private final Player player;
+        private final Set<LinkedParityVertex> successors = new HashSet<>();
+        private final String name;
 
         public LinkedParityVertex(final String name, final int priority,
                 final Player player) {
@@ -22,33 +22,33 @@ public class LinkedArena implements Arena {
         }
 
         @Override
-        public int getPriority() {
+        public final int getPriority() {
             return priority;
         }
 
         @Override
-        public Player getPlayer() {
+        public final Player getPlayer() {
             return player;
         }
 
         @Override
-        public String getName() {
+        public final String getName() {
             return name;
         }
 
-        public Set<? extends ParityVertex> getSuccessors() {
+        public final Set<? extends ParityVertex> getSuccessors() {
             return successors;
         }
 
-        public void addSuccessor(LinkedParityVertex v) {
+        public final void addSuccessor(final LinkedParityVertex v) {
             successors.add(v);
         }
 
-        public void removeSuccessor(LinkedParityVertex v) {
+        public final void removeSuccessor(final LinkedParityVertex v) {
             successors.remove(v);
         }
 
-        public ParityVertex getSuccessorFromSet(
+        public final ParityVertex getSuccessorFromSet(
                 final Set<ParityVertex> verticesToConsider) {
             for (final ParityVertex successor : getSuccessors()) {
                 if (verticesToConsider.contains(successor)) {
@@ -59,19 +59,20 @@ public class LinkedArena implements Arena {
         }
 
         @Override
-        public String toString() {
+        public final String toString() {
             return getName() + ": [player=" + getPlayer() + ",label=\""
                     + getPriority() + "\"]";
         }
     }
 
-    Map<String, LinkedParityVertex> vertices = new HashMap<>();
+    private final Map<String, LinkedParityVertex> vertices = new HashMap<>();
 
-    public void addVertex(String name, int priority, Player player) {
+    public final void addVertex(final String name, final int priority,
+            final Player player) {
         vertices.put(name, new LinkedParityVertex(name, priority, player));
     }
 
-    public void addEdge(String from, String to) {
+    public final void addEdge(final String from, final String to) {
         vertices.get(from).addSuccessor(vertices.get(to));
     }
 
@@ -109,8 +110,13 @@ public class LinkedArena implements Arena {
                 + (weak ? "" : "not ") + "weak";
     }
 
-    public ParityVertex getVertex(String string) {
+    /**
+     * returns the vertex with the given <code>name</code>.
+     * @param name
+     * @return
+     */
+    public final ParityVertex getVertex(final String name) {
         // for testing purpose
-        return vertices.get(string);
+        return vertices.get(name);
     }
 }

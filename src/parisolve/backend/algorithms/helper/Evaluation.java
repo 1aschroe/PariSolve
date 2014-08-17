@@ -52,15 +52,23 @@ public class Evaluation {
 
     public static long timePlus = 0;
 
+    /**
+     * adds the two given evaluations as specified in Schewe (2008) p. 377 under
+     * "Basic Update Step".
+     * 
+     * The original evaluations are not muted but a new evaluation is created.
+     */
     static Evaluation plus(final Evaluation eva1, final Evaluation eva2) {
         if (eva1 == Evaluation.INFINITY_EVALUTION
                 || eva2 == Evaluation.INFINITY_EVALUTION) {
             return Evaluation.INFINITY_EVALUTION;
         }
-        Evaluation sum = combine(eva1, eva2, (a, b) -> a + b);
-        return sum;
+        return combine(eva1, eva2, (a, b) -> a + b);
     }
 
+    /**
+     * adds the current and the specified evaluation and returns this sum.
+     */
     public Evaluation plus(final Evaluation summand) {
         return plus(this, summand);
     }

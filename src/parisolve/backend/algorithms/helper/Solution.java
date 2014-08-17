@@ -46,10 +46,10 @@ public class Solution extends WinningRegionPartition {
         strategy = getArbitraryStrategy(getVertices());
     }
 
-    public Solution(Set<ParityVertex> winningRegionFor,
+    public Solution(Set<ParityVertex> winningRegionForSigma,
             Set<ParityVertex> winningRegionOfSigmaOpponent,
             Player sigma, Map<ParityVertex, ParityVertex> strategy) {
-        super(winningRegionFor, winningRegionOfSigmaOpponent, sigma);
+        super(winningRegionForSigma, winningRegionOfSigmaOpponent, sigma);
         this.strategy = strategy;
     }
 
