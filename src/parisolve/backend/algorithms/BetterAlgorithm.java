@@ -1,7 +1,6 @@
 package parisolve.backend.algorithms;
 
 import java.util.Set;
-import java.util.stream.StreamSupport;
 
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
@@ -20,6 +19,7 @@ import parisolve.backend.algorithms.helper.Solution;
  * @author Arne Schröder
  */
 public class BetterAlgorithm implements Solver {
+
     @Override
     public final Solution getSolution(final Arena arena) {
         final Set<ParityVertex> vertices = arena.getVertices();
@@ -52,14 +52,19 @@ public class BetterAlgorithm implements Solver {
         final ProgressMeasure measure = new ProgressMeasure(vertices, sigma, n);
 
         final Liftable iterator = liftable.getLiftableInstance(vertices, false);
-        // for the schewe-example parallelism does not work
-        StreamSupport.stream(iterator.spliterator(), false).forEach(vertex -> {
-            final boolean lifted = measure.lift(vertex);
-            if (lifted) {
-                iterator.liftWasSuccessful(vertex);
-            }
-        });
+        for (final ParityVertex vertex : iterator) {
+            doLift(measure, iterator, vertex, liftable);
+        }
 
         return measure.getSolution();
+    }
+
+    protected static void doLift(final ProgressMeasure measure,
+            final Liftable iterator, final ParityVertex vertex,
+            final LiftableFactory liftable) {
+        final boolean lifted = measure.lift(vertex);
+        if (lifted) {
+            iterator.liftWasSuccessful(vertex);
+        }
     }
 }

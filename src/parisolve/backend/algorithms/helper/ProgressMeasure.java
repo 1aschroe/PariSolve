@@ -78,6 +78,14 @@ public class ProgressMeasure {
         minMeasure = new MeasureValue(maxPriority);
     }
 
+    public final Player getPlayer() {
+        return player;
+    }
+
+    public final Set<? extends ParityVertex> getVertices() {
+        return vertices;
+    }
+
     /**
      * the progress measure's value for the vertex given.
      * 
@@ -226,8 +234,8 @@ public class ProgressMeasure {
      * @return an array of the sizes of the components in M_G
      */
     protected static final int[] getSizeOfMG(
-            final Collection<? extends ParityVertex> vertices, final Player player,
-            final int maxPriority) {
+            final Collection<? extends ParityVertex> vertices,
+            final Player player, final int maxPriority) {
         final int[] counts = new int[maxPriority + 1];
         for (final ParityVertex vertex : vertices) {
             final int priority = vertex.getPriority();
@@ -236,5 +244,9 @@ public class ProgressMeasure {
             }
         }
         return counts;
+    }
+
+    public void setToTop(ParityVertex vertex) {
+        measure.put(vertex, MeasureValue.getTopValue());
     }
 }
