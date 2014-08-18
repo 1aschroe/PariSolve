@@ -8,7 +8,10 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import com.google.common.collect.ImmutableList;
 
 import parisolve.backend.Arena;
+import parisolve.backend.algorithms.AttractiveBetterAlgorithm;
 import parisolve.backend.algorithms.BetterAlgorithm;
+import parisolve.backend.algorithms.BigStepAlgorithm;
+import parisolve.backend.algorithms.MemoizedRecursiveAlgorithm;
 import parisolve.backend.algorithms.RecursiveAlgorithm;
 import parisolve.backend.algorithms.Solver;
 import parisolve.backend.algorithms.helper.SolutionWithTime;
@@ -44,7 +47,9 @@ public final class BenchmarkingManager {
     private static List<Class<? extends Solver>> getAlgorithms() {
         return new ImmutableList.Builder<Class<? extends Solver>>()
                 .add(BetterAlgorithm.class).add(RecursiveAlgorithm.class)
-                .build();
+                .add(AttractiveBetterAlgorithm.class)
+                .add(MemoizedRecursiveAlgorithm.class)
+                .add(BigStepAlgorithm.class).build();
     }
 
     /**
@@ -63,10 +68,11 @@ public final class BenchmarkingManager {
      */
     protected static void doLinearBenchmarking() {
         for (final GeneratorType type : new GeneratorType[] {
-                GeneratorType.CHAIN, GeneratorType.WEAK }) {
-            System.out.println(type);
+                GeneratorType.SOLITAIRE, GeneratorType.CHAIN,
+                GeneratorType.WEAK }) {
+            // System.out.println(type);
             for (final Class<? extends Solver> solverClass : getAlgorithms()) {
-                System.out.println(solverClass.getSimpleName());
+                // System.out.println(solverClass.getSimpleName());
                 doLinearBenchmarking(type, solverClass);
             }
         }
@@ -101,21 +107,27 @@ public final class BenchmarkingManager {
             final Class<? extends Solver> solverClass) {
         double lastTime = 0;
         int n = 1;
+        System.out.println("data_" + type + "_" + solverClass.getSimpleName()
+                + " = [");
         warmUp(LinearArenaGenerator.generateArena(type, n), solverClass);
         while (lastTime < MAX_TIME_TO_SAMPLE) {
-            System.out.print("n=" + n + "\t");
+            // System.out.print("n=" + n + "\t");
             final Arena arena = LinearArenaGenerator.generateArena(type, n);
 
             long time = (long) measure(solverClass, arena).getPercentile(50);
 
-            System.out.println(time);
+            // System.out.print(time);
             lastTime = time;
+            if (lastTime < MAX_TIME_TO_SAMPLE) {
+                System.out.println(";");
+            }
             if (n < MAX_LINEAR_N) {
                 n++;
             } else {
                 n *= 2;
             }
         }
+        System.out.println("]';");
     }
 
     /**
@@ -222,6 +234,7 @@ public final class BenchmarkingManager {
             try {
                 final Solver solver = solverClass.newInstance();
                 final long time = solver.solveAndTime(arena).getTime();
+                System.out.print(time + " ");
                 statistics.addValue(time);
             } catch (IllegalAccessException | InstantiationException e) {
                 // should not happen
