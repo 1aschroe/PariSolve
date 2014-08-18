@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import com.google.common.collect.ImmutableList;
-
 import parisolve.backend.Arena;
 import parisolve.backend.algorithms.AttractiveBetterAlgorithm;
 import parisolve.backend.algorithms.BetterAlgorithm;
@@ -15,9 +13,12 @@ import parisolve.backend.algorithms.MemoizedRecursiveAlgorithm;
 import parisolve.backend.algorithms.RecursiveAlgorithm;
 import parisolve.backend.algorithms.Solver;
 import parisolve.backend.algorithms.helper.SolutionWithTime;
+import parisolve.backend.algorithms.preprocessor.GraphPreprocessor;
 import parisolve.io.ArenaManager;
 import parisolve.io.LinearArenaGenerator;
 import parisolve.io.LinearArenaGenerator.GeneratorType;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * provides methods to measure and benchmark the performance of algorithms for
@@ -46,9 +47,9 @@ public final class BenchmarkingManager {
      */
     private static List<Class<? extends Solver>> getAlgorithms() {
         return new ImmutableList.Builder<Class<? extends Solver>>()
-                .add(BetterAlgorithm.class).add(RecursiveAlgorithm.class)
+                .add(MemoizedRecursiveAlgorithm.class).add(RecursiveAlgorithm.class)
+                .add(BetterAlgorithm.class)
                 .add(AttractiveBetterAlgorithm.class)
-                .add(MemoizedRecursiveAlgorithm.class)
                 .add(BigStepAlgorithm.class).build();
     }
 
@@ -67,9 +68,7 @@ public final class BenchmarkingManager {
      * descriptive file name.
      */
     protected static void doLinearBenchmarking() {
-        for (final GeneratorType type : new GeneratorType[] {
-                GeneratorType.SOLITAIRE, GeneratorType.CHAIN,
-                GeneratorType.WEAK }) {
+        for (final GeneratorType type : new GeneratorType[] { GeneratorType.RESILIENT }) {
             // System.out.println(type);
             for (final Class<? extends Solver> solverClass : getAlgorithms()) {
                 // System.out.println(solverClass.getSimpleName());
@@ -109,7 +108,7 @@ public final class BenchmarkingManager {
         int n = 1;
         System.out.println("data_" + type + "_" + solverClass.getSimpleName()
                 + " = [");
-        warmUp(LinearArenaGenerator.generateArena(type, n), solverClass);
+        warmUp(LinearArenaGenerator.generateArena(type, 10), solverClass);
         while (lastTime < MAX_TIME_TO_SAMPLE) {
             // System.out.print("n=" + n + "\t");
             final Arena arena = LinearArenaGenerator.generateArena(type, n);
@@ -233,6 +232,23 @@ public final class BenchmarkingManager {
         for (int i = 0; i < NO_OF_REPETITIONS; i++) {
             try {
                 final Solver solver = solverClass.newInstance();
+                final long time = solver.solveAndTime(arena).getTime();
+                System.out.print(time + " ");
+                statistics.addValue(time);
+            } catch (IllegalAccessException | InstantiationException e) {
+                // should not happen
+                System.err.println("Solver could not be instatiated.");
+                e.printStackTrace();
+            }
+        }
+        System.out.print("|");
+        for (int i = 0; i < NO_OF_REPETITIONS; i++) {
+            try {
+                final Solver actualSolver = solverClass.newInstance();
+                final GraphPreprocessor solver = new GraphPreprocessor(
+                        actualSolver);
+                solver.addOptimization(GraphPreprocessor.Optimization.VERTEX_COMPRESSION);
+                solver.addOptimization(GraphPreprocessor.Optimization.SELFCYCLE_REMOVAL);
                 final long time = solver.solveAndTime(arena).getTime();
                 System.out.print(time + " ");
                 statistics.addValue(time);

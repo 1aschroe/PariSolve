@@ -48,7 +48,7 @@ public class LiftableFactory {
     /**
      * maps each vertex to the set of its predecessors.
      */
-    private final Map<ParityVertex, Set<ParityVertex>> predecessors = new ConcurrentHashMap<>();
+    private final Map<ParityVertex, Set<ParityVertex>> predecessors;
 
     /**
      * the given vertices are preprocessed to the map of predecessors.
@@ -57,8 +57,15 @@ public class LiftableFactory {
      *            vertices of the arena to consider
      */
     public LiftableFactory(final Set<? extends ParityVertex> vertices) {
+        predecessors = getPredecessorMap(vertices);
+    }
+
+    public static Map<ParityVertex, Set<ParityVertex>> getPredecessorMap(
+            final Set<? extends ParityVertex> vertices) {
+        Map<ParityVertex, Set<ParityVertex>> predecessors = new ConcurrentHashMap<>();
         for (final ParityVertex vertex : vertices) {
-            final SetView<? extends ParityVertex> successorsInSubGame = Sets.intersection(vertex.getSuccessors(), vertices);
+            final SetView<? extends ParityVertex> successorsInSubGame = Sets
+                    .intersection(vertex.getSuccessors(), vertices);
             for (final ParityVertex successor : successorsInSubGame) {
                 if (!predecessors.containsKey(successor)) {
                     predecessors.put(successor, new HashSet<ParityVertex>());
@@ -66,6 +73,7 @@ public class LiftableFactory {
                 predecessors.get(successor).add(vertex);
             }
         }
+        return predecessors;
     }
 
     /**
@@ -94,14 +102,12 @@ public class LiftableFactory {
      *            whether to one vertex can be used twice
      * @return a liftable instance
      */
-    public final Liftable getLiftableInstance(
-            final Set<ParityVertex> vertices,
+    public final Liftable getLiftableInstance(final Set<ParityVertex> vertices,
             final boolean useOnce) {
         return getLiftableInstance(vertices, vertices, useOnce);
     }
 
-    public Liftable getLiftableInstance(
-            Set<? extends ParityVertex> subGame,
+    public Liftable getLiftableInstance(Set<? extends ParityVertex> subGame,
             Set<ParityVertex> verticesToStartWith, boolean useOnce) {
         return getLiftableInstance(subGame, verticesToStartWith,
                 LiftableImplementationType.SET_STACK, useOnce);
@@ -114,7 +120,7 @@ public class LiftableFactory {
      * 
      * @param subGame
      *            the vertices to iterate
-     * @param verticesToStartWith 
+     * @param verticesToStartWith
      * @param type
      *            the type of implementation of the returned liftable instance
      * @param useOnce
@@ -123,14 +129,17 @@ public class LiftableFactory {
      */
     public final Liftable getLiftableInstance(
             final Set<? extends ParityVertex> subGame,
-            Set<ParityVertex> verticesToStartWith, final LiftableImplementationType type, final boolean useOnce) {
+            Set<ParityVertex> verticesToStartWith,
+            final LiftableImplementationType type, final boolean useOnce) {
         switch (type) {
         case SET:
             return new SetLiftable(subGame, verticesToStartWith, this, useOnce);
         case STACK:
-            return new StackLiftable(subGame, verticesToStartWith, this, useOnce);
+            return new StackLiftable(subGame, verticesToStartWith, this,
+                    useOnce);
         case SET_STACK:
-            return new SetStackLiftable(subGame, verticesToStartWith, this, useOnce);
+            return new SetStackLiftable(subGame, verticesToStartWith, this,
+                    useOnce);
         default:
             throw new IllegalArgumentException("Type " + type
                     + " is not supported for liftables.");

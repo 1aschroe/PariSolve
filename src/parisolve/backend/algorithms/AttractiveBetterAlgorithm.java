@@ -52,7 +52,7 @@ public class AttractiveBetterAlgorithm extends BetterAlgorithm {
      * @return the attractor of <code>sigma</code> to <code>vertices</code> with
      *         respect to the subgame on <code>allVertices</code>
      */
-    protected static final AttractorStrategyPair getAttractor(
+    public static final AttractorStrategyPair getAttractor(
             final Collection<? extends ParityVertex> vertices,
             final Player sigma,
             final Collection<? extends ParityVertex> allVertices,
