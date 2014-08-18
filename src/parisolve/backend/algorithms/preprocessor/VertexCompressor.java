@@ -33,14 +33,21 @@ public class VertexCompressor {
         LinkedArena arenaToSolve = new LinkedArena();
         Map<ParityVertex, Set<ParityVertex>> predecessorMap = LiftableFactory
                 .getPredecessorMap(arena.getVertices());
+
+        // these vertices can be ignored when solving the arena and can easily
+        // be solved afterwards
+        Set<ParityVertex> entryOnly = arena.getVertices().stream()
+                .filter(vertex -> !predecessorMap.containsKey(vertex))
+                .collect(Collectors.toSet());
+
         Map<ParityVertex, ParityVertex> compressedPredecessors = new HashMap<>();
         BiMap<ParityVertex, ParityVertex> compressedSuccessors = HashBiMap
                 .create();
         BiMap<ParityVertex, ParityVertex> otherVertices = HashBiMap.create();
         transferAndCompressVertices(arena, arenaToSolve, predecessorMap,
-                compressedPredecessors, compressedSuccessors);
+                compressedPredecessors, compressedSuccessors, entryOnly);
         transferAndCompressEdges(arena, arenaToSolve, compressedPredecessors,
-                compressedSuccessors, otherVertices);
+                compressedSuccessors, otherVertices, entryOnly);
 
         Solution solution = preprocessor.solveSelfcyclelessArena(arenaToSolve);
 
@@ -50,12 +57,38 @@ public class VertexCompressor {
         final Map<ParityVertex, ParityVertex> actualStrategy = new ConcurrentHashMap<>();
         final Set<ParityVertex> actualWinningRegionForA = new HashSet<>();
         final Set<ParityVertex> actualWinningRegionForB = new HashSet<>();
-        return transferSolutionBack(arenaToSolve,
-                new ImmutableMultimap.Builder<ParityVertex, ParityVertex>()
-                        .putAll(Multimaps.forMap(compressedPredecessors))
-                        .build().inverse(), compressedSuccessors,
-                otherVertices, strategy, winningRegionForA, actualStrategy,
+        ImmutableMultimap<ParityVertex, ParityVertex> predecessorInverseMap = new ImmutableMultimap.Builder<ParityVertex, ParityVertex>()
+                .putAll(Multimaps.forMap(compressedPredecessors)).build()
+                .inverse();
+        Solution actualSolution = transferSolutionBack(arenaToSolve,
+                predecessorInverseMap, compressedSuccessors, otherVertices,
+                strategy, winningRegionForA, actualStrategy,
                 actualWinningRegionForA, actualWinningRegionForB);
+
+        // one could also solve this with attractors.
+        for (final ParityVertex vertex : entryOnly) {
+            if (vertex.getPlayer() == Player.A) {
+                final ParityVertex favourable = vertex
+                        .getSuccessorFromSet(actualWinningRegionForA);
+                if (favourable != null) {
+                    actualStrategy.put(vertex, favourable);
+                    actualWinningRegionForA.add(vertex);
+                } else {
+                    actualWinningRegionForB.add(vertex);
+                }
+            } else {
+                final ParityVertex favourable = vertex
+                        .getSuccessorFromSet(actualWinningRegionForB);
+                if (favourable != null) {
+                    actualStrategy.put(vertex, favourable);
+                    actualWinningRegionForB.add(vertex);
+                } else {
+                    actualWinningRegionForA.add(vertex);
+                }
+            }
+        }
+
+        return actualSolution;
     }
 
     protected static Solution transferSolutionBack(
@@ -96,8 +129,12 @@ public class VertexCompressor {
             LinkedArena arenaToSolve,
             Map<ParityVertex, ParityVertex> compressedPredecessors,
             Map<ParityVertex, ParityVertex> compressedSuccessors,
-            Map<ParityVertex, ParityVertex> otherVertices) {
+            Map<ParityVertex, ParityVertex> otherVertices,
+            Set<ParityVertex> entryOnly) {
         for (final ParityVertex vertex : arena.getVertices()) {
+            if (entryOnly.contains(vertex)) {
+                continue;
+            }
             String vertexName;
             Set<? extends ParityVertex> successors = vertex.getSuccessors();
             if (compressedSuccessors.containsKey(vertex)) {
@@ -125,11 +162,12 @@ public class VertexCompressor {
             LinkedArena arenaToSolve,
             Map<ParityVertex, Set<ParityVertex>> predecessorMap,
             Map<ParityVertex, ParityVertex> compressedPredecessors,
-            Map<ParityVertex, ParityVertex> compressedSuccessors) {
+            Map<ParityVertex, ParityVertex> compressedSuccessors,
+            Set<ParityVertex> entryOnly) {
         Set<ParityVertex> inStructures = new HashSet<>();
         Map<ParityVertex, List<ParityVertex>> successorsInTunnel = new ConcurrentHashMap<>();
         for (final ParityVertex vertex : arena.getVertices()) {
-            if (inStructures.contains(vertex)) {
+            if (entryOnly.contains(vertex) || inStructures.contains(vertex)) {
                 continue;
             }
             if (vertex.getSuccessors().size() == 1) {
@@ -172,7 +210,7 @@ public class VertexCompressor {
                     compressedSuccessors, tail);
         }
         for (final ParityVertex vertex : arena.getVertices()) {
-            if (inStructures.contains(vertex)) {
+            if (entryOnly.contains(vertex) || inStructures.contains(vertex)) {
                 continue;
             }
             arenaToSolve.addVertex(vertex.getName(), vertex.getPriority(),
