@@ -86,7 +86,8 @@ public class SelfcycleRemover {
                 continue;
             }
             for (final ParityVertex successor : vertex.getSuccessors()) {
-                if (!successor.equals(vertex) && vertexCorrespondence.containsKey(successor)) {
+                if (!successor.equals(vertex)
+                        && vertexCorrespondence.containsKey(successor)) {
                     arenaToSolve.addEdge(vertex.getName(), successor.getName());
                 }
             }
@@ -106,22 +107,34 @@ public class SelfcycleRemover {
             }
             if (vertex.getSuccessors().contains(vertex)) {
                 // selfcycle
-                final Player vertexPlayer = vertex.getPlayer();
-                if (Player.getPlayerForPriority(vertex.getPriority()) == vertexPlayer) {
-                    // this is a winning vertex for this player
-                    AttractorStrategyPair attractor = AttractiveBetterAlgorithm
-                            .getAttractor(
-                                    new ImmutableSet.Builder<ParityVertex>()
-                                            .add(vertex).build(), vertexPlayer,
-                                    arena.getVertices(), liftableFactory);
-                    strategy.putAll(attractor.getStrategy());
-                    if (vertexPlayer == Player.A) {
-                        winningForA.addAll(attractor.getAttractor());
-                    } else {
-                        winningForB.addAll(attractor.getAttractor());
-                    }
+                final Player prioritysPlayer = Player
+                        .getPlayerForPriority(vertex.getPriority());
+                if (prioritysPlayer == vertex.getPlayer()
+                        || vertex.getSuccessors().size() == 1) {
+                    // either the player wants to take this edge because it is
+                    // good for her or she must take it
+                    removeAttractorOfSelfcycle(arena, winningForA, winningForB,
+                            strategy, liftableFactory, vertex, prioritysPlayer);
                 }
             }
+        }
+    }
+
+    protected static void removeAttractorOfSelfcycle(final Arena arena,
+            Set<ParityVertex> winningForA, Set<ParityVertex> winningForB,
+            Map<ParityVertex, ParityVertex> strategy,
+            LiftableFactory liftableFactory, final ParityVertex vertex,
+            final Player vertexPlayer) {
+        AttractorStrategyPair attractor = AttractiveBetterAlgorithm
+                .getAttractor(
+                        new ImmutableSet.Builder<ParityVertex>().add(vertex)
+                                .build(), vertexPlayer, arena.getVertices(),
+                        liftableFactory);
+        strategy.putAll(attractor.getStrategy());
+        if (vertexPlayer == Player.A) {
+            winningForA.addAll(attractor.getAttractor());
+        } else {
+            winningForB.addAll(attractor.getAttractor());
         }
     }
 }
