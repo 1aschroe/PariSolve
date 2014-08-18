@@ -85,18 +85,18 @@ public class StrategyImprovementAlgorithm implements Solver {
         return estimation.getSolution(mapping);
     }
 
-    private static Map<ParityVertex, ParityVertex> getBipartiteArena(Arena arena) {
+    private static Map<ParityVertex, ParityVertex> getBipartiteArena(
+            final Arena arena) {
         final long startConvert = System.currentTimeMillis();
-        Set<ParityVertex> originalVertices = arena.getVertices();
         Map<String, LinkedParityVertex> newVertices = new ConcurrentHashMap<>();
         Map<ParityVertex, ParityVertex> mapping = new ConcurrentHashMap<>();
-        for (final ParityVertex vertex : originalVertices) {
+        for (final ParityVertex vertex : arena) {
             LinkedParityVertex newVertex = new LinkedParityVertex(
                     vertex.getName(), vertex.getPriority(), vertex.getPlayer());
             newVertices.put(newVertex.getName(), newVertex);
             mapping.put(newVertex, vertex);
         }
-        for (final ParityVertex vertex : originalVertices) {
+        for (final ParityVertex vertex : arena) {
             for (final ParityVertex successor : vertex.getSuccessors()) {
                 if (vertex.getPlayer() != successor.getPlayer()) {
                     newVertices.get(vertex.getName()).addSuccessor(
@@ -121,7 +121,7 @@ public class StrategyImprovementAlgorithm implements Solver {
         System.out.println("Converting to bipartite took "
                 + (endConvert - startConvert) + " ms.");
         System.out.println("Resulted in " + newVertices.size() + " instead of "
-                + originalVertices.size() + " vertices.");
+                + arena.size() + " vertices.");
         return mapping;
     }
 

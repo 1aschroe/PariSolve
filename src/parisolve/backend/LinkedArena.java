@@ -1,13 +1,16 @@
 package parisolve.backend;
 
+import java.util.AbstractCollection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import parisolve.io.ArenaManager;
 
-public class LinkedArena implements Arena {
+public class LinkedArena extends AbstractCollection<ParityVertex> implements
+        Arena {
     public static class LinkedParityVertex implements ParityVertex {
         private final int priority;
         private final Player player;
@@ -86,7 +89,7 @@ public class LinkedArena implements Arena {
         int maxDegree = 0;
         int numberEdges = 0;
         int numberOfSelfloops = 0;
-        for (final ParityVertex vertex : getVertices()) {
+        for (final ParityVertex vertex : vertices.values()) {
             final int degree = vertex.getSuccessors().size();
             if (degree > maxDegree) {
                 maxDegree = degree;
@@ -112,11 +115,34 @@ public class LinkedArena implements Arena {
 
     /**
      * returns the vertex with the given <code>name</code>.
+     * 
      * @param name
      * @return
      */
     public final ParityVertex getVertex(final String name) {
         // for testing purpose
         return vertices.get(name);
+    }
+
+    @Override
+    public Iterator<ParityVertex> iterator() {
+        final Iterator<LinkedParityVertex> iterator = vertices.values()
+                .iterator();
+        return new Iterator<ParityVertex>() {
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public ParityVertex next() {
+                return iterator.next();
+            }
+        };
+    }
+
+    @Override
+    public int size() {
+        return vertices.size();
     }
 }

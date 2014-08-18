@@ -67,12 +67,11 @@ public class PrimitiveAlgorithm implements Solver {
 
     @Override
     public final Solution getSolution(final Arena arena) {
-        final Collection<? extends ParityVertex> vertices = arena.getVertices();
         final Map<ParityVertex, ParityVertex> strategy = new ConcurrentHashMap<>();
-        final Set<ParityVertex> zeroVertices = vertices.parallelStream()
+        final Set<ParityVertex> zeroVertices = arena.parallelStream()
                 .filter(vertex -> vertex.getPlayer() == Player.A)
                 .collect(Collectors.toSet());
-        final Set<ParityVertex> oneVertices = new HashSet<>(vertices);
+        final Set<ParityVertex> oneVertices = new HashSet<>(arena);
         oneVertices.removeAll(zeroVertices);
 
         final StrategyValuePair strategyValuePair = tryAllStrategiesForZeroRecursively(

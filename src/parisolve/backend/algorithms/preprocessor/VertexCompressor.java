@@ -36,7 +36,7 @@ public class VertexCompressor {
 
         // these vertices can be ignored when solving the arena and can easily
         // be solved afterwards
-        Set<ParityVertex> entryOnly = arena.getVertices().stream()
+        Set<ParityVertex> entryOnly = arena.stream()
                 .filter(vertex -> !predecessorMap.containsKey(vertex))
                 .collect(Collectors.toSet());
 
@@ -101,7 +101,8 @@ public class VertexCompressor {
             final Map<ParityVertex, ParityVertex> actualStrategy,
             final Set<ParityVertex> actualWinningRegionForA,
             final Set<ParityVertex> actualWinningRegionForB) {
-        for (final ParityVertex vertex : arenaToSolve.getVertices()) {
+
+        for (final ParityVertex vertex : arenaToSolve) {
             /*
              * TODO: reconstruct the strategy if (strategy.containsKey(vertex))
              * { actualStrategy.put( getVertexBack(vertex, compressedSuccessors,
@@ -131,7 +132,7 @@ public class VertexCompressor {
             Map<ParityVertex, ParityVertex> compressedSuccessors,
             Map<ParityVertex, ParityVertex> otherVertices,
             Set<ParityVertex> entryOnly) {
-        for (final ParityVertex vertex : arena.getVertices()) {
+        for (final ParityVertex vertex : arena) {
             if (entryOnly.contains(vertex)) {
                 continue;
             }
@@ -166,7 +167,7 @@ public class VertexCompressor {
             Set<ParityVertex> entryOnly) {
         Set<ParityVertex> inStructures = new HashSet<>();
         Map<ParityVertex, List<ParityVertex>> successorsInTunnel = new ConcurrentHashMap<>();
-        for (final ParityVertex vertex : arena.getVertices()) {
+        for (final ParityVertex vertex : arena) {
             if (entryOnly.contains(vertex) || inStructures.contains(vertex)) {
                 continue;
             }
@@ -209,7 +210,7 @@ public class VertexCompressor {
             mapTunnel(arenaToSolve, compressedPredecessors,
                     compressedSuccessors, tail);
         }
-        for (final ParityVertex vertex : arena.getVertices()) {
+        for (final ParityVertex vertex : arena) {
             if (entryOnly.contains(vertex) || inStructures.contains(vertex)) {
                 continue;
             }

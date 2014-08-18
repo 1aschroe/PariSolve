@@ -8,7 +8,7 @@ import java.util.Set;
  * 
  * @author Arne Schröder
  */
-public interface Arena {
+public interface Arena extends Collection<ParityVertex> {
     /**
      * accessor to the entirety of vertices in this arena.
      * 
@@ -24,7 +24,7 @@ public interface Arena {
      * @return the maximal priority
      */
     default public int getMaxPriority() {
-        return getMaxPriority(getVertices());
+        return getMaxPriority(this);
     }
 
     /**

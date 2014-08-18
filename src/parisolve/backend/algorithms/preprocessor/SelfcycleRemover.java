@@ -71,7 +71,7 @@ public class SelfcycleRemover {
             Set<ParityVertex> winningForA, Set<ParityVertex> winningForB,
             BiMap<ParityVertex, ParityVertex> vertexCorrespondence) {
         LinkedArena arenaToSolve = new LinkedArena();
-        for (final ParityVertex vertex : arena.getVertices()) {
+        for (final ParityVertex vertex : arena) {
             if (winningForA.contains(vertex) || winningForB.contains(vertex)) {
                 continue;
             }
@@ -81,7 +81,7 @@ public class SelfcycleRemover {
             vertexCorrespondence.put(vertex, newVertex);
         }
 
-        for (final ParityVertex vertex : arena.getVertices()) {
+        for (final ParityVertex vertex : arena) {
             if (winningForA.contains(vertex) || winningForB.contains(vertex)) {
                 continue;
             }
@@ -101,7 +101,7 @@ public class SelfcycleRemover {
         LiftableFactory liftableFactory = new LiftableFactory(
                 arena.getVertices());
 
-        for (final ParityVertex vertex : arena.getVertices()) {
+        for (final ParityVertex vertex : arena) {
             if (winningForA.contains(vertex) || winningForB.contains(vertex)) {
                 continue;
             }
@@ -128,8 +128,7 @@ public class SelfcycleRemover {
         AttractorStrategyPair attractor = AttractiveBetterAlgorithm
                 .getAttractor(
                         new ImmutableSet.Builder<ParityVertex>().add(vertex)
-                                .build(), vertexPlayer, arena.getVertices(),
-                        liftableFactory);
+                                .build(), vertexPlayer, arena, liftableFactory);
         strategy.putAll(attractor.getStrategy());
         if (vertexPlayer == Player.A) {
             winningForA.addAll(attractor.getAttractor());

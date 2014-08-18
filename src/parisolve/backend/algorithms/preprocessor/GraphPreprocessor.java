@@ -31,7 +31,7 @@ public class GraphPreprocessor implements Solver {
     int arenaSize = Integer.MIN_VALUE;
 
     protected Solution solveCompressedArena(Arena arena) {
-        arenaSize = arena.getVertices().size();
+        arenaSize = arena.size();
         if (optimizationsToApply.contains(Optimization.VERTEX_COMPRESSION)) {
             return VertexCompressor.solveCompressedArena(arena, this);
         } else {
@@ -48,7 +48,7 @@ public class GraphPreprocessor implements Solver {
     }
 
     public Solution solve(Arena arena) {
-        if (arena.getVertices().size() < arenaSize) {
+        if (arena.size() < arenaSize) {
             return solveCompressedArena(arena);
         }
         return actualSolver.getSolution(arena);
