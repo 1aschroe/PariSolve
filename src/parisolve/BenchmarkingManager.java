@@ -1,7 +1,10 @@
 package parisolve;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
@@ -14,11 +17,13 @@ import parisolve.backend.algorithms.RecursiveAlgorithm;
 import parisolve.backend.algorithms.Solver;
 import parisolve.backend.algorithms.helper.SolutionWithTime;
 import parisolve.backend.algorithms.preprocessor.GraphPreprocessor;
+import parisolve.backend.algorithms.preprocessor.GraphPreprocessor.Optimization;
 import parisolve.io.ArenaManager;
 import parisolve.io.LinearArenaGenerator;
 import parisolve.io.LinearArenaGenerator.GeneratorType;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
 /**
  * provides methods to measure and benchmark the performance of algorithms for
@@ -47,8 +52,8 @@ public final class BenchmarkingManager {
      */
     private static List<Class<? extends Solver>> getAlgorithms() {
         return new ImmutableList.Builder<Class<? extends Solver>>()
-                .add(MemoizedRecursiveAlgorithm.class).add(RecursiveAlgorithm.class)
-                .add(BetterAlgorithm.class)
+                .add(MemoizedRecursiveAlgorithm.class)
+                .add(RecursiveAlgorithm.class).add(BetterAlgorithm.class)
                 .add(AttractiveBetterAlgorithm.class)
                 .add(BigStepAlgorithm.class).build();
     }
@@ -68,7 +73,8 @@ public final class BenchmarkingManager {
      * descriptive file name.
      */
     protected static void doLinearBenchmarking() {
-        for (final GeneratorType type : new GeneratorType[] { GeneratorType.RESILIENT }) {
+        for (final GeneratorType type : new GeneratorType[] {
+                GeneratorType.RESILIENT, GeneratorType.SOLITAIRE }) {
             // System.out.println(type);
             for (final Class<? extends Solver> solverClass : getAlgorithms()) {
                 // System.out.println(solverClass.getSimpleName());
@@ -97,23 +103,33 @@ public final class BenchmarkingManager {
                 e.printStackTrace();
             }
         }
+    }
 
+    protected static void doLinearBenchmarking(GeneratorType type,
+            final Class<? extends Solver> solverClass) {
+        Set<Set<Optimization>> optimizationPowerSet = Sets
+                .powerSet(new HashSet<>(Arrays.asList(Optimization.values())));
+        for (final Set<Optimization> optimizations : optimizationPowerSet) {
+            doLinearBenchmarking(type, solverClass, optimizations);
+        }
     }
 
     static final long MAX_LINEAR_N = 1500;
 
     protected static void doLinearBenchmarking(GeneratorType type,
-            final Class<? extends Solver> solverClass) {
+            final Class<? extends Solver> solverClass,
+            final Set<Optimization> optimizations) {
         double lastTime = 0;
         int n = 1;
         System.out.println("data_" + type + "_" + solverClass.getSimpleName()
-                + " = [");
+                + (optimizations.isEmpty() ? "" : optimizations) + " = [");
         warmUp(LinearArenaGenerator.generateArena(type, 10), solverClass);
         while (lastTime < MAX_TIME_TO_SAMPLE) {
             // System.out.print("n=" + n + "\t");
             final Arena arena = LinearArenaGenerator.generateArena(type, n);
 
-            long time = (long) measure(solverClass, arena).getPercentile(50);
+            long time = (long) measure(solverClass, arena, optimizations)
+                    .getPercentile(50);
 
             // System.out.print(time);
             lastTime = time;
@@ -207,6 +223,14 @@ public final class BenchmarkingManager {
     }
 
     /**
+     * convenience-method
+     */
+    static DescriptiveStatistics measure(
+            final Class<? extends Solver> solverClass, final Arena arena) {
+        return measure(solverClass, arena, new HashSet<>());
+    }
+
+    /**
      * number of times to repeat to solve an arena before the measurements are
      * analysed. Determined by calculating the minimal sample size for several
      * solver-arena-pairs and maximal relative error. For details, see the
@@ -224,32 +248,29 @@ public final class BenchmarkingManager {
      *            algorithm to solve the arena with
      * @param arena
      *            arena to solve
+     * @param optimizations
+     *            optimizations to apply to the arena before running the
+     *            algorithm
      * @return median of timings which were similar enough
      */
     static DescriptiveStatistics measure(
-            final Class<? extends Solver> solverClass, final Arena arena) {
+            final Class<? extends Solver> solverClass, final Arena arena,
+            Set<Optimization> optimizations) {
         DescriptiveStatistics statistics = new DescriptiveStatistics();
         for (int i = 0; i < NO_OF_REPETITIONS; i++) {
             try {
                 final Solver solver = solverClass.newInstance();
-                final long time = solver.solveAndTime(arena).getTime();
-                System.out.print(time + " ");
-                statistics.addValue(time);
-            } catch (IllegalAccessException | InstantiationException e) {
-                // should not happen
-                System.err.println("Solver could not be instatiated.");
-                e.printStackTrace();
-            }
-        }
-        System.out.print("|");
-        for (int i = 0; i < NO_OF_REPETITIONS; i++) {
-            try {
-                final Solver actualSolver = solverClass.newInstance();
-                final GraphPreprocessor solver = new GraphPreprocessor(
-                        actualSolver);
-                solver.addOptimization(GraphPreprocessor.Optimization.VERTEX_COMPRESSION);
-                solver.addOptimization(GraphPreprocessor.Optimization.SELFCYCLE_REMOVAL);
-                final long time = solver.solveAndTime(arena).getTime();
+                final long time;
+                if (optimizations.isEmpty()) {
+                    time = solver.solveAndTime(arena).getTime();
+                } else {
+                    GraphPreprocessor preprocessor = new GraphPreprocessor(
+                            solver);
+                    for (final Optimization optimization : optimizations) {
+                        preprocessor.addOptimization(optimization);
+                    }
+                    time = preprocessor.solveAndTime(arena).getTime();
+                }
                 System.out.print(time + " ");
                 statistics.addValue(time);
             } catch (IllegalAccessException | InstantiationException e) {
@@ -260,5 +281,4 @@ public final class BenchmarkingManager {
         }
         return statistics;
     }
-
 }
