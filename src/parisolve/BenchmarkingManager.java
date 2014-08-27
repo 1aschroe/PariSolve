@@ -9,8 +9,8 @@ import java.util.Set;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import parisolve.backend.Arena;
-import parisolve.backend.algorithms.AttractiveBetterAlgorithm;
-import parisolve.backend.algorithms.BetterAlgorithm;
+import parisolve.backend.algorithms.AttractiveSmallMeasureAlgorithm;
+import parisolve.backend.algorithms.SmallMeasureAlgorithm;
 import parisolve.backend.algorithms.BigStepAlgorithm;
 import parisolve.backend.algorithms.MemoizedRecursiveAlgorithm;
 import parisolve.backend.algorithms.RecursiveAlgorithm;
@@ -53,8 +53,8 @@ public final class BenchmarkingManager {
     private static List<Class<? extends Solver>> getAlgorithms() {
         return new ImmutableList.Builder<Class<? extends Solver>>()
                 .add(MemoizedRecursiveAlgorithm.class)
-                .add(RecursiveAlgorithm.class).add(BetterAlgorithm.class)
-                .add(AttractiveBetterAlgorithm.class)
+                .add(RecursiveAlgorithm.class).add(SmallMeasureAlgorithm.class)
+                .add(AttractiveSmallMeasureAlgorithm.class)
                 .add(BigStepAlgorithm.class).build();
     }
 

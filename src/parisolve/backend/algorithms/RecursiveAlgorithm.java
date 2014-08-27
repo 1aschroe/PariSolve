@@ -79,7 +79,7 @@ public class RecursiveAlgorithm implements Solver {
         final Player sigma = Player.getPlayerForPriority(maxPriority);
 
         // this enables BigStepAlgorithm to calculate a dominion of
-        // sigma.getOpponent() using BetterAlgorithm with small n
+        // sigma.getOpponent() using SmallMeasureAlgorithm with small n
         final AttractorStrategyPair dominion = getDominionOfSigmaOpponentQuickly(
                 vertices, maxPriority, sigma);
 
@@ -183,8 +183,8 @@ public class RecursiveAlgorithm implements Solver {
      * @return dominion of sigma's opponent.
      */
     protected final AttractorStrategyPair getDominionOfSigmaOpponent(
-            final Set<ParityVertex> vertices,
-            final int maxPriority, final Player sigma) {
+            final Set<ParityVertex> vertices, final int maxPriority,
+            final Player sigma) {
         // in Abbildung 15.5 verticesWithMaxPriority is N
         final Set<ParityVertex> verticesWithMaxPriority = vertices
                 .parallelStream()
@@ -280,8 +280,8 @@ public class RecursiveAlgorithm implements Solver {
      */
     protected final AttractorStrategyPair getAttractor(
             final Collection<? extends ParityVertex> vertices,
-            final Player sigma,
-            final Set<ParityVertex> allVertices) {
-        return AttractorCalculator.getAttractor(vertices, sigma, allVertices, liftable);
+            final Player sigma, final Set<ParityVertex> allVertices) {
+        return AttractorCalculator.getAttractor(vertices, sigma, allVertices,
+                liftable);
     }
 }

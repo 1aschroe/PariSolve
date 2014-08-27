@@ -6,29 +6,30 @@ import java.util.Comparator;
 import parisolve.backend.Player;
 
 /**
- * This is a helper class for the better algorithm, representing the values in
- * M_G^T, their handling and comparison.
+ * This is a helper class for the <code>SmallMeasureAlgorithm</code>,
+ * representing the values in M_G^T, their handling and comparison.
  * 
  * @author Arne Schröder
  */
 public class MeasureValue implements Comparable<MeasureValue> {
-    public static class MeasureValueComparator implements Comparator<MeasureValue>{
+    public static class MeasureValueComparator implements
+            Comparator<MeasureValue> {
         final static MeasureValueComparator SINGLETON = new MeasureValueComparator();
-        
+
         private MeasureValueComparator() {
-            
+
         }
-        
+
         public static MeasureValueComparator getInstance() {
             return SINGLETON;
         }
-        
+
         @Override
         public int compare(MeasureValue o1, MeasureValue o2) {
             return o1.compareTo(o2);
         }
     }
-    
+
     // TODO: make MeasureValue immutable
     /**
      * the measure value wrapped in this class.
@@ -220,7 +221,8 @@ public class MeasureValue implements Comparable<MeasureValue> {
      *         that this vertex is good in terms of priority for player's
      *         opponent.
      */
-    public static boolean valueMustBeGreater(final int priority, final Player player) {
+    public static boolean valueMustBeGreater(final int priority,
+            final Player player) {
         return priority % 2 == player.getOponent().getNumber();
     }
 }

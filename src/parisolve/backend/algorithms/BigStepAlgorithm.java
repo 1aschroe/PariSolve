@@ -11,14 +11,16 @@ import parisolve.backend.algorithms.helper.Solution;
  * implementation of the algorithm given in FSTTCS 2007 - Solving Parity Games
  * in Big Steps by Sven Schewe. The algorithms pseudo code is given in figure 1
  * of that paper. The idea is to combine the algorithms
- * <code>RecursiveAlgorithm</code> and <code>BetterAlgorithm</code> in such a
- * way that the overall algorithm of <code>RecursiveAlgorithm</code> is used but
- * for <code>maxPriority == 2</code> the original <code>BetterAlgorithm</code>
- * is used and for <code>maxPriority > 2</code> <code>BetterAlgorithm</code> is
- * used while restricting its progress measure. This results in
- * <code>BetterAlgorithm</code> to return much more quickly and calculating
- * dominions rather than winning regions. Dominions are regions, from which the
- * opponent cannot escape and which are winning for the player given.
+ * <code>RecursiveAlgorithm</code> and <code>SmallMeasureAlgorithm</code> in
+ * such a way that the overall algorithm of <code>RecursiveAlgorithm</code> is
+ * used but for <code>maxPriority == 2</code> the original
+ * <code>SmallMeasureAlgorithm</code> is used and for
+ * <code>maxPriority > 2</code> <code>SmallMeasureAlgorithm</code> is used while
+ * restricting its progress measure. This results in
+ * <code>SmallMeasureAlgorithm</code> to return much more quickly and
+ * calculating dominions rather than winning regions. Dominions are regions,
+ * from which the opponent cannot escape and which are winning for the player
+ * given.
  * 
  * The implementation is done by extending <code>RecursiveAlgorithm</code>,
  * replacing dummy methods with the appropriate code.
@@ -33,27 +35,31 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
     protected final AttractorStrategyPair getDominionOfSigmaOpponentQuickly(
             final Set<ParityVertex> vertices, final int maxPriority,
             final Player sigma) {
-        //TODO: not sure whether we do this correctly as some runs are much slower for BetterAlgorithm than others.
-        final Solution approximation = getWinningPartitionFromBetterAlgorithm(sigma.getOponent(),
-                pi(vertices.size(), maxPriority + 1), vertices);
-        return new AttractorStrategyPair(approximation.getWinningRegionFor(sigma.getOponent()), approximation.getStrategy());
+        // TODO: not sure whether we do this correctly as some runs are much
+        // slower for SmallMeasureAlgorithm than others.
+        final Solution approximation = getWinningPartitionFromSmallMeasureAlgorithm(
+                sigma.getOponent(), pi(vertices.size(), maxPriority + 1),
+                vertices);
+        return new AttractorStrategyPair(
+                approximation.getWinningRegionFor(sigma.getOponent()),
+                approximation.getStrategy());
     }
 
     @Override
-    protected final Solution takeShortcut(
-            final Set<ParityVertex> vertices, final int maxPriority) {
+    protected final Solution takeShortcut(final Set<ParityVertex> vertices,
+            final int maxPriority) {
         if (maxPriority == 2) {
-            return getWinningPartitionFromBetterAlgorithm(Player.A,
+            return getWinningPartitionFromSmallMeasureAlgorithm(Player.A,
                     vertices.size(), vertices);
         }
         return null;
     }
 
     /**
-     * helper method to access the <code>BetterAlgorithm</code> to retrieve a
-     * partition of the vertices given. Schewe proved in Theorem 5 that this
-     * always returns a dominion of <code>sigma</code>'s opponent and returns
-     * the correct solution for <code>n = vertices.size()</code>.
+     * helper method to access the <code>SmallMeasureAlgorithm</code> to
+     * retrieve a partition of the vertices given. Schewe proved in Theorem 5
+     * that this always returns a dominion of <code>sigma</code>'s opponent and
+     * returns the correct solution for <code>n = vertices.size()</code>.
      * 
      * @param sigma
      *            player who we want to find a loosing region for
@@ -64,9 +70,9 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
      * @return partition into (V\D, D) with D being a dominion of
      *         <code>sigma</code>'s opponent
      */
-    private Solution getWinningPartitionFromBetterAlgorithm(final Player sigma,
-            final int n, final Set<ParityVertex> vertices) {
-        return BetterAlgorithm.solveGame(n, vertices, liftable);
+    private Solution getWinningPartitionFromSmallMeasureAlgorithm(
+            final Player sigma, final int n, final Set<ParityVertex> vertices) {
+        return SmallMeasureAlgorithm.solveGame(n, vertices, liftable);
     }
 
     /**
@@ -104,8 +110,8 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
 
     /**
      * parameter for restricting the codomain of the progress measure used in
-     * <code>BetterAlgorithm</code>. This implementation is the solution of the
-     * inequation given at the bottom of p. 457:
+     * <code>SmallMeasureAlgorithm</code>. This implementation is the solution
+     * of the inequation given at the bottom of p. 457:
      * 
      * n / (π(n,c)+2) < n^(1−β(c)) / (2 3√ c )− 1
      * 

@@ -20,9 +20,9 @@ public final class AlgorithmManager {
      * @return algorithms, able to solve parity games
      */
     public static List<Solver> getAlgorithms() {
-        return Arrays.asList(new RecursiveAlgorithm(), new BetterAlgorithm(),
+        return Arrays.asList(new RecursiveAlgorithm(), new SmallMeasureAlgorithm(),
                 new MemoizedRecursiveAlgorithm(),
-                new AttractiveBetterAlgorithm(),
+                new AttractiveSmallMeasureAlgorithm(),
                 new MediumSizedStepAlgorithm(), new BigStepAlgorithm(),
                 new StrategyImprovementAlgorithm());
     }

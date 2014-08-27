@@ -16,12 +16,12 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
 
 /**
- * helper class for better algorithm, representing a progress measure, which
- * will after all lifting operations become a game progress measur. It assigns a
- * <code>MeasureValue</code> representing a value of M_G^T to every vertex in a
- * arena. It provides <code>lift()</code>, the central method to the
- * <code>BetterAlgorithm</code> and can return the <code>MeasureValue</code> of
- * vertices via <code>get()</code>.
+ * helper class for <code>SmallMeasureAlgorithm</code>, representing a progress
+ * measure, which will after all lifting operations become a game progress
+ * measur. It assigns a <code>MeasureValue</code> representing a value of M_G^T
+ * to every vertex in a arena. It provides <code>lift()</code>, the central
+ * method to the <code>SmallMeasureAlgorithm</code> and can return the
+ * <code>MeasureValue</code> of vertices via <code>get()</code>.
  * 
  * @author Arne Schröder
  */

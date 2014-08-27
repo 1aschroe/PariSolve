@@ -16,12 +16,12 @@ import parisolve.backend.ParityVertex;
  * vertex's predecessors, if the vertex itself could be used.
  * 
  * One application of this class is the iteration of liftable vertices in
- * <code>BetterAlgorithm</code>. This is done on the basis of the idea expressed
- * in LNCS 2500 p. 123 to implement a queue which hold the liftable vertices.
- * The idea for this structures implementation bases on the fact that a lift is
- * recalculating the prog-values of vertices, which change iff the successors
- * value changes. Therefore, once a vertex has been lifted, its predecessors are
- * checked, whether these can also be lifted.
+ * <code>SmallMeasureAlgorithm</code>. This is done on the basis of the idea
+ * expressed in LNCS 2500 p. 123 to implement a queue which hold the liftable
+ * vertices. The idea for this structures implementation bases on the fact that
+ * a lift is recalculating the prog-values of vertices, which change iff the
+ * successors value changes. Therefore, once a vertex has been lifted, its
+ * predecessors are checked, whether these can also be lifted.
  * 
  * Another application is that of finding vertices which might belong to a
  * attractor as used in <code>RecursiveAlgorithm.getAttractor()</code>.
@@ -106,8 +106,10 @@ public abstract class Liftable implements Iterable<ParityVertex>,
         if (liftOnce) {
             liftedVertices.add(vertex);
         }
-        
-        SetView<? extends ParityVertex> predecessors = Sets.intersection(predecessorProvider.getPredecessorsOf(vertex), verticesOfSubgame);
+
+        SetView<? extends ParityVertex> predecessors = Sets.intersection(
+                predecessorProvider.getPredecessorsOf(vertex),
+                verticesOfSubgame);
         addPredecessors(predecessors);
     }
 

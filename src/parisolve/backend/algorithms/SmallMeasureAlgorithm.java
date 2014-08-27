@@ -18,7 +18,7 @@ import parisolve.backend.algorithms.helper.Solution;
  * 
  * @author Arne Schröder
  */
-public class BetterAlgorithm implements Solver {
+public class SmallMeasureAlgorithm implements Solver {
 
     @Override
     public final Solution getSolution(final Arena arena) {

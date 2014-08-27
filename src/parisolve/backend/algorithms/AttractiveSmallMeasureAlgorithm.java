@@ -9,7 +9,7 @@ import parisolve.backend.algorithms.helper.Liftable;
 import parisolve.backend.algorithms.helper.LiftableFactory;
 import parisolve.backend.algorithms.helper.ProgressMeasure;
 
-public class AttractiveBetterAlgorithm extends BetterAlgorithm {
+public class AttractiveSmallMeasureAlgorithm extends SmallMeasureAlgorithm {
     protected static void doLift(final ProgressMeasure measure,
             final Liftable iterator, final ParityVertex vertex,
             final LiftableFactory liftable) {

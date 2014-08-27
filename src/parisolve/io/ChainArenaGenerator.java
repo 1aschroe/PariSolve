@@ -5,8 +5,8 @@ import parisolve.backend.LinkedArena;
 import parisolve.backend.Player;
 
 /**
- * self-invented generator with fixed maximal priority (P=5) and rapidly growing (x^3?)
- * solving time for BetterAlgorithm.
+ * self-invented generator with fixed maximal priority (P=5) and rapidly growing
+ * (x^3?) solving time for <code>SmallMeasureAlgorithm</code>.
  * 
  * @author Arne Schröder
  *
@@ -28,7 +28,7 @@ public class ChainArenaGenerator implements LinearArenaGenerator {
 
             arena.addEdge("a" + i, "a" + (n + i));
             arena.addEdge("a" + (n + i), "a" + i);
-            
+
             arena.addEdge("b" + (2 * n + i), "b" + i);
 
             arena.addEdge("b" + i, "b" + (n + i));
