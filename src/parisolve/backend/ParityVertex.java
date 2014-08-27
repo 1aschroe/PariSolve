@@ -17,7 +17,7 @@ public interface ParityVertex {
      * 
      * @return the vertex' successors
      */
-    Set<? extends ParityVertex> getSuccessors();
+    Set<ParityVertex> getSuccessors();
 
     /**
      * returns any successor that is also contained in the set given.

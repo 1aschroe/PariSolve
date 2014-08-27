@@ -14,7 +14,7 @@ public class LinkedArena extends AbstractCollection<ParityVertex> implements
     public static class LinkedParityVertex implements ParityVertex {
         private final int priority;
         private final Player player;
-        private final Set<LinkedParityVertex> successors = new HashSet<>();
+        private final Set<ParityVertex> successors = new HashSet<>();
         private final String name;
 
         public LinkedParityVertex(final String name, final int priority,
@@ -39,7 +39,7 @@ public class LinkedArena extends AbstractCollection<ParityVertex> implements
             return name;
         }
 
-        public final Set<? extends ParityVertex> getSuccessors() {
+        public final Set<ParityVertex> getSuccessors() {
             return successors;
         }
 

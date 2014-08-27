@@ -10,8 +10,8 @@ import parisolve.backend.Arena;
 import parisolve.backend.LinkedArena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
-import parisolve.backend.algorithms.AttractiveBetterAlgorithm;
-import parisolve.backend.algorithms.RecursiveAlgorithm.AttractorStrategyPair;
+import parisolve.backend.algorithms.helper.AttractorCalculator;
+import parisolve.backend.algorithms.helper.AttractorStrategyPair;
 import parisolve.backend.algorithms.helper.LiftableFactory;
 import parisolve.backend.algorithms.helper.Solution;
 
@@ -125,7 +125,7 @@ public class SelfcycleRemover {
             Map<ParityVertex, ParityVertex> strategy,
             LiftableFactory liftableFactory, final ParityVertex vertex,
             final Player vertexPlayer) {
-        AttractorStrategyPair attractor = AttractiveBetterAlgorithm
+        AttractorStrategyPair attractor = AttractorCalculator
                 .getAttractor(
                         new ImmutableSet.Builder<ParityVertex>().add(vertex)
                                 .build(), vertexPlayer, arena, liftableFactory);

@@ -1,6 +1,7 @@
 package parisolve.backend.algorithms;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -10,7 +11,8 @@ import java.util.stream.Collectors;
 import parisolve.backend.Arena;
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
-import parisolve.backend.algorithms.helper.Liftable;
+import parisolve.backend.algorithms.helper.AttractorCalculator;
+import parisolve.backend.algorithms.helper.AttractorStrategyPair;
 import parisolve.backend.algorithms.helper.LiftableFactory;
 import parisolve.backend.algorithms.helper.Solution;
 
@@ -28,7 +30,7 @@ public class RecursiveAlgorithm implements Solver {
      * singleton for empty set to not create an empty set for every instance
      * when one is needed.
      */
-    protected static final Set<ParityVertex> EMPTY_SET = new HashSet<ParityVertex>();
+    protected static final Set<ParityVertex> EMPTY_SET = Collections.emptySet();
 
     @Override
     public final Solution getSolution(final Arena arena) {
@@ -137,6 +139,9 @@ public class RecursiveAlgorithm implements Solver {
         }
     }
 
+    public static final AttractorStrategyPair EMPTY_PAIR = new AttractorStrategyPair(
+            EMPTY_SET, new ConcurrentHashMap<ParityVertex, ParityVertex>());
+
     /**
      * makes it possible to calculate a dominion <code>D</code>of
      * <code>sigma.getOpponent()</code> and returning a partition (V\D, D). This
@@ -178,7 +183,7 @@ public class RecursiveAlgorithm implements Solver {
      * @return dominion of sigma's opponent.
      */
     protected final AttractorStrategyPair getDominionOfSigmaOpponent(
-            final Collection<? extends ParityVertex> vertices,
+            final Set<ParityVertex> vertices,
             final int maxPriority, final Player sigma) {
         // in Abbildung 15.5 verticesWithMaxPriority is N
         final Set<ParityVertex> verticesWithMaxPriority = vertices
@@ -260,34 +265,6 @@ public class RecursiveAlgorithm implements Solver {
     }
 
     /**
-     * represents an attractor of a set together with the strategy to get to
-     * that set.
-     * 
-     * @author Arne Schröder
-     */
-    public static class AttractorStrategyPair {
-        private final Set<ParityVertex> attractor;
-        private final Map<ParityVertex, ParityVertex> strategy;
-
-        public AttractorStrategyPair(final Set<ParityVertex> attractor,
-                final Map<ParityVertex, ParityVertex> strategy) {
-            this.attractor = attractor;
-            this.strategy = strategy;
-        }
-
-        public Set<ParityVertex> getAttractor() {
-            return attractor;
-        }
-
-        public Map<ParityVertex, ParityVertex> getStrategy() {
-            return strategy;
-        }
-    }
-
-    public static final AttractorStrategyPair EMPTY_PAIR = new AttractorStrategyPair(
-            EMPTY_SET, new ConcurrentHashMap<ParityVertex, ParityVertex>());
-
-    /**
      * calculates the attractor of a given set of vertices with respect to
      * player <code>sigma</code>. That is, from the collection of vertices
      * returned, sigma can force every path into <code>vertices</code>.
@@ -304,36 +281,7 @@ public class RecursiveAlgorithm implements Solver {
     protected final AttractorStrategyPair getAttractor(
             final Collection<? extends ParityVertex> vertices,
             final Player sigma,
-            final Collection<? extends ParityVertex> allVertices) {
-        final Set<ParityVertex> attractor = new HashSet<>(vertices);
-        final Map<ParityVertex, ParityVertex> strategy = new ConcurrentHashMap<>();
-        // the vertices which might get into the attractor eventually
-        final Set<ParityVertex> otherVertices = new HashSet<>(allVertices);
-        otherVertices.removeAll(attractor);
-        Liftable iterator = liftable.getLiftableInstance(otherVertices, true);
-
-        for (final ParityVertex vertex : iterator) {
-            final Set<ParityVertex> successorsInSubGame = new HashSet<>(
-                    vertex.getSuccessors());
-            // getSuccessors returns all successor in the original graph.
-            // Therefore, we must remove everything outside of allVertices.
-            successorsInSubGame.retainAll(allVertices);
-            if (vertex.getPlayer() == sigma.getOponent()
-                    && attractor.containsAll(successorsInSubGame)) {
-                attractor.add(vertex);
-                iterator.liftWasSuccessful(vertex);
-            } else if (vertex.getPlayer() == sigma) {
-                for (final ParityVertex successor : successorsInSubGame) {
-                    if (attractor.contains(successor)) {
-                        attractor.add(vertex);
-                        iterator.liftWasSuccessful(vertex);
-                        strategy.put(vertex, successor);
-                        break;
-                    }
-                }
-            }
-        }
-
-        return new AttractorStrategyPair(attractor, strategy);
+            final Set<ParityVertex> allVertices) {
+        return AttractorCalculator.getAttractor(vertices, sigma, allVertices, liftable);
     }
 }

@@ -4,6 +4,7 @@ import java.util.Set;
 
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
+import parisolve.backend.algorithms.helper.AttractorStrategyPair;
 import parisolve.backend.algorithms.helper.Solution;
 
 /**
