@@ -27,6 +27,14 @@ public class SmallMeasureAlgorithm implements Solver {
         return solveGame(vertices.size(), vertices, liftable);
     }
 
+    public static Solution solveGame(final int size,
+            final Set<ParityVertex> vertices, final LiftableFactory liftable) {
+        final int maxPriority = Arena.getMaxPriority(vertices);
+        // is this the best choice?
+        final Player sigma = Player.getPlayerForPriority(maxPriority);
+        return solveGame(size, vertices, sigma, liftable);
+    }
+
     /**
      * calculates a dominion of the player given, using a progress measure of
      * size <code>n</code> on the vertices given. If <code>n</code> equals the
@@ -40,15 +48,15 @@ public class SmallMeasureAlgorithm implements Solver {
      *            size of progress measure to consider
      * @param vertices
      *            the vertices to consider when solving the game
+     * @param sigma
      * @param liftable
      *            a liftable factory which has the arena's vertices stored and
      *            can be queried for a liftable instance
      * @return the winning region
      */
     public static Solution solveGame(final int n,
-            final Set<ParityVertex> vertices, final LiftableFactory liftable) {
-        final int maxPriority = Arena.getMaxPriority(vertices);
-        final Player sigma = Player.getPlayerForPriority(maxPriority);
+            final Set<ParityVertex> vertices, final Player sigma,
+            final LiftableFactory liftable) {
         final ProgressMeasure measure = new ProgressMeasure(vertices, sigma, n);
 
         final Liftable iterator = liftable.getLiftableInstance(vertices, false);

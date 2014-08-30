@@ -4,6 +4,7 @@ import java.util.Set;
 
 import parisolve.backend.ParityVertex;
 import parisolve.backend.Player;
+import parisolve.backend.algorithms.helper.AttractorCalculator;
 import parisolve.backend.algorithms.helper.AttractorStrategyPair;
 import parisolve.backend.algorithms.helper.Solution;
 
@@ -40,9 +41,13 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
         final Solution approximation = getWinningPartitionFromSmallMeasureAlgorithm(
                 sigma.getOponent(), pi(vertices.size(), maxPriority + 1),
                 vertices);
-        return new AttractorStrategyPair(
-                approximation.getWinningRegionFor(sigma.getOponent()),
-                approximation.getStrategy());
+        final AttractorStrategyPair attractor = AttractorCalculator
+                .getAttractor(
+                        approximation.getWinningRegionFor(sigma.getOponent()),
+                        sigma.getOponent(), vertices, liftable);
+        // extending the strategy
+        attractor.getStrategy().putAll(approximation.getStrategy());
+        return attractor;
     }
 
     @Override
@@ -72,7 +77,7 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
      */
     private Solution getWinningPartitionFromSmallMeasureAlgorithm(
             final Player sigma, final int n, final Set<ParityVertex> vertices) {
-        return SmallMeasureAlgorithm.solveGame(n, vertices, liftable);
+        return SmallMeasureAlgorithm.solveGame(n, vertices, sigma, liftable);
     }
 
     /**
@@ -123,7 +128,7 @@ public class BigStepAlgorithm extends RecursiveAlgorithm {
      */
     public static int pi(final int n, final int c) {
         final double rootExpression = 2.0 * Math.cbrt(c) * Math.pow(n, beta(c));
-        return (int) Math.ceil(rootExpression * n + 2 * rootExpression - 2 * n
-                / (n - rootExpression));
+        return (int) Math.ceil(Math.max(n * rootExpression
+                / (n - rootExpression), 2)) - 2;
     }
 }

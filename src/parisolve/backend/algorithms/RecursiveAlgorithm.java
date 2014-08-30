@@ -117,9 +117,11 @@ public class RecursiveAlgorithm implements Solver {
                 .getAttractor();
         winningRegionOfSigmaOpponent.addAll(partition2
                 .getWinningRegionFor(sigma.getOponent()));
+        winningRegionOfSigmaOpponent.addAll(dominion.getAttractor());
         final Map<ParityVertex, ParityVertex> strategy = new ConcurrentHashMap<>();
         strategy.putAll(dominionOfSigmaOpponent.getStrategy());
         strategy.putAll(partition2.getStrategy());
+        strategy.putAll(dominion.getStrategy());
         return new Solution(partition2.getWinningRegionFor(sigma),
                 winningRegionOfSigmaOpponent, sigma, strategy);
     }
