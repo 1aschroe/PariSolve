@@ -246,6 +246,9 @@ public class CommandLineInterface extends AbstractUI {
         case "chain":
             generatorType = GeneratorType.CHAIN;
             break;
+        case "hlb":
+            generatorType = GeneratorType.HLB;
+            break;
         default:
             displayError("Unknown generator type: " + parts[1]);
             return;

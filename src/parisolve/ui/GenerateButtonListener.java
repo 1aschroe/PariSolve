@@ -164,6 +164,7 @@ final class GenerateButtonListener extends SelectionAdapter {
         final Button hardButton = createRadioButton(linearTab, "hard");
         final Button twoRingButton = createRadioButton(linearTab, "two ring");
         final Button chainButton = createRadioButton(linearTab, "chain");
+        final Button hlbButton = createRadioButton(linearTab, "Hlb");
 
         final Spinner noLevels = createSpinner(linearTab, "# of levels:",
                 lastLinearSize);
@@ -186,6 +187,8 @@ final class GenerateButtonListener extends SelectionAdapter {
                     type = GeneratorType.TWO_RING;
                 } else if (chainButton.getSelection()) {
                     type = GeneratorType.CHAIN;
+                } else if (hlbButton.getSelection()) {
+                    type = GeneratorType.HLB;
                 } else {
                     ui.displayError("No selection of generator type made.");
                     return;

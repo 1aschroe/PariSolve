@@ -10,7 +10,12 @@ import parisolve.backend.Player;
  * 
  * @author Arne Schröder
  */
-public class HlbArenaGenerator {
+public class HlbArenaGenerator implements LinearArenaGenerator {
+    @Override
+    public Arena generateArena(int n) {
+        return generateHlbArena(n, 1);
+    }
+
     public static Arena generateHlbArena(final int l, final int b) {
         LinkedArena arena = new LinkedArena();
         addOddLevel(b, arena);

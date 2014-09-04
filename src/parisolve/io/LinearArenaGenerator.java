@@ -4,7 +4,7 @@ import parisolve.backend.Arena;
 
 public interface LinearArenaGenerator {
     public enum GeneratorType {
-        WEAK, SOLITAIRE, RESILIENT, HARD, TWO_RING, CHAIN;
+        WEAK, SOLITAIRE, RESILIENT, HARD, TWO_RING, CHAIN, HLB;
     }
 
     public Arena generateArena(final int n);
@@ -29,6 +29,9 @@ public interface LinearArenaGenerator {
             break;
         case CHAIN:
             generator = new ChainArenaGenerator();
+            break;
+        case HLB:
+            generator = new HlbArenaGenerator();
             break;
         default:
             throw new IllegalArgumentException(type
