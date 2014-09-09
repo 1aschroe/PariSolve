@@ -1,9 +1,11 @@
 package parisolve.backend.algorithms.preprocessor;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import parisolve.backend.Arena;
+import parisolve.backend.Player;
 import parisolve.backend.algorithms.Solver;
 import parisolve.backend.algorithms.helper.Solution;
 
@@ -48,6 +50,9 @@ public class GraphPreprocessor implements Solver {
     }
 
     public Solution solve(Arena arena) {
+        if (arena.isEmpty()) {
+            return new Solution(Collections.emptySet(), Player.A);
+        }
         if (arena.size() < arenaSize) {
             return solveCompressedArena(arena);
         }
