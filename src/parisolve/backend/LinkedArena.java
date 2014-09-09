@@ -86,6 +86,22 @@ public class LinkedArena extends AbstractCollection<ParityVertex> implements
 
     @Override
     public final String getStatistics() {
+
+        final boolean solitaire = ArenaManager.isSolitaire(this);
+        final boolean weak = ArenaManager.isWeak(this);
+
+        return getStatistics("Number of vertices:\t%d\n"
+                + "Number of edges\t%d\n" + "Average degree\t%f\n"
+                + "Maximal degree\t%d\n" + "Maximal priority\t%d\n"
+                + "Number of selfloops\t%d")
+                + "\n\n"
+                + (solitaire ? "" : "not ")
+                + "solitaire\n"
+                + (weak ? "" : "not ") + "weak";
+    }
+
+    @Override
+    public final String getStatistics(final String formatString) {
         int maxDegree = 0;
         int numberEdges = 0;
         int numberOfSelfloops = 0;
@@ -101,16 +117,9 @@ public class LinkedArena extends AbstractCollection<ParityVertex> implements
         }
         final int numberVertices = vertices.size();
 
-        final boolean solitaire = ArenaManager.isSolitaire(this);
-        final boolean weak = ArenaManager.isWeak(this);
-
-        return "Number of vertices:\t" + numberVertices + "\nNumber of edges\t"
-                + numberEdges + "\nAverage degree\t" + ((double) numberEdges)
-                / numberVertices + "\nMaximal degree\t" + maxDegree
-                + "\nMaximal priority\t" + getMaxPriority()
-                + "\nNumber of selfloops\t" + numberOfSelfloops + "\n\n"
-                + (solitaire ? "" : "not ") + "solitaire\n"
-                + (weak ? "" : "not ") + "weak";
+        return String.format(formatString, numberVertices, numberEdges,
+                ((double) numberEdges) / numberVertices, maxDegree,
+                getMaxPriority(), numberOfSelfloops);
     }
 
     /**

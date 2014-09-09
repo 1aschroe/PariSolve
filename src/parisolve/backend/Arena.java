@@ -33,6 +33,12 @@ public interface Arena extends Collection<ParityVertex> {
     String getStatistics();
 
     /**
+     * @return a textual description of the numerical properties of this arena,
+     *         in the format as specified.
+     */
+    String getStatistics(final String formatString);
+
+    /**
      * @return the maximal priority of the <code>vertices</code> given.
      */
     public static int getMaxPriority(

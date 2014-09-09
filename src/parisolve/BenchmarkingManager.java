@@ -1,7 +1,9 @@
 package parisolve;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,11 +11,10 @@ import java.util.Set;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import parisolve.backend.Arena;
-import parisolve.backend.algorithms.AttractiveSmallMeasureAlgorithm;
-import parisolve.backend.algorithms.SmallMeasureAlgorithm;
 import parisolve.backend.algorithms.BigStepAlgorithm;
 import parisolve.backend.algorithms.MemoizedRecursiveAlgorithm;
 import parisolve.backend.algorithms.RecursiveAlgorithm;
+import parisolve.backend.algorithms.SmallMeasureAlgorithm;
 import parisolve.backend.algorithms.Solver;
 import parisolve.backend.algorithms.helper.SolutionWithTime;
 import parisolve.backend.algorithms.preprocessor.GraphPreprocessor;
@@ -27,7 +28,8 @@ import com.google.common.collect.Sets;
 
 /**
  * provides methods to measure and benchmark the performance of algorithms for
- * solving parity games.
+ * solving parity games. The output is printed to stdout in a format such that
+ * it can directly be used in Matlab for analysis.
  * 
  * @author Arne Schröder
  */
@@ -45,6 +47,7 @@ public final class BenchmarkingManager {
     protected static void doBenchmarking() {
         doLinearBenchmarking();
         doRandomBenchmarking();
+        doPseudoRandomBenchmarking();
     }
 
     /**
@@ -54,7 +57,6 @@ public final class BenchmarkingManager {
         return new ImmutableList.Builder<Class<? extends Solver>>()
                 .add(MemoizedRecursiveAlgorithm.class)
                 .add(RecursiveAlgorithm.class).add(SmallMeasureAlgorithm.class)
-                .add(AttractiveSmallMeasureAlgorithm.class)
                 .add(BigStepAlgorithm.class).build();
     }
 
@@ -107,8 +109,8 @@ public final class BenchmarkingManager {
 
     protected static void doLinearBenchmarking(GeneratorType type,
             final Class<? extends Solver> solverClass) {
-        Set<Set<Optimization>> optimizationPowerSet = Sets
-                .powerSet(new HashSet<>(Arrays.asList(Optimization.values())));
+        Set<Set<Optimization>> optimizationPowerSet = Sets.powerSet(Sets
+                .newHashSet(Optimization.values()));
         for (final Set<Optimization> optimizations : optimizationPowerSet) {
             doLinearBenchmarking(type, solverClass, optimizations);
         }
@@ -121,8 +123,8 @@ public final class BenchmarkingManager {
             final Set<Optimization> optimizations) {
         double lastTime = 0;
         int n = 1;
-        System.out.println("data_" + type + "_" + solverClass.getSimpleName()
-                + (optimizations.isEmpty() ? "" : optimizations) + " = [");
+        System.out.print("data_" + type + "_"
+                + getDescriptiveString(solverClass, optimizations) + " = [");
         warmUp(LinearArenaGenerator.generateArena(type, 10), solverClass);
         while (lastTime < MAX_TIME_TO_SAMPLE) {
             // System.out.print("n=" + n + "\t");
@@ -143,6 +145,16 @@ public final class BenchmarkingManager {
             }
         }
         System.out.println("]';");
+    }
+
+    private static String getDescriptiveString(
+            final Class<? extends Solver> solverClass,
+            final Set<Optimization> optimizations) {
+        String result = solverClass.getSimpleName();
+        for (final Optimization optimization : optimizations) {
+            result += "_" + optimization;
+        }
+        return result;
     }
 
     /**
@@ -219,6 +231,88 @@ public final class BenchmarkingManager {
                 c = MIN_C;
                 n *= 2;
             }
+        }
+    }
+
+    static final int FIRST_ARENA_NO = 1;
+    static final String FOLDER_WITH_ARENAS = "pseudo_random";
+
+    private static void doPseudoRandomBenchmarking() {
+        final File arenaDir = new File(FOLDER_WITH_ARENAS);
+        final String[] arenaFiles = arenaDir.list();
+
+        List<Set<Optimization>> optimizationCombis = new ArrayList<>();
+        optimizationCombis.add(Collections.emptySet());
+        // TODO: Add SCC
+        optimizationCombis.add(Sets.newHashSet(Optimization.SELFCYCLE_REMOVAL));
+        optimizationCombis.add(Sets.newHashSet(Optimization.values()));
+
+        printArenaDescriptions(arenaFiles);
+
+        printBenchmarks(arenaFiles, optimizationCombis);
+    }
+
+    protected static void printBenchmarks(final String[] arenaFiles,
+            List<Set<Optimization>> optimizationCombis) {
+
+        printSolverNames(optimizationCombis);
+
+        int arenaNo = FIRST_ARENA_NO;
+        for (final String arenaFile : arenaFiles) {
+            try {
+                Arena arena = ArenaManager.loadArena(FOLDER_WITH_ARENAS + "/"
+                        + arenaFile);
+                int solverNo = 1;
+                for (final Class<? extends Solver> solverClass : getAlgorithms()) {
+                    for (final Set<Optimization> optimizations : optimizationCombis) {
+                        System.out.println("data(:," + arenaNo + ", "
+                                + solverNo + ") = [");
+                        measure(solverClass, arena, optimizations);
+                        System.out.println("]';");
+                        solverNo++;
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            arenaNo++;
+        }
+    }
+
+    protected static void printSolverNames(
+            List<Set<Optimization>> optimizationCombis) {
+        int solverNo = 1;
+        for (final Class<? extends Solver> solverClass : getAlgorithms()) {
+            for (final Set<Optimization> optimizations : optimizationCombis) {
+                System.out.print("algorithmNames{" + solverNo
+                        + "} = 'data_RANDOM_"
+                        + getDescriptiveString(solverClass, optimizations)
+                        + "'");
+                solverNo++;
+            }
+        }
+    }
+
+    protected static void printArenaDescriptions(final String[] arenaFiles) {
+        System.out
+                .println("% Legende:\tNumber of vertices\tNumber of edges\tAverage degree\tMaximal degree\tMaximal priority\tNumber of selfloops");
+
+        int arenaNo = FIRST_ARENA_NO;
+        for (final String arenaFile : arenaFiles) {
+            try {
+                Arena arena = ArenaManager.loadArena(FOLDER_WITH_ARENAS + "/"
+                        + arenaFile);
+                System.out.println("arenaNames{" + arenaNo + "} = '"
+                        + arenaFile + "'");
+
+                System.out.println("arenaSpecs(:," + arenaNo + ") = [");
+                System.out.println(arena
+                        .getStatistics("%d\t%d\t%f\t%d\t%d\t%d"));
+                System.out.println("]';");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            arenaNo++;
         }
     }
 
