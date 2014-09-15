@@ -6,3 +6,4 @@
     -> Schewe, PHD, S. 30
 - Grafisches Erstellen von Arenen
 - Optionen wie -nt (zusammengezogen von -n -t) zulassen
+- GraphPreprocessing für den Benutzer ermöglichen

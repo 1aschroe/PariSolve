@@ -117,6 +117,10 @@ public class CommandLineInterface extends AbstractUI {
                     doGenerateLinear(getParts(br, parts, 2,
                             "Expected parameters are: [type of arena] [number of levels]"));
                     break;
+                case "generate":
+                    displayInfo("There is no command 'generate'.");
+                    displayInfo("Did you mean 'generate-random', 'generate-hlb' or 'generate-linear'?");
+                    break;
                 case "save":
                     doSave(getParts(br, parts, 1, null));
                     break;
