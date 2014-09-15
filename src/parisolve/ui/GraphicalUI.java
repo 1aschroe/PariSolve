@@ -244,6 +244,7 @@ public class GraphicalUI extends AbstractUI {
                                 + "Player 0 wins even priorities and player 1 wins odd priorities.\n"
                                 + "Once solved, the winning region of player 0 is displayed in green.\n"
                                 + "The winning region of player 1 is displayed in blue.");
+                        // TODO: display this in a read-only text-box such that links can easily be copied
                         displayInfo("The images for loading, generating and solving arenas are public domain and were retrieved from:\n"
                                 + "https://openclipart.org/detail/119905/load-cedric-bosdonnat-01-by-anonymous\n"
                                 + "http://pixabay.com/de/w%C3%BCrfel-sechs-gesichter-rollen-35637/\n"
@@ -251,7 +252,9 @@ public class GraphicalUI extends AbstractUI {
                                 + "http://pixabay.com/de/puzzle-st%C3%BCck-stichs%C3%A4ge-konzept-308908/\n"
                                 + "respecitvely.\n"
                                 + "The image for saving arenas is under creative commons attribution license, created by VistaICO.com and was retrieved from:\n"
-                                + "https://www.iconfinder.com/icons/49256/disk_save_icon");
+                                + "https://www.iconfinder.com/icons/49256/disk_save_icon\n"
+                                + "Furthermore, the libraries SWT and Zest under the EPL\n"
+                                + "and the libraries Apache Commons and Google Guava under the Apache license have been used.\n");
                     }
                 });
     }
