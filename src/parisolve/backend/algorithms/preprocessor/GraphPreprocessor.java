@@ -33,6 +33,9 @@ public class GraphPreprocessor implements Solver {
     int arenaSize = Integer.MIN_VALUE;
 
     protected Solution solveCompressedArena(Arena arena) {
+        if (arena.isEmpty()) {
+            return new Solution(Collections.emptySet(), Player.A);
+        }
         arenaSize = arena.size();
         if (optimizationsToApply.contains(Optimization.VERTEX_COMPRESSION)) {
             return VertexCompressor.solveCompressedArena(arena, this);
@@ -42,6 +45,9 @@ public class GraphPreprocessor implements Solver {
     }
 
     protected Solution solveSelfcyclelessArena(Arena arena) {
+        if (arena.isEmpty()) {
+            return new Solution(Collections.emptySet(), Player.A);
+        }
         if (optimizationsToApply.contains(Optimization.SELFCYCLE_REMOVAL)) {
             return SelfcycleRemover.solveSelfcyclelessArena(arena, this);
         } else {
