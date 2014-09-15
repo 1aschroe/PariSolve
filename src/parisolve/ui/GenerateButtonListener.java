@@ -37,7 +37,7 @@ final class GenerateButtonListener extends SelectionAdapter {
     public void widgetSelected(final SelectionEvent arg0) {
         final Shell generateShell = new Shell(GraphicalUI.DISPLAY);
         generateShell.setImage(GraphicalUI
-                .getIcon("images/32px-2-Dice-Icon.svg.png"));
+                .getIcon("images/dice-35637_640.png"));
 
         final TabFolder tabFolder = new TabFolder(generateShell, SWT.BORDER);
 

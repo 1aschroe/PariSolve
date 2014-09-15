@@ -187,8 +187,8 @@ public class GraphicalUI extends AbstractUI {
      */
     private void createGenerateButton(final ToolBar bar) {
         // image's source:
-        // http://en.wikipedia.org/wiki/File:2-Dice-Icon.svg
-        createButton(bar, "images/32px-2-Dice-Icon.svg.png", "Generate",
+        // http://pixabay.com/de/w%C3%BCrfel-sechs-gesichter-rollen-35637/
+        createButton(bar, "images/dice-35637_640.png", "Generate",
                 new GenerateButtonListener(this));
     }
 
@@ -220,8 +220,8 @@ public class GraphicalUI extends AbstractUI {
      */
     private void createSolveButton(final ToolBar bar) {
         // image's source:
-        // https://commons.wikimedia.org/wiki/File:Pocket_cube_twisted.jpg
-        createButton(bar, "images/Pocket_cube_twisted.jpg", "Solve",
+        // http://pixabay.com/de/puzzle-st%C3%BCck-stichs%C3%A4ge-konzept-308908/
+        createButton(bar, "images/puzzle-308908_640.png", "Solve",
                 new SolveSelectionListener());
     }
 
@@ -244,6 +244,14 @@ public class GraphicalUI extends AbstractUI {
                                 + "Player 0 wins even priorities and player 1 wins odd priorities.\n"
                                 + "Once solved, the winning region of player 0 is displayed in green.\n"
                                 + "The winning region of player 1 is displayed in blue.");
+                        displayInfo("The images for loading, generating and solving arenas are public domain and were retrieved from:\n"
+                                + "https://openclipart.org/detail/119905/load-cedric-bosdonnat-01-by-anonymous\n"
+                                + "http://pixabay.com/de/w%C3%BCrfel-sechs-gesichter-rollen-35637/\n"
+                                + "and\n"
+                                + "http://pixabay.com/de/puzzle-st%C3%BCck-stichs%C3%A4ge-konzept-308908/\n"
+                                + "respecitvely.\n"
+                                + "The image for saving arenas is under creative commons attribution license, created by VistaICO.com and was retrieved from:\n"
+                                + "https://www.iconfinder.com/icons/49256/disk_save_icon");
                     }
                 });
     }
